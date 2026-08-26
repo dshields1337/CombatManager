@@ -415,4 +415,28 @@ public sealed class CoreUtilityTests
         Assert.IsEmpty(roster.Participants);
         Assert.AreEqual("Goblin", roster.Add(goblin).DisplayName);
     }
+
+    [TestMethod]
+    public void CombatRosterOrdersInitiativeAndTracksRounds()
+    {
+        var roster = new CombatRoster();
+        CombatParticipant goblin = roster.Add(new CreatureSummary { Id = 7, Name = "Goblin" });
+        CombatParticipant dragon = roster.Add(new CreatureSummary { Id = 8, Name = "Dragon" });
+        CombatParticipant ogre = roster.Add(new CreatureSummary { Id = 9, Name = "Ogre" });
+
+        Assert.IsTrue(roster.SetInitiative(goblin.Sequence, 12));
+        Assert.IsTrue(roster.SetInitiative(dragon.Sequence, 20));
+        Assert.IsTrue(roster.SetInitiative(ogre.Sequence, 12));
+        Assert.AreEqual("Dragon", roster.Participants[0].DisplayName);
+        Assert.AreEqual("Goblin", roster.Participants[1].DisplayName);
+        Assert.AreEqual("Ogre", roster.Participants[2].DisplayName);
+        Assert.AreEqual("Dragon", roster.NextTurn().DisplayName);
+        Assert.AreEqual(1, roster.Round);
+        Assert.AreEqual("Goblin", roster.NextTurn().DisplayName);
+        Assert.AreEqual("Ogre", roster.NextTurn().DisplayName);
+        Assert.AreEqual("Dragon", roster.NextTurn().DisplayName);
+        Assert.AreEqual(2, roster.Round);
+        Assert.AreEqual("Ogre", roster.PreviousTurn().DisplayName);
+        Assert.AreEqual(1, roster.Round);
+    }
 }

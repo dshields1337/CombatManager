@@ -132,14 +132,18 @@ Last updated: 2026-08-26
 - Replaced the Combat placeholder with the first interactive encounter screen. Monster summary dialogs can add combatants; the roster displays CR and HP, supports individual removal, and requires confirmation before clearing the encounter.
 - Latest core result: 27 passed, 0 failed, 0 skipped; Release Android build succeeded with 0 warnings and 0 errors. The signed APK installed successfully on API 36.
 - API 36 verification added Goblin twice as `Goblin` and `Goblin 2`, displayed both at HP 6 / 6, removed an individual participant, cleared the remainder through confirmation, restored the empty state, and left the process alive.
+- Extended `CombatRoster` with initiative values, descending deterministic ordering, stable sequence-based tie handling, active-participant state, forward/backward turns, and round tracking.
+- Added per-combatant initiative entry, disabled turn controls until the roster is ready, active-combatant marking, and Previous/Next controls with visible round status.
+- Latest core result: 28 passed, 0 failed, 0 skipped; both Debug and Release Android builds succeeded with 0 warnings and 0 errors.
+- API 36 verification set initiative in the participant workflow, enabled turn navigation, marked the active combatant, advanced through wraparound to Round 2, returned to Round 1 with Previous, and confirmed the process remained alive.
 
 ## In progress
 
-- All five planned read-only reference destinations are complete, and the first interactive Combat slice is installed and working. Initiative ordering and turn controls are next.
+- All five planned read-only reference destinations are complete. Combat now supports encounter assembly, initiative ordering, active turns, and round navigation; HP editing is next.
 
 ## Blockers and required actions
 
-- No current implementation blocker. Combat sessions are intentionally in-memory until the initiative workflow is shaped and tested.
+- No current implementation blocker. Combat sessions are intentionally in-memory until HP interaction is shaped and tested.
 
 ## Repository ownership and publishing
 
@@ -154,8 +158,8 @@ Last updated: 2026-08-26
 
 ## Next actions
 
-1. Add initiative values and deterministic initiative ordering to the combat roster.
-2. Add basic next-turn/previous-turn controls and a visible active combatant.
+1. Add damage/healing controls and current-HP updates for combatants.
+2. Define defeated/unconscious visual treatment without prematurely importing the legacy condition graph.
 3. Add encounter persistence after the interaction model is stable.
 
 ## Tracking convention

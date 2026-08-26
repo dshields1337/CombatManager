@@ -59,6 +59,16 @@ public class MainActivity : Activity
         foreach (Page page in _pages) FindViewById<Button>(page.ButtonId)!.Click += (_, _) => SelectPage(page);
         FindViewById<ListView>(Resource.Id.combat_list)!.ItemClick += (_, args) => ShowCombatParticipant(_combatRoster.Participants[args.Position]);
         FindViewById<Button>(Resource.Id.clear_combat_button)!.Click += (_, _) => ConfirmClearCombat();
+        FindViewById<Button>(Resource.Id.next_turn_button)!.Click += (_, _) =>
+        {
+            _combatRoster.NextTurn();
+            RefreshCombatRoster();
+        };
+        FindViewById<Button>(Resource.Id.previous_turn_button)!.Click += (_, _) =>
+        {
+            _combatRoster.PreviousTurn();
+            RefreshCombatRoster();
+        };
         FindViewById<SearchView>(Resource.Id.monster_search)!.QueryTextChange += (_, args) => OnQueryChanged(args.NewText);
         FindViewById<Spinner>(Resource.Id.monster_type_filter)!.ItemSelected += (_, _) => OnFilterChanged();
         FindViewById<Spinner>(Resource.Id.monster_cr_filter)!.ItemSelected += (_, _) => OnFilterChanged();
@@ -693,7 +703,14 @@ public class MainActivity : Activity
         FindViewById<TextView>(Resource.Id.combat_empty)!.Visibility = count == 0 ? ViewStates.Visible : ViewStates.Gone;
         ListView list = FindViewById<ListView>(Resource.Id.combat_list)!;
         list.Visibility = count == 0 ? ViewStates.Gone : ViewStates.Visible;
-        list.Adapter = new CombatParticipantListAdapter(this, _combatRoster.Participants);
+        list.Adapter = new CombatParticipantListAdapter(this, _combatRoster.Participants, _combatRoster.ActiveParticipant?.Sequence);
+        bool initiativeReady = count > 0 && _combatRoster.Participants.All(participant => participant.Initiative.HasValue);
+        FindViewById<LinearLayout>(Resource.Id.turn_controls)!.Visibility = count == 0 ? ViewStates.Gone : ViewStates.Visible;
+        FindViewById<Button>(Resource.Id.next_turn_button)!.Enabled = initiativeReady;
+        FindViewById<Button>(Resource.Id.previous_turn_button)!.Enabled = initiativeReady;
+        FindViewById<TextView>(Resource.Id.round_status)!.Text = !initiativeReady
+            ? "Set initiative for all combatants"
+            : _combatRoster.Round == 0 ? "Ready to start" : $"Round {_combatRoster.Round}";
     }
 
     private void ShowCombatParticipant(CombatParticipant participant)
@@ -701,6 +718,7 @@ public class MainActivity : Activity
         var dialog = new AlertDialog.Builder(this);
         dialog.SetTitle(participant.DisplayName);
         dialog.SetMessage($"CR {participant.ChallengeRating}\nHP {participant.CurrentHP} / {participant.MaximumHP}");
+        dialog.SetNeutralButton(Resource.String.set_initiative, (_, _) => ShowInitiativePrompt(participant));
         dialog.SetNegativeButton(Resource.String.remove_from_combat, (_, _) =>
         {
             _combatRoster.Remove(participant.Sequence);
@@ -708,6 +726,37 @@ public class MainActivity : Activity
         });
         dialog.SetPositiveButton(global::Android.Resource.String.Ok, (_, _) => { });
         dialog.Show();
+    }
+
+    private void ShowInitiativePrompt(CombatParticipant participant)
+    {
+        var input = new EditText(this)
+        {
+            InputType = global::Android.Text.InputTypes.ClassNumber | global::Android.Text.InputTypes.NumberFlagSigned,
+            Text = participant.Initiative?.ToString() ?? string.Empty
+        };
+        input.SetSelectAllOnFocus(true);
+        int padding = (int)(24 * Resources!.DisplayMetrics!.Density);
+        var container = new LinearLayout(this) { Orientation = global::Android.Widget.Orientation.Vertical };
+        container.SetPadding(padding, 0, padding, 0);
+        container.AddView(input);
+
+        var dialog = new AlertDialog.Builder(this);
+        dialog.SetTitle(participant.DisplayName);
+        dialog.SetMessage(Resource.String.initiative_prompt);
+        dialog.SetView(container);
+        dialog.SetNegativeButton(global::Android.Resource.String.Cancel, (_, _) => { });
+        dialog.SetPositiveButton(global::Android.Resource.String.Ok, (_, _) =>
+        {
+            if (int.TryParse(input.Text, out int initiative))
+            {
+                _combatRoster.SetInitiative(participant.Sequence, initiative);
+                RefreshCombatRoster();
+            }
+            else Toast.MakeText(this, "Enter a whole number for initiative.", ToastLength.Short)?.Show();
+        });
+        dialog.Show();
+        input.RequestFocus();
     }
 
     private void ConfirmClearCombat()

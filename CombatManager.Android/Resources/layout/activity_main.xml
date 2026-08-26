@@ -23,6 +23,11 @@
                 <TextView android:id="@+id/combat_count" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:textColor="@color/text_secondary" />
                 <Button android:id="@+id/clear_combat_button" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/clear_encounter" />
             </LinearLayout>
+            <LinearLayout android:id="@+id/turn_controls" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:paddingStart="12dp" android:paddingEnd="12dp" android:paddingBottom="8dp" android:visibility="gone">
+                <Button android:id="@+id/previous_turn_button" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/previous_turn" />
+                <TextView android:id="@+id/round_status" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center" android:textColor="@color/text_primary" android:textStyle="bold" />
+                <Button android:id="@+id/next_turn_button" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/next_turn" />
+            </LinearLayout>
             <TextView android:id="@+id/combat_empty" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:gravity="center" android:padding="32dp" android:text="@string/encounter_empty" android:textColor="@color/text_secondary" android:textSize="17sp" />
             <ListView android:id="@+id/combat_list" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:divider="@color/primary_light" android:dividerHeight="1dp" android:visibility="gone" />
         </LinearLayout>

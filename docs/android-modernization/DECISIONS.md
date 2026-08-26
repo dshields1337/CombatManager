@@ -146,3 +146,10 @@
 - Status: accepted
 - Decision: introduce a platform-neutral `CombatRoster` populated from `CreatureSummary`, and initially support add, duplicate naming, HP display, remove, and clear without loading the legacy combat graph or persisting encounters.
 - Reason: this creates a testable interactive vertical slice using the complete modern Monsters browser. Deferring persistence, initiative ordering, conditions, and spell state keeps their data requirements explicit and avoids locking storage around an untested interaction model.
+
+## D022: Use explicit deterministic initiative order and turn state
+
+- Date: 2026-08-26
+- Status: accepted
+- Decision: store a whole-number initiative result on each modern combat participant, sort descending with insertion sequence as the stable tie-breaker, and track the active participant and round inside `CombatRoster`.
+- Reason: deterministic ties make behavior testable and predictable without requiring Dexterity and random tie-break inputs from the legacy `InitiativeCount` UI. The roster owns navigation semantics while Android remains a thin display/input layer.

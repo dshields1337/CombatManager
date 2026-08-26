@@ -147,6 +147,9 @@ Last updated: 2026-08-26
 - API 36 Debug verification restored two Goblins with initiatives 20/12, Goblin at 4 / 6 HP, active marker, and Round 1 after a forced process stop.
 - Replaced reflection-based serialization after Release trim analysis warned it could remove required members. The explicit XML reader/writer produced a clean Release build with 0 warnings and 0 errors.
 - A stale Android packaging cache briefly produced `Invalid compressed assembly descriptor index 34`; `dotnet clean` followed by Release build corrected the package. The rebuilt signed Release APK launched successfully and restored a newly added Goblin after force-stop/relaunch.
+- Added manual player/NPC combatants with required names and custom maximum HP, including case-insensitive duplicate naming and full encounter persistence.
+- Latest core result: 31 passed, 0 failed, 0 skipped; Release Android build succeeded with 0 warnings and 0 errors.
+- API 36 verification created `Valeros` with 24 HP and restored `Valeros`, manual CR marker, and HP 24 / 24 after force-stop/relaunch.
 
 ## In progress
 
@@ -169,9 +172,9 @@ Last updated: 2026-08-26
 
 ## Next actions
 
-1. Add manual player/NPC combatants so an encounter is not limited to bestiary monsters.
-2. Support editing manual names and maximum/current HP.
-3. Extend persisted encounter coverage to manual participants.
+1. Support editing manual participant names and maximum/current HP.
+2. Add an explicit reset-to-maximum-HP action for encounter preparation.
+3. Improve compact combat-row treatment for mixed player and monster rosters.
 
 ## Tracking convention
 

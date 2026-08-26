@@ -167,3 +167,10 @@
 - Status: accepted
 - Decision: save the lightweight combat roster after every mutation as a versioned XML document in Android application-private storage, using explicit field reading/writing and safe empty-roster fallback for corrupt or unsupported data.
 - Reason: active encounters must survive activity and process recreation without requiring storage permissions or importing the legacy database. Explicit serialization is deterministic, testable, and safe under Release trimming, unlike reflection-based `XmlSerializer` use that generated trimming warnings during validation.
+
+## D025: Represent players and ad-hoc NPCs as manual roster participants
+
+- Date: 2026-08-27
+- Status: accepted
+- Decision: allow a named participant with user-supplied maximum HP to enter the same lightweight `CombatRoster`, marked by a non-bestiary creature ID and persisted in the existing version-1 snapshot.
+- Reason: useful encounters require player characters and NPCs that are not bestiary records. Reusing the tested roster behavior immediately provides initiative, turns, damage, healing, removal, and restart recovery without importing the legacy character database prematurely.

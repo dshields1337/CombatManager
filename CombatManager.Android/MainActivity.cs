@@ -61,6 +61,7 @@ public class MainActivity : Activity
         foreach (Page page in _pages) FindViewById<Button>(page.ButtonId)!.Click += (_, _) => SelectPage(page);
         FindViewById<ListView>(Resource.Id.combat_list)!.ItemClick += (_, args) => ShowCombatParticipant(_combatRoster.Participants[args.Position]);
         FindViewById<Button>(Resource.Id.clear_combat_button)!.Click += (_, _) => ConfirmClearCombat();
+        FindViewById<Button>(Resource.Id.add_combatant_button)!.Click += (_, _) => ShowAddCombatantDialog();
         FindViewById<Button>(Resource.Id.next_turn_button)!.Click += (_, _) =>
         {
             _combatRoster.NextTurn();
@@ -772,6 +773,28 @@ public class MainActivity : Activity
         });
         builder.Show();
         input.RequestFocus();
+    }
+
+    private void ShowAddCombatantDialog()
+    {
+        View view = LayoutInflater.Inflate(Resource.Layout.manual_combatant_dialog, null)!;
+        EditText name = view.FindViewById<EditText>(Resource.Id.manual_name)!;
+        EditText hp = view.FindViewById<EditText>(Resource.Id.manual_hp)!;
+        var builder = new AlertDialog.Builder(this);
+        builder.SetTitle(Resource.String.add_combatant_title);
+        builder.SetView(view);
+        builder.SetNegativeButton(global::Android.Resource.String.Cancel, (_, _) => { });
+        builder.SetPositiveButton(global::Android.Resource.String.Ok, (_, _) =>
+        {
+            if (!string.IsNullOrWhiteSpace(name.Text) && int.TryParse(hp.Text, out int maximumHp) && maximumHp >= 1)
+            {
+                _combatRoster.AddManual(name.Text, maximumHp);
+                CommitCombatChange();
+            }
+            else Toast.MakeText(this, Resource.String.invalid_combatant, ToastLength.Short)?.Show();
+        });
+        builder.Show();
+        name.RequestFocus();
     }
 
     private void ShowInitiativePrompt(CombatParticipant participant)

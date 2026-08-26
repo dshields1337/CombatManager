@@ -18,6 +18,7 @@ namespace CombatManager
         public int CurrentHP { get; set; }
         public int? Initiative { get; set; }
         public bool IsDefeated => CurrentHP <= 0;
+        public bool IsManual => CreatureId <= 0;
         public string DisplayName => InstanceNumber <= 1 ? Name : Name + " " + InstanceNumber;
     }
 
@@ -44,6 +45,22 @@ namespace CombatManager
                 Sequence = _nextSequence++, CreatureId = creature.Id, InstanceNumber = instanceNumber,
                 Name = creature.Name, ChallengeRating = creature.CR,
                 MaximumHP = creature.HP, CurrentHP = creature.HP
+            };
+            _participants.Add(participant);
+            return participant;
+        }
+
+        public CombatParticipant AddManual(string name, int maximumHp)
+        {
+            if (string.IsNullOrWhiteSpace(name)) throw new System.ArgumentException("A name is required.", "name");
+            if (maximumHp < 1) throw new System.ArgumentOutOfRangeException("maximumHp");
+            string cleanName = name.Trim();
+            int instanceNumber = _participants.Where(item => item.IsManual && string.Equals(item.Name, cleanName, System.StringComparison.OrdinalIgnoreCase))
+                .Select(item => item.InstanceNumber).DefaultIfEmpty(0).Max() + 1;
+            var participant = new CombatParticipant
+            {
+                Sequence = _nextSequence++, CreatureId = 0, InstanceNumber = instanceNumber,
+                Name = cleanName, ChallengeRating = "—", MaximumHP = maximumHp, CurrentHP = maximumHp
             };
             _participants.Add(participant);
             return participant;

@@ -20,6 +20,11 @@
     <string name="damage_prompt">Damage amount</string>
     <string name="healing_prompt">Healing amount</string>
     <string name="invalid_hp_amount">Enter a non-negative whole number.</string>
+    <string name="add_combatant">Add</string>
+    <string name="add_combatant_title">Add combatant</string>
+    <string name="combatant_name">Name</string>
+    <string name="maximum_hp">Maximum HP</string>
+    <string name="invalid_combatant">Enter a name and maximum HP of at least 1.</string>
     <string name="search_monsters">Search monsters</string>
     <string name="filter_by_type">Filter by creature type</string>
     <string name="filter_by_cr">Filter by challenge rating</string>
@@ -48,6 +53,6 @@
     <string name="magic_item_details_not_found">Details are not available for this magic item.</string>
     <string name="unable_to_load_bestiary">Unable to load the bundled bestiary.</string>
     <string name="migration_status">This section is connected to the new navigation shell. Its data and controls will arrive in the next vertical slices.</string>
-    <string name="core_status">Modern core: 30 regression tests passing</string>
+    <string name="core_status">Modern core: 31 regression tests passing</string>
     <string name="about_message">Combat Manager 1.27\n\nNative .NET for Android modernization build. The navigation shell is live; feature screens are being migrated incrementally.</string>
 </resources>

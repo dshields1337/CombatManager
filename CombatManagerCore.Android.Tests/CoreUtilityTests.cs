@@ -480,4 +480,23 @@ public sealed class CoreUtilityTests
         Assert.IsFalse(CombatRoster.TryLoad(corrupt, out CombatRoster fallback));
         Assert.IsEmpty(fallback.Participants);
     }
+
+    [TestMethod]
+    public void CombatRosterAddsAndPersistsManualCombatants()
+    {
+        var roster = new CombatRoster();
+        CombatParticipant first = roster.AddManual("  Valeros  ", 24);
+        CombatParticipant second = roster.AddManual("valeros", 30);
+        Assert.AreEqual("Valeros", first.DisplayName);
+        Assert.AreEqual("valeros 2", second.DisplayName);
+        Assert.AreEqual(24, first.CurrentHP);
+        Assert.IsTrue(first.IsManual);
+
+        using var stream = new MemoryStream();
+        roster.Save(stream);
+        stream.Position = 0;
+        Assert.IsTrue(CombatRoster.TryLoad(stream, out CombatRoster restored));
+        Assert.HasCount(2, restored.Participants);
+        Assert.IsTrue(restored.Participants[0].IsManual);
+    }
 }

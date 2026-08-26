@@ -21,6 +21,7 @@
         <LinearLayout android:id="@+id/combat_panel" android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="vertical" android:visibility="gone">
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:padding="12dp">
                 <TextView android:id="@+id/combat_count" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:textColor="@color/text_secondary" />
+                <Button android:id="@+id/add_combatant_button" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/add_combatant" />
                 <Button android:id="@+id/clear_combat_button" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/clear_encounter" />
             </LinearLayout>
             <LinearLayout android:id="@+id/turn_controls" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:paddingStart="12dp" android:paddingEnd="12dp" android:paddingBottom="8dp" android:visibility="gone">

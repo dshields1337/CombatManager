@@ -13,6 +13,7 @@ namespace CombatManager
         public int MaximumHP { get; set; }
         public int CurrentHP { get; set; }
         public int? Initiative { get; set; }
+        public bool IsDefeated => CurrentHP <= 0;
         public string DisplayName => InstanceNumber <= 1 ? Name : Name + " " + InstanceNumber;
     }
 
@@ -65,6 +66,24 @@ namespace CombatManager
                 int initiativeOrder = Nullable.Compare(right.Initiative, left.Initiative);
                 return initiativeOrder != 0 ? initiativeOrder : left.Sequence.CompareTo(right.Sequence);
             });
+            return true;
+        }
+
+        public bool ApplyDamage(int sequence, int amount)
+        {
+            if (amount < 0) return false;
+            CombatParticipant participant = _participants.FirstOrDefault(item => item.Sequence == sequence);
+            if (participant == null) return false;
+            participant.CurrentHP -= amount;
+            return true;
+        }
+
+        public bool ApplyHealing(int sequence, int amount)
+        {
+            if (amount < 0) return false;
+            CombatParticipant participant = _participants.FirstOrDefault(item => item.Sequence == sequence);
+            if (participant == null) return false;
+            participant.CurrentHP = System.Math.Min(participant.MaximumHP, participant.CurrentHP + amount);
             return true;
         }
 

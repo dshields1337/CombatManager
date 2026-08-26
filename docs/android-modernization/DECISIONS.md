@@ -153,3 +153,10 @@
 - Status: accepted
 - Decision: store a whole-number initiative result on each modern combat participant, sort descending with insertion sequence as the stable tie-breaker, and track the active participant and round inside `CombatRoster`.
 - Reason: deterministic ties make behavior testable and predictable without requiring Dexterity and random tie-break inputs from the legacy `InitiativeCount` UI. The roster owns navigation semantics while Android remains a thin display/input layer.
+
+## D023: Model HP changes without importing legacy conditions
+
+- Date: 2026-08-26
+- Status: accepted
+- Decision: allow damage to reduce current HP below zero, cap healing at maximum HP, and expose a derived defeated state when HP is zero or lower. Do not automatically create legacy condition records yet.
+- Reason: negative HP and recovery are required for useful Pathfinder combat tracking, while automatic unconscious/dying/dead conditions depend on character-specific rules not present in the lightweight creature summary. A derived visual state is accurate without pretending the full condition system has been migrated.

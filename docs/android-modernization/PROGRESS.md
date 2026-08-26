@@ -136,14 +136,19 @@ Last updated: 2026-08-26
 - Added per-combatant initiative entry, disabled turn controls until the roster is ready, active-combatant marking, and Previous/Next controls with visible round status.
 - Latest core result: 28 passed, 0 failed, 0 skipped; both Debug and Release Android builds succeeded with 0 warnings and 0 errors.
 - API 36 verification set initiative in the participant workflow, enabled turn navigation, marked the active combatant, advanced through wraparound to Round 2, returned to Round 1 with Previous, and confirmed the process remained alive.
+- Added platform-neutral damage and healing operations. Damage may reduce current HP below zero, while healing recovers defeated participants and caps at maximum HP.
+- Reworked combatant actions into a focused dialog containing Damage, Heal, and Set Initiative controls while retaining removal and dismissal actions.
+- Added explicit `DEFEATED` feedback for combatants at zero or fewer HP.
+- Latest core result: 29 passed, 0 failed, 0 skipped; Debug and Release Android builds succeeded with 0 warnings and 0 errors.
+- API 36 verification damaged a 6 HP Goblin by 8 to show `DEFEATED • HP -2 / 6`, healed it to 1 / 6, then verified excess healing capped at 6 / 6; the process remained alive.
 
 ## In progress
 
-- All five planned read-only reference destinations are complete. Combat now supports encounter assembly, initiative ordering, active turns, and round navigation; HP editing is next.
+- All five planned read-only reference destinations are complete. Combat now supports encounter assembly, damage/healing, defeated feedback, initiative ordering, active turns, and round navigation.
 
 ## Blockers and required actions
 
-- No current implementation blocker. Combat sessions are intentionally in-memory until HP interaction is shaped and tested.
+- No current implementation blocker. The combat interaction model is now broad enough to introduce encounter persistence without freezing an untested schema.
 
 ## Repository ownership and publishing
 
@@ -158,9 +163,9 @@ Last updated: 2026-08-26
 
 ## Next actions
 
-1. Add damage/healing controls and current-HP updates for combatants.
-2. Define defeated/unconscious visual treatment without prematurely importing the legacy condition graph.
-3. Add encounter persistence after the interaction model is stable.
+1. Add modern encounter serialization and application-private persistence.
+2. Restore an active encounter after activity/process recreation.
+3. Add focused persistence round-trip and corrupt-data fallback tests.
 
 ## Tracking convention
 

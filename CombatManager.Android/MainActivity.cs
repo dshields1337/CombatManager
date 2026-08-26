@@ -715,17 +715,61 @@ public class MainActivity : Activity
 
     private void ShowCombatParticipant(CombatParticipant participant)
     {
-        var dialog = new AlertDialog.Builder(this);
-        dialog.SetTitle(participant.DisplayName);
-        dialog.SetMessage($"CR {participant.ChallengeRating}\nHP {participant.CurrentHP} / {participant.MaximumHP}");
-        dialog.SetNeutralButton(Resource.String.set_initiative, (_, _) => ShowInitiativePrompt(participant));
-        dialog.SetNegativeButton(Resource.String.remove_from_combat, (_, _) =>
+        View actions = LayoutInflater.Inflate(Resource.Layout.combat_participant_actions, null)!;
+        actions.FindViewById<TextView>(Resource.Id.combatant_details)!.Text =
+            $"CR {participant.ChallengeRating}\nHP {participant.CurrentHP} / {participant.MaximumHP}";
+        var builder = new AlertDialog.Builder(this);
+        builder.SetTitle(participant.DisplayName);
+        builder.SetView(actions);
+        builder.SetNegativeButton(Resource.String.remove_from_combat, (_, _) =>
         {
             _combatRoster.Remove(participant.Sequence);
             RefreshCombatRoster();
         });
-        dialog.SetPositiveButton(global::Android.Resource.String.Ok, (_, _) => { });
-        dialog.Show();
+        builder.SetPositiveButton(global::Android.Resource.String.Ok, (_, _) => { });
+        AlertDialog? dialog = builder.Show();
+        actions.FindViewById<Button>(Resource.Id.damage_button)!.Click += (_, _) =>
+        {
+            dialog?.Dismiss();
+            ShowHpPrompt(participant, true);
+        };
+        actions.FindViewById<Button>(Resource.Id.heal_button)!.Click += (_, _) =>
+        {
+            dialog?.Dismiss();
+            ShowHpPrompt(participant, false);
+        };
+        actions.FindViewById<Button>(Resource.Id.set_initiative_button)!.Click += (_, _) =>
+        {
+            dialog?.Dismiss();
+            ShowInitiativePrompt(participant);
+        };
+    }
+
+    private void ShowHpPrompt(CombatParticipant participant, bool damage)
+    {
+        var input = new EditText(this) { InputType = global::Android.Text.InputTypes.ClassNumber };
+        int padding = (int)(24 * Resources!.DisplayMetrics!.Density);
+        var container = new LinearLayout(this) { Orientation = global::Android.Widget.Orientation.Vertical };
+        container.SetPadding(padding, 0, padding, 0);
+        container.AddView(input);
+
+        var builder = new AlertDialog.Builder(this);
+        builder.SetTitle(participant.DisplayName);
+        builder.SetMessage(damage ? Resource.String.damage_prompt : Resource.String.healing_prompt);
+        builder.SetView(container);
+        builder.SetNegativeButton(global::Android.Resource.String.Cancel, (_, _) => { });
+        builder.SetPositiveButton(global::Android.Resource.String.Ok, (_, _) =>
+        {
+            if (int.TryParse(input.Text, out int amount) && amount >= 0)
+            {
+                if (damage) _combatRoster.ApplyDamage(participant.Sequence, amount);
+                else _combatRoster.ApplyHealing(participant.Sequence, amount);
+                RefreshCombatRoster();
+            }
+            else Toast.MakeText(this, Resource.String.invalid_hp_amount, ToastLength.Short)?.Show();
+        });
+        builder.Show();
+        input.RequestFocus();
     }
 
     private void ShowInitiativePrompt(CombatParticipant participant)

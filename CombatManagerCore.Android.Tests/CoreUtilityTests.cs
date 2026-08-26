@@ -439,4 +439,21 @@ public sealed class CoreUtilityTests
         Assert.AreEqual("Ogre", roster.PreviousTurn().DisplayName);
         Assert.AreEqual(1, roster.Round);
     }
+
+    [TestMethod]
+    public void CombatRosterAppliesDamageAndCapsHealingAtMaximumHP()
+    {
+        var roster = new CombatRoster();
+        CombatParticipant goblin = roster.Add(new CreatureSummary { Id = 7, Name = "Goblin", HP = 6 });
+
+        Assert.IsTrue(roster.ApplyDamage(goblin.Sequence, 8));
+        Assert.AreEqual(-2, goblin.CurrentHP);
+        Assert.IsTrue(goblin.IsDefeated);
+        Assert.IsTrue(roster.ApplyHealing(goblin.Sequence, 3));
+        Assert.AreEqual(1, goblin.CurrentHP);
+        Assert.IsFalse(goblin.IsDefeated);
+        Assert.IsTrue(roster.ApplyHealing(goblin.Sequence, 20));
+        Assert.AreEqual(6, goblin.CurrentHP);
+        Assert.IsFalse(roster.ApplyDamage(goblin.Sequence, -1));
+    }
 }

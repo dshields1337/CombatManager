@@ -8,12 +8,15 @@ public class MainActivity : Activity
 {
     private const string PreferenceName = "combat_manager_modern";
     private const string SelectedPageKey = "selected_page";
+    private const string MonsterQueryKey = "monster_query";
+    private const string MonsterTypeKey = "monster_type";
+    private const string MonsterCrKey = "monster_cr";
     private const string AllTypes = "All types";
     private const string AllChallengeRatings = "All CRs";
     private List<CreatureSummary>? _creatures;
     private List<CreatureSummary> _visibleCreatures = [];
     private readonly Dictionary<int, CreatureDetails> _detailCache = [];
-    private ArrayAdapter<string>? _monsterAdapter;
+    private bool _initializingFilters;
     private readonly Page[] _pages =
     [
         new(Resource.Id.combat_button, "Combat", "C"), new(Resource.Id.monsters_button, "Monsters", "M"),
@@ -26,9 +29,9 @@ public class MainActivity : Activity
         base.OnCreate(savedInstanceState);
         SetContentView(Resource.Layout.activity_main);
         foreach (Page page in _pages) FindViewById<Button>(page.ButtonId)!.Click += (_, _) => SelectPage(page);
-        FindViewById<SearchView>(Resource.Id.monster_search)!.QueryTextChange += (_, args) => FilterCreatures(args.NewText);
-        FindViewById<Spinner>(Resource.Id.monster_type_filter)!.ItemSelected += (_, _) => FilterCreatures(CurrentQuery());
-        FindViewById<Spinner>(Resource.Id.monster_cr_filter)!.ItemSelected += (_, _) => FilterCreatures(CurrentQuery());
+        FindViewById<SearchView>(Resource.Id.monster_search)!.QueryTextChange += (_, args) => OnQueryChanged(args.NewText);
+        FindViewById<Spinner>(Resource.Id.monster_type_filter)!.ItemSelected += (_, _) => OnFilterChanged();
+        FindViewById<Spinner>(Resource.Id.monster_cr_filter)!.ItemSelected += (_, _) => OnFilterChanged();
         FindViewById<ListView>(Resource.Id.monster_list)!.ItemClick += (_, args) => ShowCreature(_visibleCreatures[args.Position]);
         FindViewById<ImageButton>(Resource.Id.about_button)!.Click += (_, _) =>
         {
@@ -101,15 +104,14 @@ public class MainActivity : Activity
             selectedType == AllTypes ? string.Empty : selectedType,
             selectedCr == AllChallengeRatings ? string.Empty : selectedCr);
 
-        _monsterAdapter = new ArrayAdapter<string>(this, global::Android.Resource.Layout.SimpleListItem1,
-            _visibleCreatures.Select(creature => creature.ListText).ToArray());
-        FindViewById<ListView>(Resource.Id.monster_list)!.Adapter = _monsterAdapter;
+        FindViewById<ListView>(Resource.Id.monster_list)!.Adapter = new MonsterListAdapter(this, _visibleCreatures);
         string noun = _visibleCreatures.Count == 1 ? "creature" : "creatures";
         FindViewById<TextView>(Resource.Id.monster_count)!.Text = $"{_visibleCreatures.Count:N0} {noun}";
     }
 
     private void PopulateCreatureFilters()
     {
+        _initializingFilters = true;
         List<CreatureSummary> creatures = _creatures!;
         string[] types = [AllTypes, .. creatures.Select(creature => creature.Type)
             .Where(type => !string.IsNullOrWhiteSpace(type)).Distinct(StringComparer.OrdinalIgnoreCase)
@@ -121,6 +123,37 @@ public class MainActivity : Activity
             new ArrayAdapter<string>(this, global::Android.Resource.Layout.SimpleSpinnerDropDownItem, types);
         FindViewById<Spinner>(Resource.Id.monster_cr_filter)!.Adapter =
             new ArrayAdapter<string>(this, global::Android.Resource.Layout.SimpleSpinnerDropDownItem, challengeRatings);
+        var preferences = GetSharedPreferences(PreferenceName, global::Android.Content.FileCreationMode.Private)!;
+        SelectSpinnerValue(FindViewById<Spinner>(Resource.Id.monster_type_filter)!, types,
+            preferences.GetString(MonsterTypeKey, AllTypes) ?? AllTypes);
+        SelectSpinnerValue(FindViewById<Spinner>(Resource.Id.monster_cr_filter)!, challengeRatings,
+            preferences.GetString(MonsterCrKey, AllChallengeRatings) ?? AllChallengeRatings);
+        FindViewById<SearchView>(Resource.Id.monster_search)!.SetQuery(preferences.GetString(MonsterQueryKey, string.Empty), false);
+        _initializingFilters = false;
+    }
+
+    private void OnQueryChanged(string? query)
+    {
+        if (_initializingFilters) return;
+        SavePreference(MonsterQueryKey, query ?? string.Empty);
+        FilterCreatures(query);
+    }
+
+    private void OnFilterChanged()
+    {
+        if (_initializingFilters || _creatures is null) return;
+        SavePreference(MonsterTypeKey, FindViewById<Spinner>(Resource.Id.monster_type_filter)!.SelectedItem?.ToString() ?? AllTypes);
+        SavePreference(MonsterCrKey, FindViewById<Spinner>(Resource.Id.monster_cr_filter)!.SelectedItem?.ToString() ?? AllChallengeRatings);
+        FilterCreatures(CurrentQuery());
+    }
+
+    private void SavePreference(string key, string value) =>
+        GetSharedPreferences(PreferenceName, global::Android.Content.FileCreationMode.Private)!.Edit()!.PutString(key, value)!.Apply();
+
+    private static void SelectSpinnerValue(Spinner spinner, string[] values, string selected)
+    {
+        int index = Array.FindIndex(values, value => string.Equals(value, selected, StringComparison.OrdinalIgnoreCase));
+        spinner.SetSelection(Math.Max(index, 0));
     }
 
     private string CurrentQuery() => FindViewById<SearchView>(Resource.Id.monster_search)!.Query ?? string.Empty;

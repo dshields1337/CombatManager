@@ -97,6 +97,9 @@ Last updated: 2026-08-26
 - Added a focused streaming lookup regression test; latest core result: 21 passed, 0 failed, 0 skipped.
 - Final Android APK size with full bestiary content: approximately 50 MB.
 - Android build succeeded with 0 warnings and 0 errors; API 36 verification loaded Aboleth's full record successfully in approximately 2.9 seconds including UI polling.
+- Replaced plain monster strings with structured rows showing the creature name, size/type/subtype, and a distinct CR badge.
+- Persisted monster search text, creature type, and CR selections through tab changes and process restarts.
+- Android build succeeded with 0 warnings and 0 errors; API 36 restart verification restored `aboleth` + `aberration` + `CR 7`, produced one result, and rendered the structured Aboleth row.
 
 ## In progress
 
@@ -119,10 +122,10 @@ Last updated: 2026-08-26
 
 ## Next actions
 
-1. Improve monster list row presentation and preserve filter selection across navigation/restart.
-2. Decide whether to combine `BestiaryShort2.xml` for broader bundled coverage before introducing custom SQLite creatures.
-3. Add encounter selection from the Monsters screen when the combat model/UI boundary is ready.
-4. Begin the next read-only destination after the Monsters slice is acceptance-tested.
+1. Decide whether to combine `BestiaryShort2.xml` for broader bundled coverage before introducing custom SQLite creatures.
+2. Add encounter selection from the Monsters screen when the combat model/UI boundary is ready.
+3. Begin the next read-only destination after the Monsters slice is acceptance-tested.
+4. Continue separating condition/spell state only where the next vertical slice requires it.
 
 ## Tracking convention
 

@@ -111,3 +111,10 @@
 - Status: accepted
 - Decision: project bundled `Feats.xml` into `FeatSummary` records for search, type filtering, and details instead of porting the `BaseDBClass`-derived legacy `Feat` model.
 - Reason: all fields required for a useful read-only Feats screen are already present in the 7.6 MB asset. The projection also provides a narrow compatibility point for legacy schema defects such as the consistently misspelled `<Prerequistites>` tag.
+
+## D017: Load spell summaries eagerly and full spell records lazily
+
+- Date: 2026-08-26
+- Status: accepted
+- Decision: project `SpellsShort.xml` into lightweight `SpellSummary` records for browsing and filtering, then stream the selected ID from `Spells.xml` into `SpellDetails` and cache successful lookups for the session.
+- Reason: the short asset makes all 2,865 spells immediately useful without importing the database-backed legacy `Spell` model or holding the full document in memory. Streaming retains complete rules text while keeping startup work bounded and the storage choice replaceable later.

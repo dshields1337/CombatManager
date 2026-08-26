@@ -5,8 +5,8 @@ Last updated: 2026-08-26
 ## Current status
 
 - Branch: `modernize/android`
-- Active milestone: M2 - begin core-library migration
-- Overall state: M1 complete; toolchain, emulator, build, installation, and launch verified
+- Active milestone: M4 - main navigation and read-only screens
+- Overall state: M1 complete; Monsters, Feats, and Spells are usable read-only destinations in the emulator
 - Legacy source changes: none
 
 ## Completed
@@ -105,14 +105,20 @@ Last updated: 2026-08-26
 - Device testing exposed the legacy XML tag spelling `<Prerequistites>` used by 2,982 records; the projection and regression test now preserve those prerequisite values.
 - Latest core result: 22 passed, 0 failed, 0 skipped; full modern solution build succeeded with 0 warnings and 0 errors.
 - API 36 verification passed for the full feat count, Combat type filter (1,196 records), Power Attack-family search, and a detail dialog containing prerequisites and benefit text.
+- Added lightweight `SpellSummary` and streaming `SpellDetails` projections without importing the legacy database-backed `Spell` model.
+- Bundled `SpellsShort.xml` for startup browsing and `Spells.xml` for lazy full-detail lookup, with successful detail records cached for the application session.
+- Implemented the third read-only destination: 2,865 spells with structured rows, live text search, school filtering, summary dialogs, and full casting/rules descriptions on demand.
+- Latest core result: 23 passed, 0 failed, 0 skipped; Release Android build succeeded with 0 warnings and 0 errors.
+- Final signed Release APK is 19,249,276 bytes (approximately 18.4 MiB) with the bestiary, feat, and spell assets bundled.
+- API 36 verification passed for the 2,865-spell count, an `Acid Arrow` one-result search, summary content, and lazy full details including casting time, range, resistance, and description; the app process remained alive.
 
 ## In progress
 
-- First usable vertical slice complete: the installed API 36 app can browse, search, and inspect summary details for 1,000 bundled creatures.
+- Three usable read-only vertical slices are complete in the installed API 36 app: Monsters, Feats, and Spells.
 
 ## Blockers and required actions
 
-- No current implementation blocker. The next work is the first core-library migration slice.
+- No current implementation blocker. The next work can persist Feats/Spells browser state, add the Rules destination, or begin encounter selection.
 
 ## Repository ownership and publishing
 
@@ -127,8 +133,8 @@ Last updated: 2026-08-26
 
 ## Next actions
 
-1. Persist Feats search/type state and polish any long-detail presentation issues found in acceptance testing.
-2. Build the read-only Spells destination from `SpellsShort.xml` plus lazy full details.
+1. Persist Feats and Spells search/filter state through tab changes and process restarts.
+2. Build the read-only Rules destination from the bundled rules reference data.
 3. Add encounter selection from Monsters when the combat model/UI boundary is ready.
 4. Continue separating condition/spell state only where the next vertical slice requires it.
 

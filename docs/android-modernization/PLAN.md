@@ -52,7 +52,7 @@ Deliverable: empty modern projects that build successfully.
 - [ ] Remove obsolete compatibility packages supplied by modern .NET.
 - [ ] Update Newtonsoft.Json, EmbedIO, Swan.Lite, SQLite, ZIP, and Xamarin.Essentials functionality.
 - [ ] Resolve incompatibilities involving Mono.Data.Sqlite, serialization, System.Web.Services, System.ServiceModel, and platform-specific paths.
-- [ ] Add focused tests for calculations, serialization, database queries, and import/export parsing. (18 utility/value/dice/attack/affliction/initiative tests added; data tests remain.)
+- [ ] Add focused tests for calculations, serialization, database queries, and import/export parsing. (23 utility/value/dice/attack/affliction/initiative/read-only-data tests added; persistence tests remain.)
 
 Deliverable: the shared core project builds independently.
 
@@ -83,12 +83,12 @@ Deliverable: a valid manifest accepted by current Android tooling.
 
 - [ ] Loading and startup activity. (Direct startup and asynchronous bundled-bestiary loading work; full legacy initialization remains.)
 - [x] Home activity and navigation.
-- [ ] Lookup and list fragments. (First searchable native list is working for Monsters.)
+- [ ] Lookup and list fragments. (Searchable native lists are working for Monsters, Feats, and Spells.)
 - [ ] Combat screen.
 - [ ] Character and initiative adapters.
 - [ ] Monster browsing and selection. (Searchable/filterable 1,000-entry list, structured rows, persisted browser state, and lazy full record details complete; encounter selection remains.)
 - [ ] Monster editor screens.
-- [ ] Spell and feat screens. (Searchable/type-filtered 3,217-entry Feats screen with read-only details complete; Spells remain.)
+- [x] Spell and feat screens. (Searchable/filterable Feats and Spells screens with read-only details are complete; Spells stream full records on demand.)
 - [ ] Treasure and rule screens.
 - [ ] Remaining dialogs and utilities.
 - [ ] Replace Android Support APIs with AndroidX throughout.

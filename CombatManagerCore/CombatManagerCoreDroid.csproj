@@ -163,6 +163,8 @@
     <Compile Include="CreatureSummary.cs" />
     <Compile Include="CreatureDetails.cs" />
     <Compile Include="FeatSummary.cs" />
+    <Compile Include="SpellSummary.cs" />
+    <Compile Include="SpellDetails.cs" />
     <Compile Include="AttackSet.cs" />
     <Compile Include="CampaignEvent.cs" />
     <Compile Include="CampaignInfo.cs" />

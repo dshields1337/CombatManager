@@ -325,4 +325,20 @@ public sealed class CoreUtilityTests
         Assert.AreEqual(1, filtered[0].Id);
         Assert.AreEqual("Str 13", feats[1].Prerequisites);
     }
+
+    [TestMethod]
+    public void SpellsLoadFilterAndFindFullDetails()
+    {
+        const string shortXml = "<ArrayOfSpell><Spell><name>Acid Arrow</name><school>conjuration</school><spell_level>wizard 2</spell_level><short_description>Acid damage.</short_description><id>1</id></Spell></ArrayOfSpell>";
+        const string fullXml = "<ArrayOfSpell><Spell><name>Acid Arrow</name><casting_time>1 action</casting_time><range>long</range><description>An arrow of acid.</description><id>1</id></Spell></ArrayOfSpell>";
+        using var shortStream = new MemoryStream(Encoding.UTF8.GetBytes(shortXml));
+        using var fullStream = new MemoryStream(Encoding.UTF8.GetBytes(fullXml));
+
+        List<SpellSummary> spells = SpellSummary.Load(shortStream);
+        SpellDetails details = SpellDetails.Find(fullStream, 1);
+
+        Assert.HasCount(1, SpellSummary.Filter(spells, "acid", "conjuration"));
+        Assert.AreEqual("wizard 2", spells[0].Levels);
+        Assert.AreEqual("An arrow of acid.", details.Description);
+    }
 }

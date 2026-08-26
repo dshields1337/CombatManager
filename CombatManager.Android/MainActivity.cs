@@ -14,12 +14,16 @@ public class MainActivity : Activity
     private const string AllTypes = "All types";
     private const string AllChallengeRatings = "All CRs";
     private const string AllFeatTypes = "All feat types";
+    private const string AllSpellSchools = "All schools";
     private List<CreatureSummary>? _creatures;
     private List<CreatureSummary> _visibleCreatures = [];
     private readonly Dictionary<int, CreatureDetails> _detailCache = [];
     private bool _initializingFilters;
     private List<FeatSummary>? _feats;
     private List<FeatSummary> _visibleFeats = [];
+    private List<SpellSummary>? _spells;
+    private List<SpellSummary> _visibleSpells = [];
+    private readonly Dictionary<int, SpellDetails> _spellDetailCache = [];
     private readonly Page[] _pages =
     [
         new(Resource.Id.combat_button, "Combat", "C"), new(Resource.Id.monsters_button, "Monsters", "M"),
@@ -39,6 +43,9 @@ public class MainActivity : Activity
         FindViewById<SearchView>(Resource.Id.feat_search)!.QueryTextChange += (_, args) => FilterFeats(args.NewText);
         FindViewById<Spinner>(Resource.Id.feat_type_filter)!.ItemSelected += (_, _) => FilterFeats(CurrentFeatQuery());
         FindViewById<ListView>(Resource.Id.feat_list)!.ItemClick += (_, args) => ShowFeat(_visibleFeats[args.Position]);
+        FindViewById<SearchView>(Resource.Id.spell_search)!.QueryTextChange += (_, args) => FilterSpells(args.NewText);
+        FindViewById<Spinner>(Resource.Id.spell_school_filter)!.ItemSelected += (_, _) => FilterSpells(CurrentSpellQuery());
+        FindViewById<ListView>(Resource.Id.spell_list)!.ItemClick += (_, args) => ShowSpell(_visibleSpells[args.Position]);
         FindViewById<ImageButton>(Resource.Id.about_button)!.Click += (_, _) =>
         {
             var dialog = new AlertDialog.Builder(this);
@@ -55,9 +62,11 @@ public class MainActivity : Activity
     {
         bool showMonsters = selected.Title == "Monsters";
         bool showFeats = selected.Title == "Feats";
-        FindViewById<LinearLayout>(Resource.Id.placeholder_panel)!.Visibility = showMonsters || showFeats ? ViewStates.Gone : ViewStates.Visible;
+        bool showSpells = selected.Title == "Spells";
+        FindViewById<LinearLayout>(Resource.Id.placeholder_panel)!.Visibility = showMonsters || showFeats || showSpells ? ViewStates.Gone : ViewStates.Visible;
         FindViewById<LinearLayout>(Resource.Id.monsters_panel)!.Visibility = showMonsters ? ViewStates.Visible : ViewStates.Gone;
         FindViewById<LinearLayout>(Resource.Id.feats_panel)!.Visibility = showFeats ? ViewStates.Visible : ViewStates.Gone;
+        FindViewById<LinearLayout>(Resource.Id.spells_panel)!.Visibility = showSpells ? ViewStates.Visible : ViewStates.Gone;
         FindViewById<TextView>(Resource.Id.page_title)!.Text = selected.Title;
         FindViewById<TextView>(Resource.Id.page_icon)!.Text = selected.Initial;
         for (int index = 0; index < _pages.Length; index++)
@@ -71,6 +80,116 @@ public class MainActivity : Activity
 
         if (showMonsters) _ = EnsureCreaturesLoadedAsync();
         if (showFeats) _ = EnsureFeatsLoadedAsync();
+        if (showSpells) _ = EnsureSpellsLoadedAsync();
+    }
+
+    private async Task EnsureSpellsLoadedAsync()
+    {
+        if (_spells is not null) { FilterSpells(CurrentSpellQuery()); return; }
+        try
+        {
+            _spells = await Task.Run(() =>
+            {
+                using Stream stream = Assets!.Open("SpellsShort.xml");
+                return SpellSummary.Load(stream);
+            });
+            if (IsDestroyed) return;
+            string[] schools = [AllSpellSchools, .. _spells.Select(spell => spell.School)
+                .Where(school => !string.IsNullOrWhiteSpace(school))
+                .Distinct(StringComparer.OrdinalIgnoreCase).OrderBy(school => school, StringComparer.OrdinalIgnoreCase)];
+            FindViewById<Spinner>(Resource.Id.spell_school_filter)!.Adapter =
+                new ArrayAdapter<string>(this, global::Android.Resource.Layout.SimpleSpinnerDropDownItem, schools);
+            FindViewById<ProgressBar>(Resource.Id.spell_progress)!.Visibility = ViewStates.Gone;
+            FindViewById<ListView>(Resource.Id.spell_list)!.Visibility = ViewStates.Visible;
+            FilterSpells(CurrentSpellQuery());
+        }
+        catch (Exception exception)
+        {
+            global::Android.Util.Log.Error("CombatManager", exception.ToString());
+            FindViewById<ProgressBar>(Resource.Id.spell_progress)!.Visibility = ViewStates.Gone;
+            FindViewById<TextView>(Resource.Id.spell_count)!.SetText(Resource.String.unable_to_load_spells);
+        }
+    }
+
+    private void FilterSpells(string? query)
+    {
+        if (_spells is null) return;
+        string selectedSchool = FindViewById<Spinner>(Resource.Id.spell_school_filter)!.SelectedItem?.ToString() ?? AllSpellSchools;
+        _visibleSpells = SpellSummary.Filter(_spells, query ?? string.Empty,
+            selectedSchool == AllSpellSchools ? string.Empty : selectedSchool);
+        FindViewById<ListView>(Resource.Id.spell_list)!.Adapter = new SpellListAdapter(this, _visibleSpells);
+        string noun = _visibleSpells.Count == 1 ? "spell" : "spells";
+        FindViewById<TextView>(Resource.Id.spell_count)!.Text = $"{_visibleSpells.Count:N0} {noun}";
+    }
+
+    private string CurrentSpellQuery() => FindViewById<SearchView>(Resource.Id.spell_search)!.Query ?? string.Empty;
+
+    private void ShowSpell(SpellSummary spell)
+    {
+        var sections = new List<string>();
+        string classification = string.Join(" ", new[] { spell.School, spell.Subschool, spell.Descriptor }
+            .Where(value => !string.IsNullOrWhiteSpace(value)));
+        AddSection(sections, null, classification);
+        AddSection(sections, "LEVEL", spell.Levels);
+        AddSection(sections, "DURATION", spell.Duration);
+        AddSection(sections, "SUMMARY", spell.Summary);
+        AddSection(sections, "SOURCE", spell.Source);
+        var dialog = new AlertDialog.Builder(this);
+        dialog.SetTitle(spell.Name);
+        dialog.SetMessage(string.Join("\n\n", sections));
+        dialog.SetNeutralButton(Resource.String.full_spell_details, (_, _) => _ = ShowFullSpellDetailsAsync(spell));
+        dialog.SetPositiveButton(global::Android.Resource.String.Ok, (_, _) => { });
+        dialog.Show();
+    }
+
+    private async Task ShowFullSpellDetailsAsync(SpellSummary spell)
+    {
+        var loadingBuilder = new AlertDialog.Builder(this);
+        loadingBuilder.SetMessage(Resource.String.loading_spell_details);
+        loadingBuilder.SetCancelable(false);
+        AlertDialog? loading = loadingBuilder.Show();
+        try
+        {
+            if (!_spellDetailCache.TryGetValue(spell.Id, out SpellDetails? details))
+            {
+                details = await Task.Run(() =>
+                {
+                    using Stream stream = Assets!.Open("Spells.xml");
+                    return SpellDetails.Find(stream, spell.Id);
+                });
+                if (details is not null) _spellDetailCache[spell.Id] = details;
+            }
+
+            loading?.Dismiss();
+            if (IsDestroyed) return;
+            var dialog = new AlertDialog.Builder(this);
+            dialog.SetTitle(spell.Name);
+            dialog.SetMessage(details is null ? GetString(Resource.String.spell_details_not_found) : FormatFullSpellDetails(details));
+            dialog.SetPositiveButton(global::Android.Resource.String.Ok, (_, _) => { });
+            dialog.Show();
+        }
+        catch (Exception exception)
+        {
+            loading?.Dismiss();
+            global::Android.Util.Log.Error("CombatManager", exception.ToString());
+            Toast.MakeText(this, Resource.String.spell_details_not_found, ToastLength.Long)?.Show();
+        }
+    }
+
+    private static string FormatFullSpellDetails(SpellDetails details)
+    {
+        var sections = new List<string>();
+        AddSection(sections, "CASTING TIME", details.CastingTime);
+        AddSection(sections, "COMPONENTS", details.Components);
+        AddSection(sections, "RANGE", details.Range);
+        AddSection(sections, "TARGET", details.Target);
+        AddSection(sections, "EFFECT", details.Effect);
+        AddSection(sections, "AREA", details.Area);
+        AddSection(sections, "DURATION", details.Duration);
+        AddSection(sections, "SAVING THROW", details.SavingThrow);
+        AddSection(sections, "SPELL RESISTANCE", details.SpellResistance);
+        AddSection(sections, "DESCRIPTION", details.Description);
+        return string.Join("\n\n", sections);
     }
 
     private async Task EnsureFeatsLoadedAsync()

@@ -88,7 +88,7 @@ Deliverable: a valid manifest accepted by current Android tooling.
 - [ ] Character and initiative adapters.
 - [ ] Monster browsing and selection. (Searchable/filterable 1,000-entry list, structured rows, persisted browser state, and lazy full record details complete; encounter selection remains.)
 - [ ] Monster editor screens.
-- [ ] Spell and feat screens.
+- [ ] Spell and feat screens. (Searchable/type-filtered 3,217-entry Feats screen with read-only details complete; Spells remain.)
 - [ ] Treasure and rule screens.
 - [ ] Remaining dialogs and utilities.
 - [ ] Replace Android Support APIs with AndroidX throughout.

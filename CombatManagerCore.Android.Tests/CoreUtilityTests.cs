@@ -305,4 +305,24 @@ public sealed class CoreUtilityTests
         Assert.AreEqual("Str 20, Dex 12", details.AbilityScores);
         Assert.AreEqual("Mucus Cloud", details.SpecialAbilities);
     }
+
+    [TestMethod]
+    public void FeatsLoadSortAndFilterByCommaSeparatedType()
+    {
+        const string xml = """
+            <ArrayOfFeat>
+              <Feat><Id>2</Id><Name>Power Attack</Name><Type>Combat</Type><Summary>Trade accuracy for damage.</Summary><Prerequistites>Str 13</Prerequistites></Feat>
+              <Feat><Id>1</Id><Name>Acrobatic</Name><Type>General, Teamwork</Type><Summary>Improve movement skills.</Summary></Feat>
+            </ArrayOfFeat>
+            """;
+        using var stream = new MemoryStream(Encoding.UTF8.GetBytes(xml));
+
+        List<FeatSummary> feats = FeatSummary.Load(stream);
+        List<FeatSummary> filtered = FeatSummary.Filter(feats, "movement", "Teamwork");
+
+        Assert.AreEqual("Acrobatic", feats[0].Name);
+        Assert.HasCount(1, filtered);
+        Assert.AreEqual(1, filtered[0].Id);
+        Assert.AreEqual("Str 13", feats[1].Prerequisites);
+    }
 }

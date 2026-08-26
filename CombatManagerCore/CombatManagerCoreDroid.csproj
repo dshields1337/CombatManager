@@ -162,6 +162,7 @@
     <Compile Include="CombatText.cs" />
     <Compile Include="CreatureSummary.cs" />
     <Compile Include="CreatureDetails.cs" />
+    <Compile Include="FeatSummary.cs" />
     <Compile Include="AttackSet.cs" />
     <Compile Include="CampaignEvent.cs" />
     <Compile Include="CampaignInfo.cs" />

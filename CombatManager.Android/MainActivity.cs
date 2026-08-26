@@ -13,10 +13,13 @@ public class MainActivity : Activity
     private const string MonsterCrKey = "monster_cr";
     private const string AllTypes = "All types";
     private const string AllChallengeRatings = "All CRs";
+    private const string AllFeatTypes = "All feat types";
     private List<CreatureSummary>? _creatures;
     private List<CreatureSummary> _visibleCreatures = [];
     private readonly Dictionary<int, CreatureDetails> _detailCache = [];
     private bool _initializingFilters;
+    private List<FeatSummary>? _feats;
+    private List<FeatSummary> _visibleFeats = [];
     private readonly Page[] _pages =
     [
         new(Resource.Id.combat_button, "Combat", "C"), new(Resource.Id.monsters_button, "Monsters", "M"),
@@ -33,6 +36,9 @@ public class MainActivity : Activity
         FindViewById<Spinner>(Resource.Id.monster_type_filter)!.ItemSelected += (_, _) => OnFilterChanged();
         FindViewById<Spinner>(Resource.Id.monster_cr_filter)!.ItemSelected += (_, _) => OnFilterChanged();
         FindViewById<ListView>(Resource.Id.monster_list)!.ItemClick += (_, args) => ShowCreature(_visibleCreatures[args.Position]);
+        FindViewById<SearchView>(Resource.Id.feat_search)!.QueryTextChange += (_, args) => FilterFeats(args.NewText);
+        FindViewById<Spinner>(Resource.Id.feat_type_filter)!.ItemSelected += (_, _) => FilterFeats(CurrentFeatQuery());
+        FindViewById<ListView>(Resource.Id.feat_list)!.ItemClick += (_, args) => ShowFeat(_visibleFeats[args.Position]);
         FindViewById<ImageButton>(Resource.Id.about_button)!.Click += (_, _) =>
         {
             var dialog = new AlertDialog.Builder(this);
@@ -48,8 +54,10 @@ public class MainActivity : Activity
     private void SelectPage(Page selected)
     {
         bool showMonsters = selected.Title == "Monsters";
-        FindViewById<LinearLayout>(Resource.Id.placeholder_panel)!.Visibility = showMonsters ? ViewStates.Gone : ViewStates.Visible;
+        bool showFeats = selected.Title == "Feats";
+        FindViewById<LinearLayout>(Resource.Id.placeholder_panel)!.Visibility = showMonsters || showFeats ? ViewStates.Gone : ViewStates.Visible;
         FindViewById<LinearLayout>(Resource.Id.monsters_panel)!.Visibility = showMonsters ? ViewStates.Visible : ViewStates.Gone;
+        FindViewById<LinearLayout>(Resource.Id.feats_panel)!.Visibility = showFeats ? ViewStates.Visible : ViewStates.Gone;
         FindViewById<TextView>(Resource.Id.page_title)!.Text = selected.Title;
         FindViewById<TextView>(Resource.Id.page_icon)!.Text = selected.Initial;
         for (int index = 0; index < _pages.Length; index++)
@@ -62,6 +70,64 @@ public class MainActivity : Activity
         }
 
         if (showMonsters) _ = EnsureCreaturesLoadedAsync();
+        if (showFeats) _ = EnsureFeatsLoadedAsync();
+    }
+
+    private async Task EnsureFeatsLoadedAsync()
+    {
+        if (_feats is not null) { FilterFeats(CurrentFeatQuery()); return; }
+        try
+        {
+            _feats = await Task.Run(() =>
+            {
+                using Stream stream = Assets!.Open("Feats.xml");
+                return FeatSummary.Load(stream);
+            });
+            if (IsDestroyed) return;
+            string[] types = [AllFeatTypes, .. _feats.SelectMany(feat => feat.Type.Split(','))
+                .Select(type => type.Trim()).Where(type => type.Length > 0)
+                .Distinct(StringComparer.OrdinalIgnoreCase).OrderBy(type => type, StringComparer.OrdinalIgnoreCase)];
+            FindViewById<Spinner>(Resource.Id.feat_type_filter)!.Adapter =
+                new ArrayAdapter<string>(this, global::Android.Resource.Layout.SimpleSpinnerDropDownItem, types);
+            FindViewById<ProgressBar>(Resource.Id.feat_progress)!.Visibility = ViewStates.Gone;
+            FindViewById<ListView>(Resource.Id.feat_list)!.Visibility = ViewStates.Visible;
+            FilterFeats(CurrentFeatQuery());
+        }
+        catch (Exception exception)
+        {
+            global::Android.Util.Log.Error("CombatManager", exception.ToString());
+            FindViewById<ProgressBar>(Resource.Id.feat_progress)!.Visibility = ViewStates.Gone;
+            FindViewById<TextView>(Resource.Id.feat_count)!.SetText(Resource.String.unable_to_load_feats);
+        }
+    }
+
+    private void FilterFeats(string? query)
+    {
+        if (_feats is null) return;
+        string selectedType = FindViewById<Spinner>(Resource.Id.feat_type_filter)!.SelectedItem?.ToString() ?? AllFeatTypes;
+        _visibleFeats = FeatSummary.Filter(_feats, query ?? string.Empty,
+            selectedType == AllFeatTypes ? string.Empty : selectedType);
+        FindViewById<ListView>(Resource.Id.feat_list)!.Adapter = new FeatListAdapter(this, _visibleFeats);
+        string noun = _visibleFeats.Count == 1 ? "feat" : "feats";
+        FindViewById<TextView>(Resource.Id.feat_count)!.Text = $"{_visibleFeats.Count:N0} {noun}";
+    }
+
+    private string CurrentFeatQuery() => FindViewById<SearchView>(Resource.Id.feat_search)!.Query ?? string.Empty;
+
+    private void ShowFeat(FeatSummary feat)
+    {
+        var sections = new List<string>();
+        AddSection(sections, null, feat.Summary);
+        AddSection(sections, "PREREQUISITES", feat.Prerequisites);
+        AddSection(sections, "BENEFIT", feat.Benefit);
+        AddSection(sections, "NORMAL", feat.Normal);
+        AddSection(sections, "SPECIAL", feat.Special);
+        AddSection(sections, "SOURCE", feat.Source);
+        var dialog = new AlertDialog.Builder(this);
+        dialog.SetTitle(feat.Name + " (" + feat.Type + ")");
+        dialog.SetMessage(string.Join("\n\n", sections));
+        dialog.SetPositiveButton(global::Android.Resource.String.Ok, (_, _) => { });
+        dialog.Show();
     }
 
     private async Task EnsureCreaturesLoadedAsync()

@@ -3,6 +3,7 @@
     <ProjectReference Include="..\CombatManagerCore.Android\CombatManagerCore.Android.csproj" />
     <AndroidAsset Include="..\CombatManagerCore\BestiaryShort.xml" Link="BestiaryShort.xml" />
     <AndroidAsset Include="..\CombatManagerCore\Bestiary.xml" Link="Bestiary.xml" />
+    <AndroidAsset Include="..\CombatManagerCore\Feats.xml" Link="Feats.xml" />
   </ItemGroup>
   <PropertyGroup>
     <TargetFramework>net10.0-android</TargetFramework>

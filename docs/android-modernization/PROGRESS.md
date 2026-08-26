@@ -100,6 +100,11 @@ Last updated: 2026-08-26
 - Replaced plain monster strings with structured rows showing the creature name, size/type/subtype, and a distinct CR badge.
 - Persisted monster search text, creature type, and CR selections through tab changes and process restarts.
 - Android build succeeded with 0 warnings and 0 errors; API 36 restart verification restored `aboleth` + `aberration` + `CR 7`, produced one result, and rendered the structured Aboleth row.
+- Added the platform-neutral `FeatSummary` projection and bundled the existing 7.6 MB `Feats.xml` asset without linking the legacy `Feat`/database graph.
+- Implemented the second read-only destination: 3,217 feats with structured name/type/summary rows, text search, comma-aware type filtering, and prerequisite/benefit/normal/special/source details.
+- Device testing exposed the legacy XML tag spelling `<Prerequistites>` used by 2,982 records; the projection and regression test now preserve those prerequisite values.
+- Latest core result: 22 passed, 0 failed, 0 skipped; full modern solution build succeeded with 0 warnings and 0 errors.
+- API 36 verification passed for the full feat count, Combat type filter (1,196 records), Power Attack-family search, and a detail dialog containing prerequisites and benefit text.
 
 ## In progress
 
@@ -122,9 +127,9 @@ Last updated: 2026-08-26
 
 ## Next actions
 
-1. Decide whether to combine `BestiaryShort2.xml` for broader bundled coverage before introducing custom SQLite creatures.
-2. Add encounter selection from the Monsters screen when the combat model/UI boundary is ready.
-3. Begin the next read-only destination after the Monsters slice is acceptance-tested.
+1. Persist Feats search/type state and polish any long-detail presentation issues found in acceptance testing.
+2. Build the read-only Spells destination from `SpellsShort.xml` plus lazy full details.
+3. Add encounter selection from Monsters when the combat model/UI boundary is ready.
 4. Continue separating condition/spell state only where the next vertical slice requires it.
 
 ## Tracking convention

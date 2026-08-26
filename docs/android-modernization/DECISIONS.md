@@ -104,3 +104,10 @@
 - Status: accepted
 - Decision: bundle the full `Bestiary.xml` and scan it with `XmlReader` for a selected creature ID, caching successful records for the session, rather than deserializing the 42 MB document or importing the legacy database model.
 - Reason: users gain full descriptive and rules content for the current browser while startup memory remains tied to the small summary dataset. The APK-size and first-open latency costs are explicit and can later be replaced by indexed storage without changing the UI projection.
+
+## D016: Use a read-only feat projection before database migration
+
+- Date: 2026-08-26
+- Status: accepted
+- Decision: project bundled `Feats.xml` into `FeatSummary` records for search, type filtering, and details instead of porting the `BaseDBClass`-derived legacy `Feat` model.
+- Reason: all fields required for a useful read-only Feats screen are already present in the 7.6 MB asset. The projection also provides a narrow compatibility point for legacy schema defects such as the consistently misspelled `<Prerequistites>` tag.

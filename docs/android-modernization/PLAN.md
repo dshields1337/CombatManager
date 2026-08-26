@@ -86,7 +86,7 @@ Deliverable: a valid manifest accepted by current Android tooling.
 - [ ] Lookup and list fragments. (First searchable native list is working for Monsters.)
 - [ ] Combat screen.
 - [ ] Character and initiative adapters.
-- [ ] Monster browsing and selection. (Searchable 1,000-entry list and read-only summary details complete; richer details and encounter selection remain.)
+- [ ] Monster browsing and selection. (Searchable 1,000-entry list, combined type/CR filters, and read-only summary details complete; richer details and encounter selection remain.)
 - [ ] Monster editor screens.
 - [ ] Spell and feat screens.
 - [ ] Treasure and rule screens.

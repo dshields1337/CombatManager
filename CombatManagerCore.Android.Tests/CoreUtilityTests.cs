@@ -269,4 +269,21 @@ public sealed class CoreUtilityTests
         Assert.AreEqual(84, creatures[0].HP);
         Assert.AreEqual("undead", creatures[1].Type);
     }
+
+    [TestMethod]
+    public void CreatureFiltersCombineSearchTypeAndChallengeRating()
+    {
+        CreatureSummary[] creatures =
+        [
+            new() { Name = "Goblin", Type = "humanoid", CR = "1/3" },
+            new() { Name = "Goblin Dog", Type = "animal", CR = "1" },
+            new() { Name = "Orc", Type = "humanoid", CR = "1/3" }
+        ];
+
+        List<CreatureSummary> filtered = CreatureSummary.Filter(creatures, "goblin", "humanoid", "1/3");
+
+        Assert.HasCount(1, filtered);
+        Assert.AreEqual("Goblin", filtered[0].Name);
+        Assert.IsLessThan(CreatureSummary.ChallengeRatingValue("1"), CreatureSummary.ChallengeRatingValue("1/2"));
+    }
 }

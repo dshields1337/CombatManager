@@ -41,6 +41,33 @@ namespace CombatManager
                 .ToList();
         }
 
+        public static List<CreatureSummary> Filter(IEnumerable<CreatureSummary> creatures, string query, string type, string challengeRating)
+        {
+            string search = (query ?? string.Empty).Trim();
+            return creatures.Where(creature =>
+                    (search.Length == 0
+                        || creature.Name.IndexOf(search, StringComparison.OrdinalIgnoreCase) >= 0
+                        || creature.Type.IndexOf(search, StringComparison.OrdinalIgnoreCase) >= 0)
+                    && (string.IsNullOrEmpty(type) || string.Equals(creature.Type, type, StringComparison.OrdinalIgnoreCase))
+                    && (string.IsNullOrEmpty(challengeRating) || string.Equals(creature.CR, challengeRating, StringComparison.OrdinalIgnoreCase)))
+                .ToList();
+        }
+
+        public static double ChallengeRatingValue(string challengeRating)
+        {
+            string[] parts = (challengeRating ?? string.Empty).Split('/');
+            double numerator;
+            double denominator;
+            if (parts.Length == 2 && double.TryParse(parts[0], out numerator)
+                && double.TryParse(parts[1], out denominator) && denominator != 0)
+            {
+                return numerator / denominator;
+            }
+
+            double value;
+            return double.TryParse(challengeRating, out value) ? value : double.MaxValue;
+        }
+
         private static CreatureSummary Read(XElement element)
         {
             return new CreatureSummary

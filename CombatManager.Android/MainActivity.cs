@@ -8,6 +8,8 @@ public class MainActivity : Activity
 {
     private const string PreferenceName = "combat_manager_modern";
     private const string SelectedPageKey = "selected_page";
+    private const string AllTypes = "All types";
+    private const string AllChallengeRatings = "All CRs";
     private List<CreatureSummary>? _creatures;
     private List<CreatureSummary> _visibleCreatures = [];
     private ArrayAdapter<string>? _monsterAdapter;
@@ -24,6 +26,8 @@ public class MainActivity : Activity
         SetContentView(Resource.Layout.activity_main);
         foreach (Page page in _pages) FindViewById<Button>(page.ButtonId)!.Click += (_, _) => SelectPage(page);
         FindViewById<SearchView>(Resource.Id.monster_search)!.QueryTextChange += (_, args) => FilterCreatures(args.NewText);
+        FindViewById<Spinner>(Resource.Id.monster_type_filter)!.ItemSelected += (_, _) => FilterCreatures(CurrentQuery());
+        FindViewById<Spinner>(Resource.Id.monster_cr_filter)!.ItemSelected += (_, _) => FilterCreatures(CurrentQuery());
         FindViewById<ListView>(Resource.Id.monster_list)!.ItemClick += (_, args) => ShowCreature(_visibleCreatures[args.Position]);
         FindViewById<ImageButton>(Resource.Id.about_button)!.Click += (_, _) =>
         {
@@ -74,6 +78,7 @@ public class MainActivity : Activity
 
             if (IsDestroyed) return;
             _creatures = loaded;
+            PopulateCreatureFilters();
             FindViewById<ProgressBar>(Resource.Id.monster_progress)!.Visibility = ViewStates.Gone;
             FindViewById<ListView>(Resource.Id.monster_list)!.Visibility = ViewStates.Visible;
             FilterCreatures(FindViewById<SearchView>(Resource.Id.monster_search)!.Query);
@@ -89,12 +94,11 @@ public class MainActivity : Activity
     private void FilterCreatures(string? query)
     {
         if (_creatures is null) return;
-        string search = query?.Trim() ?? string.Empty;
-        _visibleCreatures = _creatures
-            .Where(creature => creature.Name.Contains(search, StringComparison.OrdinalIgnoreCase)
-                || creature.Type.Contains(search, StringComparison.OrdinalIgnoreCase)
-                || creature.CR.Equals(search, StringComparison.OrdinalIgnoreCase))
-            .ToList();
+        string selectedType = FindViewById<Spinner>(Resource.Id.monster_type_filter)!.SelectedItem?.ToString() ?? AllTypes;
+        string selectedCr = FindViewById<Spinner>(Resource.Id.monster_cr_filter)!.SelectedItem?.ToString() ?? AllChallengeRatings;
+        _visibleCreatures = CreatureSummary.Filter(_creatures, query ?? string.Empty,
+            selectedType == AllTypes ? string.Empty : selectedType,
+            selectedCr == AllChallengeRatings ? string.Empty : selectedCr);
 
         _monsterAdapter = new ArrayAdapter<string>(this, global::Android.Resource.Layout.SimpleListItem1,
             _visibleCreatures.Select(creature => creature.ListText).ToArray());
@@ -102,6 +106,23 @@ public class MainActivity : Activity
         string noun = _visibleCreatures.Count == 1 ? "creature" : "creatures";
         FindViewById<TextView>(Resource.Id.monster_count)!.Text = $"{_visibleCreatures.Count:N0} {noun}";
     }
+
+    private void PopulateCreatureFilters()
+    {
+        List<CreatureSummary> creatures = _creatures!;
+        string[] types = [AllTypes, .. creatures.Select(creature => creature.Type)
+            .Where(type => !string.IsNullOrWhiteSpace(type)).Distinct(StringComparer.OrdinalIgnoreCase)
+            .OrderBy(type => type, StringComparer.OrdinalIgnoreCase)];
+        string[] challengeRatings = [AllChallengeRatings, .. creatures.Select(creature => creature.CR)
+            .Where(cr => !string.IsNullOrWhiteSpace(cr)).Distinct(StringComparer.OrdinalIgnoreCase)
+            .OrderBy(CreatureSummary.ChallengeRatingValue)];
+        FindViewById<Spinner>(Resource.Id.monster_type_filter)!.Adapter =
+            new ArrayAdapter<string>(this, global::Android.Resource.Layout.SimpleSpinnerDropDownItem, types);
+        FindViewById<Spinner>(Resource.Id.monster_cr_filter)!.Adapter =
+            new ArrayAdapter<string>(this, global::Android.Resource.Layout.SimpleSpinnerDropDownItem, challengeRatings);
+    }
+
+    private string CurrentQuery() => FindViewById<SearchView>(Resource.Id.monster_search)!.Query ?? string.Empty;
 
     private void ShowCreature(CreatureSummary creature)
     {

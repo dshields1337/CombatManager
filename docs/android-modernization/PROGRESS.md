@@ -87,6 +87,11 @@ Last updated: 2026-08-26
 - Added a regression test for XML projection, numeric parsing, list text, and alphabetical ordering; latest core result: 19 passed, 0 failed, 0 skipped.
 - Full modern solution after the first usable vertical slice: succeeded with 0 warnings and 0 errors.
 - Installed the final APK on `CombatManager_API_36`; verified 1,000-creature startup, search down to Aboleth, the Aboleth details dialog, and a live application process.
+- Added platform-neutral combined bestiary filtering and numeric ordering for fractional/integer challenge ratings.
+- Added native creature-type and CR filter controls that compose with the existing text search.
+- Added a regression test for combined name/type/CR filtering and fractional CR ordering; latest core result: 20 passed, 0 failed, 0 skipped.
+- Full modern solution and final Android APK build after filter work: succeeded with 0 warnings and 0 errors.
+- Installed on `CombatManager_API_36`; verified 46 aberrations and a combined aberration/CR 7 result of Aboleth, Chuul, and Drider.
 
 ## In progress
 
@@ -110,7 +115,7 @@ Last updated: 2026-08-26
 ## Next actions
 
 1. Expand creature details using the full bestiary data without importing the legacy database graph.
-2. Add CR/type filters and improve the list row presentation.
+2. Improve monster list row presentation and preserve filter selection across navigation/restart.
 3. Decide whether to combine `BestiaryShort2.xml` for broader bundled coverage before introducing custom SQLite creatures.
 4. Begin the next read-only destination after the Monsters slice is acceptance-tested.
 

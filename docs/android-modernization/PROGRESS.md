@@ -60,6 +60,10 @@ Last updated: 2026-08-26
 - Commit identity uses the account-linked GitHub noreply address to keep the user's personal email private.
 - The original `KyleADOlson/CombatManager` remote is retained only as the upstream source reference.
 - Modernization branches are to be pushed to the user's `dshields1337` fork, never to the original repository.
+- Created `https://github.com/dshields1337/CombatManager` as the user's fork.
+- Configured the user's fork as `origin` and the original repository as `upstream`.
+- Disabled the push URL for `upstream` as an additional safeguard.
+- Pushed commit `d85029e` and branch `modernize/android` to the user's fork.
 
 ## Next actions
 

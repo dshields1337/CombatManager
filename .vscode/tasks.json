@@ -1,0 +1,102 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Android: restore modern solution",
+      "type": "process",
+      "command": "C:\\Program Files\\dotnet\\dotnet.exe",
+      "args": [
+        "restore",
+        "CombatManagerModern.slnx"
+      ],
+      "problemMatcher": "$msCompile"
+    },
+    {
+      "label": "Android: build Debug APK",
+      "type": "process",
+      "command": "C:\\Program Files\\dotnet\\dotnet.exe",
+      "args": [
+        "build",
+        "CombatManager.Android/CombatManager.Android.csproj",
+        "--configuration",
+        "Debug"
+      ],
+      "problemMatcher": "$msCompile",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
+    },
+    {
+      "label": "Android: list connected devices",
+      "type": "process",
+      "command": "${env:LOCALAPPDATA}\\Android\\Sdk\\platform-tools\\adb.exe",
+      "args": [
+        "devices"
+      ],
+      "problemMatcher": []
+    },
+    {
+      "label": "Android: start CombatManager_API_36 emulator",
+      "type": "process",
+      "command": "${env:LOCALAPPDATA}\\Android\\Sdk\\emulator\\emulator.exe",
+      "args": [
+        "@CombatManager_API_36",
+        "-no-boot-anim",
+        "-netdelay",
+        "none",
+        "-netspeed",
+        "full"
+      ],
+      "isBackground": true,
+      "problemMatcher": []
+    },
+    {
+      "label": "Android: install Debug APK",
+      "type": "process",
+      "command": "${env:LOCALAPPDATA}\\Android\\Sdk\\platform-tools\\adb.exe",
+      "args": [
+        "install",
+        "-r",
+        "${workspaceFolder}\\CombatManager.Android\\bin\\Debug\\net10.0-android\\com.kyleolson.combatmanager-Signed.apk"
+      ],
+      "dependsOn": "Android: build Debug APK",
+      "dependsOrder": "sequence",
+      "problemMatcher": []
+    },
+    {
+      "label": "Android: launch Combat Manager",
+      "type": "process",
+      "command": "${env:LOCALAPPDATA}\\Android\\Sdk\\platform-tools\\adb.exe",
+      "args": [
+        "shell",
+        "monkey",
+        "-p",
+        "com.kyleolson.combatmanager",
+        "1"
+      ],
+      "dependsOn": "Android: install Debug APK",
+      "dependsOrder": "sequence",
+      "problemMatcher": []
+    },
+    {
+      "label": "Android: Combat Manager logs",
+      "type": "process",
+      "command": "${env:LOCALAPPDATA}\\Android\\Sdk\\platform-tools\\adb.exe",
+      "args": [
+        "logcat",
+        "--pid",
+        "${input:combatManagerPid}"
+      ],
+      "isBackground": true,
+      "problemMatcher": []
+    }
+  ],
+  "inputs": [
+    {
+      "id": "combatManagerPid",
+      "type": "promptString",
+      "description": "Combat Manager process ID from: adb shell pidof com.kyleolson.combatmanager"
+    }
+  ]
+}

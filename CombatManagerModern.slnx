@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="CombatManager.Android/CombatManager.Android.csproj" />
+  <Project Path="CombatManagerCore.Android/CombatManagerCore.Android.csproj" />
+</Solution>

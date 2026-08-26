@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="..\CombatManagerCore.Android\CombatManagerCore.Android.csproj" />
+  </ItemGroup>
+  <PropertyGroup>
+    <TargetFramework>net10.0-android</TargetFramework>
+    <SupportedOSPlatformVersion>24</SupportedOSPlatformVersion>
+    <OutputType>Exe</OutputType>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <ApplicationId>com.kyleolson.combatmanager</ApplicationId>
+    <ApplicationVersion>41</ApplicationVersion>
+    <ApplicationDisplayVersion>1.27</ApplicationDisplayVersion>
+    <!-- Keep Debug APKs self-contained so they can be installed directly with adb. -->
+    <EmbedAssembliesIntoApk>true</EmbedAssembliesIntoApk>
+    <!--
+      Enables trim analyzers and full trimming during Release mode.
+      To learn more, see: https://learn.microsoft.com/dotnet/core/deploying/trimming/trimming-options#trimming-granularity
+    -->
+    <TrimMode>full</TrimMode>
+  </PropertyGroup>
+</Project>

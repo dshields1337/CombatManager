@@ -2,6 +2,7 @@
   <ItemGroup>
     <ProjectReference Include="..\CombatManagerCore.Android\CombatManagerCore.Android.csproj" />
     <AndroidAsset Include="..\CombatManagerCore\BestiaryShort.xml" Link="BestiaryShort.xml" />
+    <AndroidAsset Include="..\CombatManagerCore\BestiaryShort2.xml" Link="BestiaryShort2.xml" />
     <AndroidAsset Include="..\CombatManagerCore\Bestiary.xml" Link="Bestiary.xml" />
     <AndroidAsset Include="..\CombatManagerCore\Feats.xml" Link="Feats.xml" />
     <AndroidAsset Include="..\CombatManagerCore\SpellsShort.xml" Link="SpellsShort.xml" />

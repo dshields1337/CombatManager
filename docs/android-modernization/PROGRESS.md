@@ -111,10 +111,14 @@ Last updated: 2026-08-26
 - Latest core result: 23 passed, 0 failed, 0 skipped; Release Android build succeeded with 0 warnings and 0 errors.
 - Final signed Release APK is 19,249,276 bytes (approximately 18.4 MiB) with the bestiary, feat, and spell assets bundled.
 - API 36 verification passed for the 2,865-spell count, an `Acid Arrow` one-result search, summary content, and lazy full details including casting time, range, resistance, and description; the app process remained alive.
+- Added the second legacy bestiary summary bundle, `BestiaryShort2.xml`, expanding Monsters from the low-memory 1,000-record subset to the complete 2,837-record browseable catalogue used by the original app.
+- Combined bestiary partitions by unique ID and alphabetical name, with regression coverage preventing accidental duplicate IDs when data partitions change.
+- Latest core result: 24 passed, 0 failed, 0 skipped; Release Android build succeeded with 0 warnings and 0 errors. The signed APK is 19,663,043 bytes (approximately 18.8 MiB).
+- API 36 verification passed for the 2,837-creature count and for `Globster`, a second-partition-only record, including its CR, statistics, source, and live application process.
 
 ## In progress
 
-- Three usable read-only vertical slices are complete in the installed API 36 app: Monsters, Feats, and Spells.
+- Three usable read-only vertical slices are complete in the installed API 36 app: the complete legacy Monsters catalogue, Feats, and Spells.
 
 ## Blockers and required actions
 

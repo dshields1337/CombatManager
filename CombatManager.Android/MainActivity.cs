@@ -261,8 +261,10 @@ public class MainActivity : Activity
         {
             List<CreatureSummary> loaded = await Task.Run(() =>
             {
-                using Stream stream = Assets!.Open("BestiaryShort.xml");
-                return CreatureSummary.Load(stream);
+                using Stream firstStream = Assets!.Open("BestiaryShort.xml");
+                using Stream secondStream = Assets.Open("BestiaryShort2.xml");
+                return CreatureSummary.Combine(
+                    CreatureSummary.Load(firstStream), CreatureSummary.Load(secondStream));
             });
 
             if (IsDestroyed) return;

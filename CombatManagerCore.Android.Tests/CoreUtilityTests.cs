@@ -271,6 +271,28 @@ public sealed class CoreUtilityTests
     }
 
     [TestMethod]
+    public void CreatureSummarySetsCombineSortAndRemoveDuplicateIds()
+    {
+        CreatureSummary[] first =
+        [
+            new() { Id = 1, Name = "Zombie" },
+            new() { Id = 2, Name = "Aboleth" }
+        ];
+        CreatureSummary[] second =
+        [
+            new() { Id = 1, Name = "Duplicate Zombie" },
+            new() { Id = 3, Name = "Goblin" }
+        ];
+
+        List<CreatureSummary> creatures = CreatureSummary.Combine(first, second);
+
+        Assert.HasCount(3, creatures);
+        Assert.AreEqual("Aboleth", creatures[0].Name);
+        Assert.AreEqual("Goblin", creatures[1].Name);
+        Assert.AreEqual("Zombie", creatures[2].Name);
+    }
+
+    [TestMethod]
     public void CreatureFiltersCombineSearchTypeAndChallengeRating()
     {
         CreatureSummary[] creatures =

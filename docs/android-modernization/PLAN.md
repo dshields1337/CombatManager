@@ -86,7 +86,7 @@ Deliverable: a valid manifest accepted by current Android tooling.
 - [ ] Lookup and list fragments. (Searchable native lists are working for Monsters, Feats, and Spells.)
 - [ ] Combat screen.
 - [ ] Character and initiative adapters.
-- [ ] Monster browsing and selection. (Searchable/filterable 1,000-entry list, structured rows, persisted browser state, and lazy full record details complete; encounter selection remains.)
+- [ ] Monster browsing and selection. (Searchable/filterable complete 2,837-entry legacy bestiary, structured rows, persisted browser state, and lazy full record details complete; encounter selection remains.)
 - [ ] Monster editor screens.
 - [x] Spell and feat screens. (Searchable/filterable Feats and Spells screens with read-only details are complete; Spells stream full records on demand.)
 - [ ] Treasure and rule screens.

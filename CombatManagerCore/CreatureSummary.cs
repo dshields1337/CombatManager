@@ -41,6 +41,15 @@ namespace CombatManager
                 .ToList();
         }
 
+        public static List<CreatureSummary> Combine(params IEnumerable<CreatureSummary>[] sets)
+        {
+            return sets.SelectMany(set => set)
+                .GroupBy(creature => creature.Id)
+                .Select(group => group.First())
+                .OrderBy(creature => creature.Name, StringComparer.OrdinalIgnoreCase)
+                .ToList();
+        }
+
         public static List<CreatureSummary> Filter(IEnumerable<CreatureSummary> creatures, string query, string type, string challengeRating)
         {
             string search = (query ?? string.Empty).Trim();

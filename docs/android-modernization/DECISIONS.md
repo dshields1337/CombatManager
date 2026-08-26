@@ -118,3 +118,10 @@
 - Status: accepted
 - Decision: project `SpellsShort.xml` into lightweight `SpellSummary` records for browsing and filtering, then stream the selected ID from `Spells.xml` into `SpellDetails` and cache successful lookups for the session.
 - Reason: the short asset makes all 2,865 spells immediately useful without importing the database-backed legacy `Spell` model or holding the full document in memory. Streaming retains complete rules text while keeping startup work bounded and the storage choice replaceable later.
+
+## D018: Combine both legacy bestiary summary partitions
+
+- Date: 2026-08-26
+- Status: accepted
+- Decision: load and combine `BestiaryShort.xml` and `BestiaryShort2.xml` by unique monster ID for the modern Monsters browser.
+- Reason: the original application split its browseable bestiary for memory management and loaded only the first 1,000 records in low-memory mode. Combining both partitions exposes its complete 2,837-record catalogue while continuing to use the existing full bestiary for on-demand details.

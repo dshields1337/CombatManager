@@ -188,4 +188,64 @@ public sealed class CoreUtilityTests
         Assert.AreNotSame(set.WeaponAttacks[0], clone.WeaponAttacks[0]);
         Assert.AreEqual(set.ToString(), clone.ToString());
     }
+
+    [TestMethod]
+    public void AfflictionParsesWithoutMonsterDependency()
+    {
+        var ability = new SpecialAbility
+        {
+            Name = "Poison",
+            Text = "injury; save Fort DC 12; frequency 1/day for 6 days; effect 1d2 Strength damage; cure 1 save"
+        };
+
+        Affliction affliction = Affliction.FromSpecialAbility("Giant Wasp", ability);
+
+        Assert.IsNotNull(affliction);
+        Assert.AreEqual("Giant Wasp Poison", affliction.Name);
+        Assert.AreEqual(12, affliction.Save);
+        Assert.IsFalse(affliction.Once);
+        Assert.AreEqual(1, affliction.Frequency);
+        Assert.AreEqual("day", affliction.FrequencyUnit);
+        Assert.AreEqual(6, affliction.Limit);
+        Assert.AreEqual("day", affliction.LimitUnit);
+        Assert.AreEqual("1d2", affliction.DamageDie.Text);
+        Assert.AreEqual("Strength", affliction.DamageType);
+    }
+
+    [TestMethod]
+    public void AfflictionFormatsSecondaryDamageAndClonesDice()
+    {
+        var affliction = new Affliction
+        {
+            Type = "Disease",
+            Cause = "contact",
+            SaveType = "Fort",
+            Save = 14,
+            Once = true,
+            DamageDie = new DieRoll(1, 3, 0),
+            DamageType = "Strength",
+            SecondaryDamageDie = new DieRoll(1, 4, 0),
+            SecondaryDamageType = "Constitution",
+            Cure = "2 saves"
+        };
+
+        var clone = (Affliction)affliction.Clone();
+
+        StringAssert.Contains(affliction.Text, "1d3 Strength and 1d4 Constitution");
+        Assert.AreNotSame(affliction.DamageDie, clone.DamageDie);
+        Assert.AreNotSame(affliction.SecondaryDamageDie, clone.SecondaryDamageDie);
+    }
+
+    [TestMethod]
+    public void InitiativeCountSortsByBaseDexThenTiebreaker()
+    {
+        var lowerDex = new InitiativeCount(15, 2, 10);
+        var higherDex = new InitiativeCount(15, 4, 1);
+        var higherBase = new InitiativeCount(16, 0, 0);
+
+        Assert.IsTrue(lowerDex < higherDex);
+        Assert.IsTrue(higherDex < higherBase);
+        Assert.AreEqual("15-4-1", higherDex.Text);
+        Assert.AreEqual(higherDex, (InitiativeCount)higherDex.Clone());
+    }
 }

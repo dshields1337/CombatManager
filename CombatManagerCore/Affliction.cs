@@ -116,7 +116,14 @@ namespace CombatManager
             return new Affliction(this);
         }
 
+#if !MODERN_CORE
         public static Affliction FromSpecialAbility(Monster monster, SpecialAbility sa)
+        {
+            return FromSpecialAbility(monster.Name, sa);
+        }
+#endif
+
+        public static Affliction FromSpecialAbility(string sourceName, SpecialAbility sa)
         {
             Affliction a = null;
 
@@ -138,12 +145,12 @@ namespace CombatManager
 
                     if (a.Name == "Filth Fever")
                     {
-                        a.Name += " - " + monster.Name;
+                        a.Name += " - " + sourceName;
                     }
                 }
                 else
                 {
-                    a.Name = monster.Name + " " + a.Type;
+                    a.Name = sourceName + " " + a.Type;
                 }
 
                 if (m.Groups["cause"].Success)
@@ -177,7 +184,7 @@ namespace CombatManager
 
                     a.FrequencyUnit = m.Groups["frequencyunit"].Value;
 
-                    if (m.Groups["Limit"].Success)
+                    if (m.Groups["limit"].Success)
                     {
                         a.Limit = int.Parse(m.Groups["limitcount"].Value);
                         a.LimitUnit = m.Groups["limittype"].Value;
@@ -232,7 +239,7 @@ namespace CombatManager
                     "; save (?<savetype>((Fort)|(Fortitude)|(Ref)|(Reflex)|(Will))) DC (?<savedc>[0-9]+)" +
 
                     "(?<onset>; onset (((?<onsetdie>([0-9]+)(d[0-9]+)?) ((?<onsetunit>[\\p{L}]+?)s?))|(?<immediateonset>immediate)))?" + 
-                    "; frequency (((?<frequencycount>[0-9]+)([/ ]+)((?<frequencyunit>[\\p{L}]+?)s?)(?<limit> for (?<limitcount>[0-9]+) (?<limittype>[\\p{L}]+)s?)?)|(?<once>once))" +
+                    "; frequency (((?<frequencycount>[0-9]+)([/ ]+)((?<frequencyunit>[\\p{L}]+?)s?)(?<limit> for (?<limitcount>[0-9]+) (?<limittype>[\\p{L}]+?)s?)?)|(?<once>once))" +
                     "; effect (" + 
                     "(?<damageeffect>(?<damagedie>([0-9]+)(d[0-9]+)?) (?<damagetype>[\\p{L}]+)( and (?<secondarydamagedie>([0-9]+)(d[0-9]+)?) (?<secondarydamagetype>[\\p{L}]+))?( damage)?([-\\(\\) ,\\.\\p{L}0-9]+)?)|" +
                     "(?<specialeffect>(?<specialeffectname>[\\p{L}]+) for (?<specialeffectdie>([0-9]+)(d[0-9]+)?) (?<specialeffectunit>[\\p{L}]+?)s?)|" +
@@ -247,7 +254,7 @@ namespace CombatManager
         private static DieRoll GetDie(string text)
         {
             DieRoll dieroll;
-            dieroll = Monster.FindNextDieRoll(text);
+            dieroll = CombatText.FindNextDieRoll(text);
 
             if (dieroll == null)
             {
@@ -315,7 +322,7 @@ namespace CombatManager
                     if (SecondaryDamageDie != null)
                     {
 
-                        text += " " + DieText(DamageDie) + " " + DamageType;
+                        text += " and " + DieText(SecondaryDamageDie) + " " + SecondaryDamageType;
                     }
                 }
                 else if (SpecialEffectTime != null)

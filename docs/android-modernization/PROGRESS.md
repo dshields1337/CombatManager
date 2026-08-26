@@ -65,10 +65,18 @@ Last updated: 2026-08-26
 - Added attack regression tests covering regex parsing, text round-tripping, seeded weapon resolution, hand counting, and cloning.
 - Latest core result: 15 passed, 0 failed, 0 skipped, 0 warnings.
 - Full modern Android solution after the attack slice: succeeded with 0 warnings and 0 errors.
+- Mapped the condition/effect boundary and confirmed that the full `Condition` model still combines plain state with spells, monsters, XML-backed favorites/recents, and persistence.
+- Selected and linked the closed `Affliction` and `InitiativeCount` slice instead of importing that full dependency graph.
+- Added a platform-neutral `Affliction.FromSpecialAbility(string sourceName, SpecialAbility)` entry point; legacy builds retain the existing `Monster` overload as a delegating compatibility API.
+- Reused `CombatText` for affliction dice parsing, removing the modern slice's remaining `Monster` dependency.
+- Fixed affliction duration-limit parsing so plural units normalize consistently, and fixed secondary-damage formatting to use the secondary die/type with the missing `and` separator.
+- Added three regression tests for affliction parsing, limited duration, secondary damage, deep cloning, and initiative ordering.
+- Latest core result: 18 passed, 0 failed, 0 skipped, 0 warnings.
+- Full modern Android solution after the affliction/initiative slice: succeeded with 0 warnings and 0 errors.
 
 ## In progress
 
-- Phase 4: three platform-neutral model slices complete; attack parsing and weapon lookup are now separated from Monster/XML loading.
+- Phase 4: four platform-neutral model slices complete; affliction parsing is separated from Monster and the remaining full-condition dependency boundary is documented.
 
 ## Blockers and required actions
 
@@ -87,9 +95,9 @@ Last updated: 2026-08-26
 
 ## Next actions
 
-1. Map the condition/effect model boundary and isolate its spell, affliction, and persistence dependencies.
-2. Link the next closed condition/effect model slice with regression tests.
-3. Decide how bundled weapon and special-ability XML assets will populate the modern registries when application data migration begins.
+1. Separate plain condition state from its static XML/spell/monster catalog and favorites persistence responsibilities.
+2. Evaluate the smallest spell DTO/model slice required by condition state without importing `BaseDBClass` and SQLite.
+3. Decide how bundled reference-data assets will populate modern registries when application data migration begins.
 4. Continue expanding the core without pulling Android or SQLite concerns into model assemblies.
 
 ## Tracking convention

@@ -76,3 +76,10 @@
 - Status: accepted
 - Decision: modern core builds initialize weapon and weapon-special-ability registries empty and expose methods to seed them from an external loader; legacy builds retain their existing XML-backed static initialization.
 - Reason: attack parsing needs reference data but should not own its storage mechanism. This keeps the model testable and platform-neutral while leaving the eventual Android asset/data loader as a separate migration concern.
+
+## D012: Port closed condition-related models before the full condition catalog
+
+- Date: 2026-08-26
+- Status: accepted
+- Decision: port `Affliction` and `InitiativeCount` first, using a source-name overload to keep affliction parsing independent of `Monster`; defer the full `Condition` model until its state is separated from spell/monster catalogs and XML favorites/recent persistence.
+- Reason: the smaller models contain immediately testable combat behavior and require no storage system. Linking `Condition` as-is would pull multiple global catalogs and persistence mechanisms into a platform-neutral migration slice.

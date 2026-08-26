@@ -73,10 +73,17 @@ Last updated: 2026-08-26
 - Added three regression tests for affliction parsing, limited duration, secondary damage, deep cloning, and initiative ordering.
 - Latest core result: 18 passed, 0 failed, 0 skipped, 0 warnings.
 - Full modern Android solution after the affliction/initiative slice: succeeded with 0 warnings and 0 errors.
+- Pivoted from broad core expansion to the first visible vertical slice so emulator feedback arrives earlier.
+- Replaced the placeholder `Hello, Android!` screen with an interactive Combat Manager home-navigation shell.
+- Added working Combat, Monsters, Feats, Spells, Rules, and Treasure tabs, persisted last-tab selection, modernization status, and an About dialog.
+- Added the initial modern resource palette, tab style, circular accent drawable, and user-facing strings while retaining the legacy teal colour direction.
+- Fixed API 36 edge-to-edge system-bar overlap discovered during device interaction by applying system-window insets to the root layout.
+- Modern Android application build: succeeded with 0 warnings and 0 errors.
+- Installed the updated APK on `CombatManager_API_36`; verified tab switching, tab persistence after process restart, About dialog interaction, and a live foreground process.
 
 ## In progress
 
-- Phase 4: four platform-neutral model slices complete; affliction parsing is separated from Monster and the remaining full-condition dependency boundary is documented.
+- Phase 5 started: the first interactive home-navigation resource/UI slice is installed and verified in the API 36 VM; feature destinations currently show explicit migration placeholders.
 
 ## Blockers and required actions
 
@@ -95,10 +102,10 @@ Last updated: 2026-08-26
 
 ## Next actions
 
-1. Separate plain condition state from its static XML/spell/monster catalog and favorites persistence responsibilities.
-2. Evaluate the smallest spell DTO/model slice required by condition state without importing `BaseDBClass` and SQLite.
-3. Decide how bundled reference-data assets will populate modern registries when application data migration begins.
-4. Continue expanding the core without pulling Android or SQLite concerns into model assemblies.
+1. Build the first read-only Monsters destination behind the working navigation shell.
+2. Define a minimal load-independent creature summary model and seed it with bundled/reference data.
+3. Add monster list/search interaction and a read-only details view.
+4. Continue condition/spell separation only where the vertical slice requires it.
 
 ## Tracking convention
 

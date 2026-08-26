@@ -1,4 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">CombatManager.Android</string>
-    <string name="app_text">Hello, Android!</string>
+    <string name="app_name">Combat Manager</string>
+    <string name="modernization_preview">Modern Android preview</string>
+    <string name="combat">Combat</string><string name="monsters">Monsters</string><string name="feats">Feats</string>
+    <string name="spells">Spells</string><string name="rules">Rules</string><string name="treasure">Treasure</string>
+    <string name="about">About</string>
+    <string name="migration_status">This section is connected to the new navigation shell. Its data and controls will arrive in the next vertical slices.</string>
+    <string name="core_status">Modern core: 18 regression tests passing</string>
+    <string name="about_message">Combat Manager 1.27\n\nNative .NET for Android modernization build. The navigation shell is live; feature screens are being migrated incrementally.</string>
 </resources>

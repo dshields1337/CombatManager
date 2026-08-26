@@ -58,11 +58,11 @@ Deliverable: the shared core project builds independently.
 
 ## Phase 5: Port Android resources
 
-- [ ] Move or link AXML layouts, drawables, icons, XML resources, strings, colours, raw assets, and layout variants.
+- [ ] Move or link AXML layouts, drawables, icons, XML resources, strings, colours, raw assets, and layout variants. (Modern home-navigation layout, palette, styles, and drawable added; feature resources remain.)
 - [ ] Exclude the checked-in legacy `Resource.designer.cs`; let modern tooling generate resources.
 - [ ] Correct resource filenames that violate current Android rules.
 - [ ] Resolve generated resource-name differences.
-- [ ] Introduce a compatible modern theme while initially preserving appearance.
+- [ ] Introduce a compatible modern theme while initially preserving appearance. (Initial Material/legacy-colour navigation shell runs on API 36; feature styling remains.)
 
 Deliverable: all Android resources compile.
 

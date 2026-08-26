@@ -83,3 +83,10 @@
 - Status: accepted
 - Decision: port `Affliction` and `InitiativeCount` first, using a source-name overload to keep affliction parsing independent of `Monster`; defer the full `Condition` model until its state is separated from spell/monster catalogs and XML favorites/recent persistence.
 - Reason: the smaller models contain immediately testable combat behavior and require no storage system. Linking `Condition` as-is would pull multiple global catalogs and persistence mechanisms into a platform-neutral migration slice.
+
+## D013: Prioritize a visible read-only vertical slice
+
+- Date: 2026-08-26
+- Status: accepted
+- Decision: after establishing several tested core slices, prioritize an interactive home shell followed by a read-only Monsters list/details path instead of continuing broad core migration in isolation.
+- Reason: installing visible, navigable increments in the emulator provides earlier usability, exposes current-Android UI issues such as edge-to-edge insets, and gives clearer acceptance checkpoints for a non-Android specialist.

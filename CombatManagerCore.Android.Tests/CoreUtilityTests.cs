@@ -77,4 +77,75 @@ public sealed class CoreUtilityTests
         Assert.IsTrue(result.Total >= 5 && result.Total <= 15);
         Assert.IsTrue(result.Rolls.All(item => item.Result >= 1 && item.Result <= item.Die));
     }
+
+    [TestMethod]
+    public void ConditionBonusCloneIsIndependent()
+    {
+        var original = new ConditionBonus { Str = 2, AC = -1, LoseDex = true };
+        var clone = (ConditionBonus)original.Clone();
+
+        clone.Str = 5;
+
+        Assert.AreEqual(2, original.Str);
+        Assert.AreEqual(5, clone.Str);
+        Assert.AreEqual(-1, clone.AC);
+        Assert.IsTrue(clone.LoseDex);
+    }
+
+    [TestMethod]
+    public void SkillValueParsesSubtypeAndFormatsModifier()
+    {
+        var skill = new SkillValue("Knowledge (Arcana)") { Mod = 7 };
+
+        Assert.AreEqual("Knowledge", skill.Name);
+        Assert.AreEqual("Arcana", skill.Subtype);
+        Assert.AreEqual("Knowledge (Arcana)", skill.FullName);
+        Assert.AreEqual("Knowledge (Arcana) +7", skill.Text);
+    }
+
+    [TestMethod]
+    public void SpecialAbilityMapsTypeIndexAndClones()
+    {
+        var ability = new SpecialAbility
+        {
+            Name = "Frightful Presence",
+            AbilityTypeIndex = 2,
+            Text = "Nearby creatures may become frightened.",
+            ConstructionPoints = 3
+        };
+
+        var clone = (SpecialAbility)ability.Clone();
+
+        Assert.AreEqual("Su", ability.Type);
+        Assert.AreEqual(2, ability.AbilityTypeIndex);
+        Assert.AreEqual(ability.Name, clone.Name);
+        Assert.AreEqual(ability.Text, clone.Text);
+        Assert.AreEqual(ability.ConstructionPoints, clone.ConstructionPoints);
+    }
+
+    [TestMethod]
+    public void CharacterClassNamesRoundTripCaseInsensitively()
+    {
+        Assert.AreEqual("Arcane Archer", CharacterClass.GetName(CharacterClassEnum.ArcaneArcher));
+        Assert.AreEqual(CharacterClassEnum.ArcaneArcher, CharacterClass.GetEnum("arcane archer"));
+    }
+
+    [TestMethod]
+    public void CreatureTypeCalculatesBaseAttackAndSaves()
+    {
+        CreatureTypeInfo outsider = CreatureTypeInfo.GetInfo("outsider");
+
+        Assert.AreEqual(10, outsider.GetBAB(10));
+        Assert.AreEqual(7, CreatureTypeInfo.GetSave(good: true, hd: 10));
+        Assert.AreEqual(3, CreatureTypeInfo.GetSave(good: false, hd: 10));
+        Assert.IsTrue(outsider.IsClassSkill("Any Skill"));
+    }
+
+    [TestMethod]
+    public void SourceAliasesResolveToCanonicalSource()
+    {
+        Assert.AreEqual("Pathfinder Core Rulebook", SourceInfo.GetSource("PF Core"));
+        Assert.AreEqual(SourceType.Core, SourceInfo.GetSourceType("PFRPG CORE"));
+        Assert.AreEqual(SourceType.Other, SourceInfo.GetSourceType("Unknown Test Source"));
+    }
 }

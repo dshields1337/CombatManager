@@ -53,10 +53,16 @@ Last updated: 2026-08-26
 - Latest core result: 7 passed, 0 failed, 0 skipped, 0 warnings.
 - Added a VS Code task named `Core: run migration tests`.
 - Full `CombatManagerModern.slnx` Debug build after the first core slice: succeeded with 0 warnings and 0 errors.
+- Added the next closed model slice: `ConditionBonus`, `SkillValue`, `SpecialAbility`, `CharacterClass`, `CreatureTypeInfo`, `PropertyConverters`, and `SourceInfo`.
+- Added six regression tests for condition-bonus cloning, skill parsing/formatting, special-ability type mapping/cloning, class-name mapping, creature BAB/save rules, and source aliases.
+- The new skill test exposed a legacy greedy-regex bug that discarded parenthesized skill subtypes; anchored/non-greedy parsing now preserves values such as `Knowledge (Arcana)`.
+- Latest core result: 13 passed, 0 failed, 0 skipped, 0 warnings.
+- Mapped the attack boundary: `Attack` currently depends on the large `Monster` class for text/parsing helpers and on XML-backed `Weapon`/`WeaponSpecialAbility` registries. These concerns must be separated before attacks can join the platform-neutral model cleanly.
+- Full modern Android solution after the second model slice: succeeded with 0 warnings and 0 errors.
 
 ## In progress
 
-- Phase 4: first utility/value/dice slice complete; map and port the next model dependency cluster before SQLite.
+- Phase 4: two platform-neutral model slices complete; separate attack parsing/formatting from Monster and XML registry dependencies.
 
 ## Blockers and required actions
 
@@ -75,10 +81,10 @@ Last updated: 2026-08-26
 
 ## Next actions
 
-1. Build the complete `CombatManagerModern.slnx` and record the result.
-2. Map the model dependency graph beginning with bonuses, attacks, conditions, and character actions.
-3. Link the smallest closed model cluster and add behavioral tests.
-4. Keep SQLite/database types out until the plain model boundary is stable.
+1. Extract or relocate the reusable attack parsing/formatting helpers currently owned by `Monster`.
+2. Define a load-independent boundary for weapon and special-ability lookup.
+3. Link and test `Attack` and `AttackSet` without pulling in SQLite or Android code.
+4. Continue to full conditions only after their spell/affliction/persistence dependencies are separated.
 
 ## Tracking convention
 

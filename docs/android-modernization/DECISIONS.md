@@ -62,3 +62,10 @@
 - Status: accepted
 - Decision: add existing `CombatManagerCore` files to the modern project as linked compile items in small dependency slices instead of copying them into a second source tree.
 - Reason: linking prevents source divergence, preserves legacy-project comparability, and makes each compatibility change apply to one authoritative file. Nullable analysis is initially disabled for this pre-nullable source and will be introduced incrementally rather than obscuring functional migration with thousands of annotation warnings.
+
+## D010: Do not pull Monster or XML persistence into the attack slice implicitly
+
+- Date: 2026-08-26
+- Status: accepted
+- Decision: separate attack parsing/formatting helpers and weapon lookup boundaries before linking `Attack` and `AttackSet` into the modern core.
+- Reason: `Attack` currently calls static helpers on the large `Monster` model and initializes XML-backed weapon/special-ability registries. Importing that graph merely to compile attacks would mix plain combat behavior with persistence and eventually SQLite, making failures harder to isolate and test.

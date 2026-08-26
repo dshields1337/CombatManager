@@ -139,3 +139,10 @@
 - Status: accepted
 - Decision: export the 2,241 matching rows and read-only display fields from the `MagicItems` table in `Details.db` into `MagicItemDetails.xml`, pairing it with the existing `MagicItemsShort.xml` index.
 - Reason: this completes a useful offline Treasure reference while keeping the APK substantially smaller than bundling the shared database. Streaming and session caching preserve full item descriptions and uncommon artifact/intelligent-item fields without coupling the UI to legacy persistence.
+
+## D021: Start combat with a minimal in-memory encounter roster
+
+- Date: 2026-08-26
+- Status: accepted
+- Decision: introduce a platform-neutral `CombatRoster` populated from `CreatureSummary`, and initially support add, duplicate naming, HP display, remove, and clear without loading the legacy combat graph or persisting encounters.
+- Reason: this creates a testable interactive vertical slice using the complete modern Monsters browser. Deferring persistence, initiative ordering, conditions, and spell state keeps their data requirements explicit and avoids locking storage around an untested interaction model.

@@ -396,4 +396,23 @@ public sealed class CoreUtilityTests
         Assert.AreEqual("8,302 gp", details.Price);
         Assert.AreEqual("Poisonous dagger.", details.Description);
     }
+
+    [TestMethod]
+    public void CombatRosterAddsNamesRemovesAndClearsCreatures()
+    {
+        var roster = new CombatRoster();
+        var goblin = new CreatureSummary { Id = 7, Name = "Goblin", CR = "1/3", HP = 6 };
+
+        CombatParticipant first = roster.Add(goblin);
+        CombatParticipant second = roster.Add(goblin);
+
+        Assert.AreEqual("Goblin", first.DisplayName);
+        Assert.AreEqual("Goblin 2", second.DisplayName);
+        Assert.AreEqual(6, second.CurrentHP);
+        Assert.IsTrue(roster.Remove(first.Sequence));
+        Assert.HasCount(1, roster.Participants);
+        roster.Clear();
+        Assert.IsEmpty(roster.Participants);
+        Assert.AreEqual("Goblin", roster.Add(goblin).DisplayName);
+    }
 }

@@ -30,6 +30,7 @@
     <Compile Include="..\CombatManagerCore\RuleDetails.cs" Link="LegacyCore\RuleDetails.cs" />
     <Compile Include="..\CombatManagerCore\MagicItemSummary.cs" Link="LegacyCore\MagicItemSummary.cs" />
     <Compile Include="..\CombatManagerCore\MagicItemDetails.cs" Link="LegacyCore\MagicItemDetails.cs" />
+    <Compile Include="..\CombatManagerCore\CombatRoster.cs" Link="LegacyCore\CombatRoster.cs" />
     <Compile Include="..\CombatManagerCore\PropertyConverters.cs" Link="LegacyCore\PropertyConverters.cs" />
     <Compile Include="..\CombatManagerCore\SizeMods.cs" Link="LegacyCore\SizeMods.cs" />
     <Compile Include="..\CombatManagerCore\SkillValue.cs" Link="LegacyCore\SkillValue.cs" />

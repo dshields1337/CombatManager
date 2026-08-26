@@ -44,6 +44,7 @@ public class MainActivity : Activity
     private List<MagicItemSummary> _visibleMagicItems = [];
     private readonly Dictionary<int, MagicItemDetails> _magicItemDetailCache = [];
     private bool _initializingMagicItemFilters;
+    private readonly CombatRoster _combatRoster = new();
     private readonly Page[] _pages =
     [
         new(Resource.Id.combat_button, "Combat", "C"), new(Resource.Id.monsters_button, "Monsters", "M"),
@@ -56,6 +57,8 @@ public class MainActivity : Activity
         base.OnCreate(savedInstanceState);
         SetContentView(Resource.Layout.activity_main);
         foreach (Page page in _pages) FindViewById<Button>(page.ButtonId)!.Click += (_, _) => SelectPage(page);
+        FindViewById<ListView>(Resource.Id.combat_list)!.ItemClick += (_, args) => ShowCombatParticipant(_combatRoster.Participants[args.Position]);
+        FindViewById<Button>(Resource.Id.clear_combat_button)!.Click += (_, _) => ConfirmClearCombat();
         FindViewById<SearchView>(Resource.Id.monster_search)!.QueryTextChange += (_, args) => OnQueryChanged(args.NewText);
         FindViewById<Spinner>(Resource.Id.monster_type_filter)!.ItemSelected += (_, _) => OnFilterChanged();
         FindViewById<Spinner>(Resource.Id.monster_cr_filter)!.ItemSelected += (_, _) => OnFilterChanged();
@@ -86,12 +89,14 @@ public class MainActivity : Activity
 
     private void SelectPage(Page selected)
     {
+        bool showCombat = selected.Title == "Combat";
         bool showMonsters = selected.Title == "Monsters";
         bool showFeats = selected.Title == "Feats";
         bool showSpells = selected.Title == "Spells";
         bool showRules = selected.Title == "Rules";
         bool showTreasure = selected.Title == "Treasure";
-        FindViewById<LinearLayout>(Resource.Id.placeholder_panel)!.Visibility = showMonsters || showFeats || showSpells || showRules || showTreasure ? ViewStates.Gone : ViewStates.Visible;
+        FindViewById<LinearLayout>(Resource.Id.placeholder_panel)!.Visibility = showCombat || showMonsters || showFeats || showSpells || showRules || showTreasure ? ViewStates.Gone : ViewStates.Visible;
+        FindViewById<LinearLayout>(Resource.Id.combat_panel)!.Visibility = showCombat ? ViewStates.Visible : ViewStates.Gone;
         FindViewById<LinearLayout>(Resource.Id.monsters_panel)!.Visibility = showMonsters ? ViewStates.Visible : ViewStates.Gone;
         FindViewById<LinearLayout>(Resource.Id.feats_panel)!.Visibility = showFeats ? ViewStates.Visible : ViewStates.Gone;
         FindViewById<LinearLayout>(Resource.Id.spells_panel)!.Visibility = showSpells ? ViewStates.Visible : ViewStates.Gone;
@@ -108,6 +113,7 @@ public class MainActivity : Activity
             if (isSelected) GetSharedPreferences(PreferenceName, global::Android.Content.FileCreationMode.Private)!.Edit()!.PutInt(SelectedPageKey, index)!.Apply();
         }
 
+        if (showCombat) RefreshCombatRoster();
         if (showMonsters) _ = EnsureCreaturesLoadedAsync();
         if (showFeats) _ = EnsureFeatsLoadedAsync();
         if (showSpells) _ = EnsureSpellsLoadedAsync();
@@ -667,7 +673,55 @@ public class MainActivity : Activity
         dialog.SetTitle(creature.Name);
         dialog.SetMessage(details);
         dialog.SetNeutralButton(Resource.String.full_details, (_, _) => _ = ShowFullDetailsAsync(creature));
+        dialog.SetNegativeButton(Resource.String.add_to_combat, (_, _) => AddCreatureToCombat(creature));
         dialog.SetPositiveButton(global::Android.Resource.String.Ok, (_, _) => { });
+        dialog.Show();
+    }
+
+    private void AddCreatureToCombat(CreatureSummary creature)
+    {
+        CombatParticipant participant = _combatRoster.Add(creature);
+        RefreshCombatRoster();
+        Toast.MakeText(this, participant.DisplayName + " added to combat.", ToastLength.Short)?.Show();
+    }
+
+    private void RefreshCombatRoster()
+    {
+        int count = _combatRoster.Participants.Count;
+        FindViewById<TextView>(Resource.Id.combat_count)!.Text = count == 1 ? "1 combatant" : $"{count:N0} combatants";
+        FindViewById<Button>(Resource.Id.clear_combat_button)!.Enabled = count > 0;
+        FindViewById<TextView>(Resource.Id.combat_empty)!.Visibility = count == 0 ? ViewStates.Visible : ViewStates.Gone;
+        ListView list = FindViewById<ListView>(Resource.Id.combat_list)!;
+        list.Visibility = count == 0 ? ViewStates.Gone : ViewStates.Visible;
+        list.Adapter = new CombatParticipantListAdapter(this, _combatRoster.Participants);
+    }
+
+    private void ShowCombatParticipant(CombatParticipant participant)
+    {
+        var dialog = new AlertDialog.Builder(this);
+        dialog.SetTitle(participant.DisplayName);
+        dialog.SetMessage($"CR {participant.ChallengeRating}\nHP {participant.CurrentHP} / {participant.MaximumHP}");
+        dialog.SetNegativeButton(Resource.String.remove_from_combat, (_, _) =>
+        {
+            _combatRoster.Remove(participant.Sequence);
+            RefreshCombatRoster();
+        });
+        dialog.SetPositiveButton(global::Android.Resource.String.Ok, (_, _) => { });
+        dialog.Show();
+    }
+
+    private void ConfirmClearCombat()
+    {
+        if (_combatRoster.Participants.Count == 0) return;
+        var dialog = new AlertDialog.Builder(this);
+        dialog.SetTitle(Resource.String.clear_encounter_title);
+        dialog.SetMessage(Resource.String.clear_encounter_message);
+        dialog.SetNegativeButton(global::Android.Resource.String.Cancel, (_, _) => { });
+        dialog.SetPositiveButton(Resource.String.clear_encounter, (_, _) =>
+        {
+            _combatRoster.Clear();
+            RefreshCombatRoster();
+        });
         dialog.Show();
     }
 

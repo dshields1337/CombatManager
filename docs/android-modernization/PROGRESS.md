@@ -128,14 +128,18 @@ Last updated: 2026-08-26
 - Implemented the fifth read-only destination: 2,241 magic items with structured group/caster-level rows, live search, 12 group filters, persisted state, session-cached full descriptions, price/weight/construction data, artifacts, and intelligent-item fields where present.
 - Latest core result: 26 passed, 0 failed, 0 skipped; Release Android build succeeded with 0 warnings and 0 errors. The signed APK is 21,850,742 bytes (approximately 20.8 MiB).
 - API 36 verification passed for the full item count, `Dagger of Venom` search and complete details, and restart restoration of `Dagger of Venom` + `Weapon` to one result; the process remained alive.
+- Added a platform-neutral in-memory `CombatRoster` with stable participant IDs, duplicate-creature numbering, starting/current HP, removal, and reset behavior.
+- Replaced the Combat placeholder with the first interactive encounter screen. Monster summary dialogs can add combatants; the roster displays CR and HP, supports individual removal, and requires confirmation before clearing the encounter.
+- Latest core result: 27 passed, 0 failed, 0 skipped; Release Android build succeeded with 0 warnings and 0 errors. The signed APK installed successfully on API 36.
+- API 36 verification added Goblin twice as `Goblin` and `Goblin 2`, displayed both at HP 6 / 6, removed an individual participant, cleared the remainder through confirmation, restored the empty state, and left the process alive.
 
 ## In progress
 
-- All five planned read-only reference destinations are complete in the installed API 36 app: the complete legacy Monsters catalogue, Feats, Spells, Rules, and magic-item Treasure.
+- All five planned read-only reference destinations are complete, and the first interactive Combat slice is installed and working. Initiative ordering and turn controls are next.
 
 ## Blockers and required actions
 
-- No current implementation blocker. The next work is the first interactive combat slice: encounter selection from Monsters.
+- No current implementation blocker. Combat sessions are intentionally in-memory until the initiative workflow is shaped and tested.
 
 ## Repository ownership and publishing
 
@@ -150,9 +154,9 @@ Last updated: 2026-08-26
 
 ## Next actions
 
-1. Add encounter selection from Monsters and define the minimal modern combat-session model.
-2. Build the initiative list and basic turn controls.
-3. Continue separating condition/spell state only where the next vertical slice requires it.
+1. Add initiative values and deterministic initiative ordering to the combat roster.
+2. Add basic next-turn/previous-turn controls and a visible active combatant.
+3. Add encounter persistence after the interaction model is stable.
 
 ## Tracking convention
 

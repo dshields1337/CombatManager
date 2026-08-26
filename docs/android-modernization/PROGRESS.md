@@ -44,11 +44,19 @@ Last updated: 2026-08-26
 - Rebuilt with zero warnings and zero errors, reinstalled successfully, and launched the shell MainActivity.
 - Verified the shell process remained alive as the foreground activity on Android 16/API 36.
 - Completed milestone M1.
+- Linked the first platform-neutral legacy core slice into `CombatManagerCore.Android` without duplicating source files.
+- The first slice contains `CMMathUtilities`, `CMListUtilities`, `CMStringUtilities`, `Coin`, `InsensitiveComparer`, `RandomWeightChart`, `RomanNumbers`, `SizeMods`, `Stat`, `StringCapitalizer`, and `TitleValuePair`.
+- Resolved the slice's only missing internal dependency by adding `CMListUtilities`, which supplies `WeaveList`.
+- Added the full `DieRoll`, `DieStep`, and roll-result engine after removing an unused `System.ServiceModel` import.
+- Added `CombatManagerCore.Android.Tests` to the modern solution.
+- Added seven regression tests covering clamp behavior, decomma normalization, Roman numerals, coin parsing/value calculation, size boundaries, compound dice parsing, and dice-result bounds.
+- Latest core result: 7 passed, 0 failed, 0 skipped, 0 warnings.
+- Added a VS Code task named `Core: run migration tests`.
+- Full `CombatManagerModern.slnx` Debug build after the first core slice: succeeded with 0 warnings and 0 errors.
 
 ## In progress
 
-- Phase 2: connect an emulator or physical device and install the smoke-test APK.
-- Phase 4: determine the smallest compilable core-source slice and its modern dependency set.
+- Phase 4: first utility/value/dice slice complete; map and port the next model dependency cluster before SQLite.
 
 ## Blockers and required actions
 
@@ -67,10 +75,10 @@ Last updated: 2026-08-26
 
 ## Next actions
 
-1. Build `CombatManagerModern.slnx` and record the result.
-2. Begin moving the core source into the parallel core project.
-3. Connect a device or configure an emulator when convenient and install the smoke APK.
-4. Start the compiling application shell and resource migration.
+1. Build the complete `CombatManagerModern.slnx` and record the result.
+2. Map the model dependency graph beginning with bonuses, attacks, conditions, and character actions.
+3. Link the smallest closed model cluster and add behavioral tests.
+4. Keep SQLite/database types out until the plain model boundary is stable.
 
 ## Tracking convention
 

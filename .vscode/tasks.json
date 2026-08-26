@@ -28,6 +28,19 @@
       }
     },
     {
+      "label": "Core: run migration tests",
+      "type": "process",
+      "command": "C:\\Program Files\\dotnet\\dotnet.exe",
+      "args": [
+        "test",
+        "CombatManagerCore.Android.Tests/CombatManagerCore.Android.Tests.csproj",
+        "--configuration",
+        "Debug"
+      ],
+      "problemMatcher": "$msCompile",
+      "group": "test"
+    },
+    {
       "label": "Android: list connected devices",
       "type": "process",
       "command": "${env:LOCALAPPDATA}\\Android\\Sdk\\platform-tools\\adb.exe",

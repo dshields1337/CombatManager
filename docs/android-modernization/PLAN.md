@@ -47,12 +47,12 @@ Deliverable: empty modern projects that build successfully.
 
 ## Phase 4: Port the core library
 
-- [ ] Add the required `CombatManagerCore` source to the modern core project.
+- [ ] Add the required `CombatManagerCore` source to the modern core project. (First dependency-free slice linked; migration ongoing.)
 - [ ] Replace `packages.config` with `PackageReference` entries.
 - [ ] Remove obsolete compatibility packages supplied by modern .NET.
 - [ ] Update Newtonsoft.Json, EmbedIO, Swan.Lite, SQLite, ZIP, and Xamarin.Essentials functionality.
 - [ ] Resolve incompatibilities involving Mono.Data.Sqlite, serialization, System.Web.Services, System.ServiceModel, and platform-specific paths.
-- [ ] Add focused tests for calculations, serialization, database queries, and import/export parsing.
+- [ ] Add focused tests for calculations, serialization, database queries, and import/export parsing. (Initial utility/value/dice tests added; data tests remain.)
 
 Deliverable: the shared core project builds independently.
 

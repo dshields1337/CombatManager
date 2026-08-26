@@ -55,3 +55,10 @@
 - Status: accepted
 - Decision: preserve `KyleADOlson/CombatManager` as the upstream reference and push modernization work only to a fork owned by `dshields1337`.
 - Reason: the user explicitly requested that no modernization work be pushed to the original repository. A fork preserves project history and attribution while giving the user independent ownership of branches and releases.
+
+## D009: Link legacy core source during incremental migration
+
+- Date: 2026-08-26
+- Status: accepted
+- Decision: add existing `CombatManagerCore` files to the modern project as linked compile items in small dependency slices instead of copying them into a second source tree.
+- Reason: linking prevents source divergence, preserves legacy-project comparability, and makes each compatibility change apply to one authoritative file. Nullable analysis is initially disabled for this pre-nullable source and will be introduced incrementally rather than obscuring functional migration with thousands of annotation warnings.

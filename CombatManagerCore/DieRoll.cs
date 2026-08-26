@@ -28,7 +28,6 @@ using System.Text.RegularExpressions;
 using System.Xml.Serialization;
 using System.Globalization;
 using System.IO;
-using System.ServiceModel;
 using System.Runtime.Serialization;
 
 namespace CombatManager

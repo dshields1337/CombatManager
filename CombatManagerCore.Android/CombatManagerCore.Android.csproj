@@ -3,7 +3,23 @@
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
+    <!-- Legacy source predates nullable annotations; enable this incrementally. -->
+    <Nullable>disable</Nullable>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\CombatManagerCore\CMMathUtilities.cs" Link="LegacyCore\CMMathUtilities.cs" />
+    <Compile Include="..\CombatManagerCore\CMListUtilities.cs" Link="LegacyCore\CMListUtilities.cs" />
+    <Compile Include="..\CombatManagerCore\CMStringUtilities.cs" Link="LegacyCore\CMStringUtilities.cs" />
+    <Compile Include="..\CombatManagerCore\Coin.cs" Link="LegacyCore\Coin.cs" />
+    <Compile Include="..\CombatManagerCore\DieRoll.cs" Link="LegacyCore\DieRoll.cs" />
+    <Compile Include="..\CombatManagerCore\InsensitiveComparer.cs" Link="LegacyCore\InsensitiveComparer.cs" />
+    <Compile Include="..\CombatManagerCore\RandomWeightChart.cs" Link="LegacyCore\RandomWeightChart.cs" />
+    <Compile Include="..\CombatManagerCore\RomanNumbers.cs" Link="LegacyCore\RomanNumbers.cs" />
+    <Compile Include="..\CombatManagerCore\SizeMods.cs" Link="LegacyCore\SizeMods.cs" />
+    <Compile Include="..\CombatManagerCore\Stat.cs" Link="LegacyCore\Stat.cs" />
+    <Compile Include="..\CombatManagerCore\StringCapitalizer.cs" Link="LegacyCore\StringCapitalizer.cs" />
+    <Compile Include="..\CombatManagerCore\TitleValuePair.cs" Link="LegacyCore\TitleValuePair.cs" />
+  </ItemGroup>
 
 </Project>

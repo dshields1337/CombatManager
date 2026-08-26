@@ -15,6 +15,8 @@ public class MainActivity : Activity
     private const string FeatTypeKey = "feat_type";
     private const string SpellQueryKey = "spell_query";
     private const string SpellSchoolKey = "spell_school";
+    private const string RuleQueryKey = "rule_query";
+    private const string RuleTypeKey = "rule_type";
     private const string AllTypes = "All types";
     private const string AllChallengeRatings = "All CRs";
     private const string AllFeatTypes = "All feat types";
@@ -30,6 +32,11 @@ public class MainActivity : Activity
     private List<SpellSummary> _visibleSpells = [];
     private readonly Dictionary<int, SpellDetails> _spellDetailCache = [];
     private bool _initializingSpellFilters;
+    private const string AllRuleTypes = "All rule types";
+    private List<RuleSummary>? _rules;
+    private List<RuleSummary> _visibleRules = [];
+    private readonly Dictionary<int, RuleDetails> _ruleDetailCache = [];
+    private bool _initializingRuleFilters;
     private readonly Page[] _pages =
     [
         new(Resource.Id.combat_button, "Combat", "C"), new(Resource.Id.monsters_button, "Monsters", "M"),
@@ -52,6 +59,9 @@ public class MainActivity : Activity
         FindViewById<SearchView>(Resource.Id.spell_search)!.QueryTextChange += (_, args) => OnSpellQueryChanged(args.NewText);
         FindViewById<Spinner>(Resource.Id.spell_school_filter)!.ItemSelected += (_, _) => OnSpellFilterChanged();
         FindViewById<ListView>(Resource.Id.spell_list)!.ItemClick += (_, args) => ShowSpell(_visibleSpells[args.Position]);
+        FindViewById<SearchView>(Resource.Id.rule_search)!.QueryTextChange += (_, args) => OnRuleQueryChanged(args.NewText);
+        FindViewById<Spinner>(Resource.Id.rule_type_filter)!.ItemSelected += (_, _) => OnRuleFilterChanged();
+        FindViewById<ListView>(Resource.Id.rule_list)!.ItemClick += (_, args) => _ = ShowRuleAsync(_visibleRules[args.Position]);
         FindViewById<ImageButton>(Resource.Id.about_button)!.Click += (_, _) =>
         {
             var dialog = new AlertDialog.Builder(this);
@@ -69,10 +79,12 @@ public class MainActivity : Activity
         bool showMonsters = selected.Title == "Monsters";
         bool showFeats = selected.Title == "Feats";
         bool showSpells = selected.Title == "Spells";
-        FindViewById<LinearLayout>(Resource.Id.placeholder_panel)!.Visibility = showMonsters || showFeats || showSpells ? ViewStates.Gone : ViewStates.Visible;
+        bool showRules = selected.Title == "Rules";
+        FindViewById<LinearLayout>(Resource.Id.placeholder_panel)!.Visibility = showMonsters || showFeats || showSpells || showRules ? ViewStates.Gone : ViewStates.Visible;
         FindViewById<LinearLayout>(Resource.Id.monsters_panel)!.Visibility = showMonsters ? ViewStates.Visible : ViewStates.Gone;
         FindViewById<LinearLayout>(Resource.Id.feats_panel)!.Visibility = showFeats ? ViewStates.Visible : ViewStates.Gone;
         FindViewById<LinearLayout>(Resource.Id.spells_panel)!.Visibility = showSpells ? ViewStates.Visible : ViewStates.Gone;
+        FindViewById<LinearLayout>(Resource.Id.rules_panel)!.Visibility = showRules ? ViewStates.Visible : ViewStates.Gone;
         FindViewById<TextView>(Resource.Id.page_title)!.Text = selected.Title;
         FindViewById<TextView>(Resource.Id.page_icon)!.Text = selected.Initial;
         for (int index = 0; index < _pages.Length; index++)
@@ -87,6 +99,115 @@ public class MainActivity : Activity
         if (showMonsters) _ = EnsureCreaturesLoadedAsync();
         if (showFeats) _ = EnsureFeatsLoadedAsync();
         if (showSpells) _ = EnsureSpellsLoadedAsync();
+        if (showRules) _ = EnsureRulesLoadedAsync();
+    }
+
+    private async Task EnsureRulesLoadedAsync()
+    {
+        if (_rules is not null) { FilterRules(CurrentRuleQuery()); return; }
+        try
+        {
+            _rules = await Task.Run(() =>
+            {
+                using Stream stream = Assets!.Open("RuleShort.xml");
+                return RuleSummary.Load(stream);
+            });
+            if (IsDestroyed) return;
+            string[] types = [AllRuleTypes, .. _rules.Select(rule => rule.Type)
+                .Where(type => !string.IsNullOrWhiteSpace(type)).Distinct(StringComparer.OrdinalIgnoreCase)
+                .OrderBy(type => type, StringComparer.OrdinalIgnoreCase)];
+            _initializingRuleFilters = true;
+            FindViewById<Spinner>(Resource.Id.rule_type_filter)!.Adapter =
+                new ArrayAdapter<string>(this, global::Android.Resource.Layout.SimpleSpinnerDropDownItem, types);
+            var preferences = GetSharedPreferences(PreferenceName, global::Android.Content.FileCreationMode.Private)!;
+            SelectSpinnerValue(FindViewById<Spinner>(Resource.Id.rule_type_filter)!, types,
+                preferences.GetString(RuleTypeKey, AllRuleTypes) ?? AllRuleTypes);
+            FindViewById<SearchView>(Resource.Id.rule_search)!.SetQuery(
+                preferences.GetString(RuleQueryKey, string.Empty), false);
+            _initializingRuleFilters = false;
+            FindViewById<ProgressBar>(Resource.Id.rule_progress)!.Visibility = ViewStates.Gone;
+            FindViewById<ListView>(Resource.Id.rule_list)!.Visibility = ViewStates.Visible;
+            FilterRules(CurrentRuleQuery());
+        }
+        catch (Exception exception)
+        {
+            global::Android.Util.Log.Error("CombatManager", exception.ToString());
+            FindViewById<ProgressBar>(Resource.Id.rule_progress)!.Visibility = ViewStates.Gone;
+            FindViewById<TextView>(Resource.Id.rule_count)!.SetText(Resource.String.unable_to_load_rules);
+        }
+    }
+
+    private void FilterRules(string? query)
+    {
+        if (_rules is null) return;
+        string selectedType = FindViewById<Spinner>(Resource.Id.rule_type_filter)!.SelectedItem?.ToString() ?? AllRuleTypes;
+        _visibleRules = RuleSummary.Filter(_rules, query ?? string.Empty,
+            selectedType == AllRuleTypes ? string.Empty : selectedType);
+        FindViewById<ListView>(Resource.Id.rule_list)!.Adapter = new RuleListAdapter(this, _visibleRules);
+        string noun = _visibleRules.Count == 1 ? "rule" : "rules";
+        FindViewById<TextView>(Resource.Id.rule_count)!.Text = $"{_visibleRules.Count:N0} {noun}";
+    }
+
+    private string CurrentRuleQuery() => FindViewById<SearchView>(Resource.Id.rule_search)!.Query ?? string.Empty;
+
+    private void OnRuleQueryChanged(string? query)
+    {
+        if (_initializingRuleFilters) return;
+        SavePreference(RuleQueryKey, query ?? string.Empty);
+        FilterRules(query);
+    }
+
+    private void OnRuleFilterChanged()
+    {
+        if (_initializingRuleFilters || _rules is null) return;
+        SavePreference(RuleTypeKey,
+            FindViewById<Spinner>(Resource.Id.rule_type_filter)!.SelectedItem?.ToString() ?? AllRuleTypes);
+        FilterRules(CurrentRuleQuery());
+    }
+
+    private async Task ShowRuleAsync(RuleSummary rule)
+    {
+        var loadingBuilder = new AlertDialog.Builder(this);
+        loadingBuilder.SetMessage(Resource.String.loading_rule_details);
+        loadingBuilder.SetCancelable(false);
+        AlertDialog? loading = loadingBuilder.Show();
+        try
+        {
+            if (!_ruleDetailCache.TryGetValue(rule.Id, out RuleDetails? details))
+            {
+                details = await Task.Run(() =>
+                {
+                    using Stream stream = Assets!.Open("RuleDetails.xml");
+                    return RuleDetails.Find(stream, rule.Id);
+                });
+                if (details is not null) _ruleDetailCache[rule.Id] = details;
+            }
+            loading?.Dismiss();
+            if (IsDestroyed) return;
+            var sections = new List<string>();
+            AddSection(sections, null, details?.Details ?? GetString(Resource.String.rule_details_not_found));
+            AddSection(sections, "TYPE", rule.Type);
+            AddSection(sections, "SUBTYPE", rule.Subtype);
+            AddSection(sections, "ABILITY", rule.Ability);
+            AddSection(sections, "ABILITY TYPE", rule.AbilityType);
+            AddSection(sections, "FORMAT", rule.Format);
+            AddSection(sections, "LOCATION", rule.Location);
+            AddSection(sections, "SECOND FORMAT", rule.Format2);
+            AddSection(sections, "SECOND LOCATION", rule.Location2);
+            if (rule.Untrained) AddSection(sections, "UNTRAINED", "Yes");
+            AddSection(sections, "SOURCE", rule.Source);
+            var dialog = new AlertDialog.Builder(this);
+            dialog.SetTitle(rule.Name);
+            dialog.SetMessage(string.Join("\n\n", sections));
+            dialog.SetPositiveButton(global::Android.Resource.String.Ok, (_, _) => { });
+            dialog.Show();
+        }
+        catch (Exception exception)
+        {
+            loading?.Dismiss();
+            global::Android.Util.Log.Error("CombatManager", exception.ToString());
+            Toast.MakeText(this, Resource.String.rule_details_not_found, ToastLength.Long)?.Show();
+        }
     }
 
     private async Task EnsureSpellsLoadedAsync()

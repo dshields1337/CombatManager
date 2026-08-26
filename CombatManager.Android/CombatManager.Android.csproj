@@ -7,6 +7,8 @@
     <AndroidAsset Include="..\CombatManagerCore\Feats.xml" Link="Feats.xml" />
     <AndroidAsset Include="..\CombatManagerCore\SpellsShort.xml" Link="SpellsShort.xml" />
     <AndroidAsset Include="..\CombatManagerCore\Spells.xml" Link="Spells.xml" />
+    <AndroidAsset Include="..\CombatManagerCore\RuleShort.xml" Link="RuleShort.xml" />
+    <AndroidAsset Include="..\CombatManagerCore\RuleDetails.xml" Link="RuleDetails.xml" />
   </ItemGroup>
   <PropertyGroup>
     <TargetFramework>net10.0-android</TargetFramework>

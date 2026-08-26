@@ -118,14 +118,19 @@ Last updated: 2026-08-26
 - Persisted Feats search/type and Spells search/school selections using application preferences, completing state restoration across tab changes and process restarts for all three read-only browsers.
 - Release Android build after browser-state persistence succeeded with 0 warnings and 0 errors.
 - API 36 restart verification restored `Power Attack` + `Combat` to one feat and `Acid Arrow` + `conjuration` to one spell; the application process remained alive.
+- Extracted the 591 Rules descriptions from the legacy 32 MB `Details.db` into a focused 4.6 MB `RuleDetails.xml` asset; the modern APK does not need the obsolete database layer for this destination.
+- Added platform-neutral `RuleSummary` and streaming `RuleDetails` projections with normalization of legacy HTML fragments into readable plain text.
+- Implemented the fourth read-only destination: 591 rules across 22 types with structured rows, live search, type filtering, persisted browser state, session-cached full descriptions, and rule-specific metadata.
+- Latest core result: 25 passed, 0 failed, 0 skipped; Release Android build succeeded with 0 warnings and 0 errors. The signed APK is 20,707,732 bytes (approximately 19.7 MiB).
+- API 36 verification passed for the full Rules count, a one-result `Grapple` search, its complete scrollable rules text without literal formatting tags, restored state, and a live application process.
 
 ## In progress
 
-- Three usable read-only vertical slices are complete in the installed API 36 app: the complete legacy Monsters catalogue, Feats, and Spells.
+- Four usable read-only vertical slices are complete in the installed API 36 app: the complete legacy Monsters catalogue, Feats, Spells, and Rules.
 
 ## Blockers and required actions
 
-- No current implementation blocker. The next work can add the Rules destination or begin encounter selection.
+- No current implementation blocker. The next work can add the Treasure destination or begin encounter selection.
 
 ## Repository ownership and publishing
 
@@ -140,7 +145,7 @@ Last updated: 2026-08-26
 
 ## Next actions
 
-1. Build the read-only Rules destination from the bundled rules reference data.
+1. Build the read-only Treasure destination from the bundled magic-item reference data.
 2. Add encounter selection from Monsters when the combat model/UI boundary is ready.
 3. Continue separating condition/spell state only where the next vertical slice requires it.
 

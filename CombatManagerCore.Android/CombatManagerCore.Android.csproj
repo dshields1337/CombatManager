@@ -26,6 +26,8 @@
     <Compile Include="..\CombatManagerCore\FeatSummary.cs" Link="LegacyCore\FeatSummary.cs" />
     <Compile Include="..\CombatManagerCore\SpellSummary.cs" Link="LegacyCore\SpellSummary.cs" />
     <Compile Include="..\CombatManagerCore\SpellDetails.cs" Link="LegacyCore\SpellDetails.cs" />
+    <Compile Include="..\CombatManagerCore\RuleSummary.cs" Link="LegacyCore\RuleSummary.cs" />
+    <Compile Include="..\CombatManagerCore\RuleDetails.cs" Link="LegacyCore\RuleDetails.cs" />
     <Compile Include="..\CombatManagerCore\PropertyConverters.cs" Link="LegacyCore\PropertyConverters.cs" />
     <Compile Include="..\CombatManagerCore\SizeMods.cs" Link="LegacyCore\SizeMods.cs" />
     <Compile Include="..\CombatManagerCore\SkillValue.cs" Link="LegacyCore\SkillValue.cs" />

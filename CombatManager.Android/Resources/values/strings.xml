@@ -21,8 +21,13 @@
     <string name="full_spell_details">Full spell details</string>
     <string name="loading_spell_details">Loading full spell detailsâ€¦</string>
     <string name="spell_details_not_found">Full details are not available for this spell.</string>
+    <string name="search_rules">Search rules</string>
+    <string name="filter_rules_by_type">Filter rules by type</string>
+    <string name="unable_to_load_rules">Unable to load the bundled rules.</string>
+    <string name="loading_rule_details">Loading rule detailsâ€¦</string>
+    <string name="rule_details_not_found">Details are not available for this rule.</string>
     <string name="unable_to_load_bestiary">Unable to load the bundled bestiary.</string>
     <string name="migration_status">This section is connected to the new navigation shell. Its data and controls will arrive in the next vertical slices.</string>
-    <string name="core_status">Modern core: 24 regression tests passing</string>
+    <string name="core_status">Modern core: 25 regression tests passing</string>
     <string name="about_message">Combat Manager 1.27\n\nNative .NET for Android modernization build. The navigation shell is live; feature screens are being migrated incrementally.</string>
 </resources>

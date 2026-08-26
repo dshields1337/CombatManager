@@ -363,4 +363,20 @@ public sealed class CoreUtilityTests
         Assert.AreEqual("wizard 2", spells[0].Levels);
         Assert.AreEqual("An arrow of acid.", details.Description);
     }
+
+    [TestMethod]
+    public void RulesLoadFilterAndFindFullDetails()
+    {
+        const string shortXml = "<ArrayOfRule><Rule><ID>5</ID><Name>Grapple</Name><Source>Core</Source><Type>Combat Maneuvers</Type><Format>grapple</Format></Rule></ArrayOfRule>";
+        const string fullXml = "<ArrayOfRuleDetails><RuleDetails><ID>5</ID><Details>Make a combat maneuver check. &lt;b&gt;Move&lt;/b&gt;</Details></RuleDetails></ArrayOfRuleDetails>";
+        using var shortStream = new MemoryStream(Encoding.UTF8.GetBytes(shortXml));
+        using var fullStream = new MemoryStream(Encoding.UTF8.GetBytes(fullXml));
+
+        List<RuleSummary> rules = RuleSummary.Load(shortStream);
+        RuleDetails details = RuleDetails.Find(fullStream, 5);
+
+        Assert.HasCount(1, RuleSummary.Filter(rules, "grapple", "Combat Maneuvers"));
+        Assert.AreEqual("Core", rules[0].Source);
+        Assert.AreEqual("Make a combat maneuver check. Move", details.Details);
+    }
 }

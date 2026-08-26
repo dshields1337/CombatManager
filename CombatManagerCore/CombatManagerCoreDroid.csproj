@@ -165,6 +165,8 @@
     <Compile Include="FeatSummary.cs" />
     <Compile Include="SpellSummary.cs" />
     <Compile Include="SpellDetails.cs" />
+    <Compile Include="RuleSummary.cs" />
+    <Compile Include="RuleDetails.cs" />
     <Compile Include="AttackSet.cs" />
     <Compile Include="CampaignEvent.cs" />
     <Compile Include="CampaignInfo.cs" />

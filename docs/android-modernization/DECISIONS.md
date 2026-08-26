@@ -125,3 +125,10 @@
 - Status: accepted
 - Decision: load and combine `BestiaryShort.xml` and `BestiaryShort2.xml` by unique monster ID for the modern Monsters browser.
 - Reason: the original application split its browseable bestiary for memory management and loaded only the first 1,000 records in low-memory mode. Combining both partitions exposes its complete 2,837-record catalogue while continuing to use the existing full bestiary for on-demand details.
+
+## D019: Extract focused rule details instead of shipping the legacy database
+
+- Date: 2026-08-26
+- Status: accepted
+- Decision: export the 591 rows from the `Rules` table in `Details.db` into `RuleDetails.xml`, bundle that focused asset with `RuleShort.xml`, and stream descriptions by ID on demand.
+- Reason: the legacy database is approximately 32 MB and couples multiple catalogues to an obsolete SQLite layer. The focused 4.6 MB XML preserves the complete Rules content, keeps the current screen platform-neutral and testable, and avoids adding a database provider solely for read-only reference text.

@@ -123,14 +123,19 @@ Last updated: 2026-08-26
 - Implemented the fourth read-only destination: 591 rules across 22 types with structured rows, live search, type filtering, persisted browser state, session-cached full descriptions, and rule-specific metadata.
 - Latest core result: 25 passed, 0 failed, 0 skipped; Release Android build succeeded with 0 warnings and 0 errors. The signed APK is 20,707,732 bytes (approximately 19.7 MiB).
 - API 36 verification passed for the full Rules count, a one-result `Grapple` search, its complete scrollable rules text without literal formatting tags, restored state, and a live application process.
+- Extracted 2,241 focused magic-item detail records from the legacy shared database into a 3.2 MB `MagicItemDetails.xml` asset.
+- Added platform-neutral `MagicItemSummary` and streaming `MagicItemDetails` projections, reusing legacy-markup normalization and avoiding the obsolete database runtime.
+- Implemented the fifth read-only destination: 2,241 magic items with structured group/caster-level rows, live search, 12 group filters, persisted state, session-cached full descriptions, price/weight/construction data, artifacts, and intelligent-item fields where present.
+- Latest core result: 26 passed, 0 failed, 0 skipped; Release Android build succeeded with 0 warnings and 0 errors. The signed APK is 21,850,742 bytes (approximately 20.8 MiB).
+- API 36 verification passed for the full item count, `Dagger of Venom` search and complete details, and restart restoration of `Dagger of Venom` + `Weapon` to one result; the process remained alive.
 
 ## In progress
 
-- Four usable read-only vertical slices are complete in the installed API 36 app: the complete legacy Monsters catalogue, Feats, Spells, and Rules.
+- All five planned read-only reference destinations are complete in the installed API 36 app: the complete legacy Monsters catalogue, Feats, Spells, Rules, and magic-item Treasure.
 
 ## Blockers and required actions
 
-- No current implementation blocker. The next work can add the Treasure destination or begin encounter selection.
+- No current implementation blocker. The next work is the first interactive combat slice: encounter selection from Monsters.
 
 ## Repository ownership and publishing
 
@@ -145,8 +150,8 @@ Last updated: 2026-08-26
 
 ## Next actions
 
-1. Build the read-only Treasure destination from the bundled magic-item reference data.
-2. Add encounter selection from Monsters when the combat model/UI boundary is ready.
+1. Add encounter selection from Monsters and define the minimal modern combat-session model.
+2. Build the initiative list and basic turn controls.
 3. Continue separating condition/spell state only where the next vertical slice requires it.
 
 ## Tracking convention

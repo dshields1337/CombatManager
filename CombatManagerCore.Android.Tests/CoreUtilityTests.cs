@@ -379,4 +379,21 @@ public sealed class CoreUtilityTests
         Assert.AreEqual("Core", rules[0].Source);
         Assert.AreEqual("Make a combat maneuver check. Move", details.Details);
     }
+
+    [TestMethod]
+    public void MagicItemsLoadFilterAndFindFullDetails()
+    {
+        const string shortXml = "<ArrayOfMagicItem><MagicItem><Name>Dagger of Venom</Name><CL>5</CL><Group>Weapon</Group><Source>Core</Source><BaseMagicItem>+1 dagger</BaseMagicItem><id>13</id></MagicItem></ArrayOfMagicItem>";
+        const string fullXml = "<ArrayOfMagicItemDetails><MagicItemDetails><ID>13</ID><Aura>faint necromancy</Aura><Price>8,302 gp</Price><Description>Poisonous dagger.</Description><Mythic>0</Mythic><LegendaryWeapon>0</LegendaryWeapon></MagicItemDetails></ArrayOfMagicItemDetails>";
+        using var shortStream = new MemoryStream(Encoding.UTF8.GetBytes(shortXml));
+        using var fullStream = new MemoryStream(Encoding.UTF8.GetBytes(fullXml));
+
+        List<MagicItemSummary> items = MagicItemSummary.Load(shortStream);
+        MagicItemDetails details = MagicItemDetails.Find(fullStream, 13);
+
+        Assert.HasCount(1, MagicItemSummary.Filter(items, "dagger", "Weapon"));
+        Assert.AreEqual("+1 dagger", items[0].BaseMagicItem);
+        Assert.AreEqual("8,302 gp", details.Price);
+        Assert.AreEqual("Poisonous dagger.", details.Description);
+    }
 }

@@ -97,6 +97,8 @@
     <Compile Include="SpellDetails.cs" />
     <Compile Include="RuleSummary.cs" />
     <Compile Include="RuleDetails.cs" />
+    <Compile Include="MagicItemSummary.cs" />
+    <Compile Include="MagicItemDetails.cs" />
     <Compile Include="AttackSet.cs" />
     <Compile Include="BaseDBClass.cs" />
     <Compile Include="BaseMonster.cs" />

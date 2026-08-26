@@ -132,3 +132,10 @@
 - Status: accepted
 - Decision: export the 591 rows from the `Rules` table in `Details.db` into `RuleDetails.xml`, bundle that focused asset with `RuleShort.xml`, and stream descriptions by ID on demand.
 - Reason: the legacy database is approximately 32 MB and couples multiple catalogues to an obsolete SQLite layer. The focused 4.6 MB XML preserves the complete Rules content, keeps the current screen platform-neutral and testable, and avoids adding a database provider solely for read-only reference text.
+
+## D020: Extract focused magic-item details for the Treasure browser
+
+- Date: 2026-08-26
+- Status: accepted
+- Decision: export the 2,241 matching rows and read-only display fields from the `MagicItems` table in `Details.db` into `MagicItemDetails.xml`, pairing it with the existing `MagicItemsShort.xml` index.
+- Reason: this completes a useful offline Treasure reference while keeping the APK substantially smaller than bundling the shared database. Streaming and session caching preserve full item descriptions and uncommon artifact/intelligent-item fields without coupling the UI to legacy persistence.

@@ -17,6 +17,8 @@ public class MainActivity : Activity
     private const string SpellSchoolKey = "spell_school";
     private const string RuleQueryKey = "rule_query";
     private const string RuleTypeKey = "rule_type";
+    private const string MagicItemQueryKey = "magic_item_query";
+    private const string MagicItemGroupKey = "magic_item_group";
     private const string AllTypes = "All types";
     private const string AllChallengeRatings = "All CRs";
     private const string AllFeatTypes = "All feat types";
@@ -37,6 +39,11 @@ public class MainActivity : Activity
     private List<RuleSummary> _visibleRules = [];
     private readonly Dictionary<int, RuleDetails> _ruleDetailCache = [];
     private bool _initializingRuleFilters;
+    private const string AllMagicItemGroups = "All item groups";
+    private List<MagicItemSummary>? _magicItems;
+    private List<MagicItemSummary> _visibleMagicItems = [];
+    private readonly Dictionary<int, MagicItemDetails> _magicItemDetailCache = [];
+    private bool _initializingMagicItemFilters;
     private readonly Page[] _pages =
     [
         new(Resource.Id.combat_button, "Combat", "C"), new(Resource.Id.monsters_button, "Monsters", "M"),
@@ -62,6 +69,9 @@ public class MainActivity : Activity
         FindViewById<SearchView>(Resource.Id.rule_search)!.QueryTextChange += (_, args) => OnRuleQueryChanged(args.NewText);
         FindViewById<Spinner>(Resource.Id.rule_type_filter)!.ItemSelected += (_, _) => OnRuleFilterChanged();
         FindViewById<ListView>(Resource.Id.rule_list)!.ItemClick += (_, args) => _ = ShowRuleAsync(_visibleRules[args.Position]);
+        FindViewById<SearchView>(Resource.Id.magic_item_search)!.QueryTextChange += (_, args) => OnMagicItemQueryChanged(args.NewText);
+        FindViewById<Spinner>(Resource.Id.magic_item_group_filter)!.ItemSelected += (_, _) => OnMagicItemFilterChanged();
+        FindViewById<ListView>(Resource.Id.magic_item_list)!.ItemClick += (_, args) => _ = ShowMagicItemAsync(_visibleMagicItems[args.Position]);
         FindViewById<ImageButton>(Resource.Id.about_button)!.Click += (_, _) =>
         {
             var dialog = new AlertDialog.Builder(this);
@@ -80,11 +90,13 @@ public class MainActivity : Activity
         bool showFeats = selected.Title == "Feats";
         bool showSpells = selected.Title == "Spells";
         bool showRules = selected.Title == "Rules";
-        FindViewById<LinearLayout>(Resource.Id.placeholder_panel)!.Visibility = showMonsters || showFeats || showSpells || showRules ? ViewStates.Gone : ViewStates.Visible;
+        bool showTreasure = selected.Title == "Treasure";
+        FindViewById<LinearLayout>(Resource.Id.placeholder_panel)!.Visibility = showMonsters || showFeats || showSpells || showRules || showTreasure ? ViewStates.Gone : ViewStates.Visible;
         FindViewById<LinearLayout>(Resource.Id.monsters_panel)!.Visibility = showMonsters ? ViewStates.Visible : ViewStates.Gone;
         FindViewById<LinearLayout>(Resource.Id.feats_panel)!.Visibility = showFeats ? ViewStates.Visible : ViewStates.Gone;
         FindViewById<LinearLayout>(Resource.Id.spells_panel)!.Visibility = showSpells ? ViewStates.Visible : ViewStates.Gone;
         FindViewById<LinearLayout>(Resource.Id.rules_panel)!.Visibility = showRules ? ViewStates.Visible : ViewStates.Gone;
+        FindViewById<LinearLayout>(Resource.Id.treasure_panel)!.Visibility = showTreasure ? ViewStates.Visible : ViewStates.Gone;
         FindViewById<TextView>(Resource.Id.page_title)!.Text = selected.Title;
         FindViewById<TextView>(Resource.Id.page_icon)!.Text = selected.Initial;
         for (int index = 0; index < _pages.Length; index++)
@@ -100,7 +112,133 @@ public class MainActivity : Activity
         if (showFeats) _ = EnsureFeatsLoadedAsync();
         if (showSpells) _ = EnsureSpellsLoadedAsync();
         if (showRules) _ = EnsureRulesLoadedAsync();
+        if (showTreasure) _ = EnsureMagicItemsLoadedAsync();
     }
+
+    private async Task EnsureMagicItemsLoadedAsync()
+    {
+        if (_magicItems is not null) { FilterMagicItems(CurrentMagicItemQuery()); return; }
+        try
+        {
+            _magicItems = await Task.Run(() =>
+            {
+                using Stream stream = Assets!.Open("MagicItemsShort.xml");
+                return MagicItemSummary.Load(stream);
+            });
+            if (IsDestroyed) return;
+            string[] groups = [AllMagicItemGroups, .. _magicItems.Select(item => item.Group)
+                .Where(group => !string.IsNullOrWhiteSpace(group)).Distinct(StringComparer.OrdinalIgnoreCase)
+                .OrderBy(group => group, StringComparer.OrdinalIgnoreCase)];
+            _initializingMagicItemFilters = true;
+            FindViewById<Spinner>(Resource.Id.magic_item_group_filter)!.Adapter =
+                new ArrayAdapter<string>(this, global::Android.Resource.Layout.SimpleSpinnerDropDownItem, groups);
+            var preferences = GetSharedPreferences(PreferenceName, global::Android.Content.FileCreationMode.Private)!;
+            SelectSpinnerValue(FindViewById<Spinner>(Resource.Id.magic_item_group_filter)!, groups,
+                preferences.GetString(MagicItemGroupKey, AllMagicItemGroups) ?? AllMagicItemGroups);
+            FindViewById<SearchView>(Resource.Id.magic_item_search)!.SetQuery(
+                preferences.GetString(MagicItemQueryKey, string.Empty), false);
+            _initializingMagicItemFilters = false;
+            FindViewById<ProgressBar>(Resource.Id.magic_item_progress)!.Visibility = ViewStates.Gone;
+            FindViewById<ListView>(Resource.Id.magic_item_list)!.Visibility = ViewStates.Visible;
+            FilterMagicItems(CurrentMagicItemQuery());
+        }
+        catch (Exception exception)
+        {
+            global::Android.Util.Log.Error("CombatManager", exception.ToString());
+            FindViewById<ProgressBar>(Resource.Id.magic_item_progress)!.Visibility = ViewStates.Gone;
+            FindViewById<TextView>(Resource.Id.magic_item_count)!.SetText(Resource.String.unable_to_load_magic_items);
+        }
+    }
+
+    private void FilterMagicItems(string? query)
+    {
+        if (_magicItems is null) return;
+        string selectedGroup = FindViewById<Spinner>(Resource.Id.magic_item_group_filter)!.SelectedItem?.ToString() ?? AllMagicItemGroups;
+        _visibleMagicItems = MagicItemSummary.Filter(_magicItems, query ?? string.Empty,
+            selectedGroup == AllMagicItemGroups ? string.Empty : selectedGroup);
+        FindViewById<ListView>(Resource.Id.magic_item_list)!.Adapter = new MagicItemListAdapter(this, _visibleMagicItems);
+        string noun = _visibleMagicItems.Count == 1 ? "item" : "items";
+        FindViewById<TextView>(Resource.Id.magic_item_count)!.Text = $"{_visibleMagicItems.Count:N0} {noun}";
+    }
+
+    private string CurrentMagicItemQuery() => FindViewById<SearchView>(Resource.Id.magic_item_search)!.Query ?? string.Empty;
+
+    private void OnMagicItemQueryChanged(string? query)
+    {
+        if (_initializingMagicItemFilters) return;
+        SavePreference(MagicItemQueryKey, query ?? string.Empty);
+        FilterMagicItems(query);
+    }
+
+    private void OnMagicItemFilterChanged()
+    {
+        if (_initializingMagicItemFilters || _magicItems is null) return;
+        SavePreference(MagicItemGroupKey,
+            FindViewById<Spinner>(Resource.Id.magic_item_group_filter)!.SelectedItem?.ToString() ?? AllMagicItemGroups);
+        FilterMagicItems(CurrentMagicItemQuery());
+    }
+
+    private async Task ShowMagicItemAsync(MagicItemSummary item)
+    {
+        var loadingBuilder = new AlertDialog.Builder(this);
+        loadingBuilder.SetMessage(Resource.String.loading_magic_item_details);
+        loadingBuilder.SetCancelable(false);
+        AlertDialog? loading = loadingBuilder.Show();
+        try
+        {
+            if (!_magicItemDetailCache.TryGetValue(item.Id, out MagicItemDetails? details))
+            {
+                details = await Task.Run(() =>
+                {
+                    using Stream stream = Assets!.Open("MagicItemDetails.xml");
+                    return MagicItemDetails.Find(stream, item.Id);
+                });
+                if (details is not null) _magicItemDetailCache[item.Id] = details;
+            }
+            loading?.Dismiss();
+            if (IsDestroyed) return;
+            var sections = new List<string>();
+            if (details is null) AddSection(sections, null, GetString(Resource.String.magic_item_details_not_found));
+            else
+            {
+                AddSection(sections, "AURA", details.Aura);
+                AddSection(sections, "CASTER LEVEL", item.CasterLevel);
+                AddSection(sections, "SLOT", details.Slot);
+                AddSection(sections, "PRICE", details.Price);
+                AddSection(sections, "WEIGHT", details.Weight);
+                AddSection(sections, "DESCRIPTION", details.Description);
+                AddSection(sections, "REQUIREMENTS", details.Requirements);
+                AddSection(sections, "COST", details.Cost);
+                AddSection(sections, "DESTRUCTION", details.Destruction);
+                string abilities = string.Join(", ", new[] { Pair("AL", details.Alignment), Pair("Int", details.Intelligence),
+                    Pair("Wis", details.Wisdom), Pair("Cha", details.Charisma), Pair("Ego", details.Ego) }
+                    .Where(value => value.Length > 0));
+                AddSection(sections, "INTELLIGENT ITEM", abilities);
+                AddSection(sections, "COMMUNICATION", details.Communication);
+                AddSection(sections, "SENSES", details.Senses);
+                AddSection(sections, "POWERS", details.Powers);
+                AddSection(sections, "RELATED ITEMS", details.RelatedItems);
+                if (details.Mythic) AddSection(sections, "MYTHIC", "Yes");
+                if (details.LegendaryWeapon) AddSection(sections, "LEGENDARY WEAPON", "Yes");
+            }
+            AddSection(sections, "GROUP", item.Group);
+            AddSection(sections, "BASE ITEM", item.BaseMagicItem);
+            AddSection(sections, "SOURCE", item.Source);
+            var dialog = new AlertDialog.Builder(this);
+            dialog.SetTitle(item.Name);
+            dialog.SetMessage(string.Join("\n\n", sections));
+            dialog.SetPositiveButton(global::Android.Resource.String.Ok, (_, _) => { });
+            dialog.Show();
+        }
+        catch (Exception exception)
+        {
+            loading?.Dismiss();
+            global::Android.Util.Log.Error("CombatManager", exception.ToString());
+            Toast.MakeText(this, Resource.String.magic_item_details_not_found, ToastLength.Long)?.Show();
+        }
+    }
+
+    private static string Pair(string name, string value) => string.IsNullOrWhiteSpace(value) ? string.Empty : name + " " + value;
 
     private async Task EnsureRulesLoadedAsync()
     {

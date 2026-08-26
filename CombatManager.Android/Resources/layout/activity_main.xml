@@ -54,6 +54,13 @@
             <ProgressBar android:id="@+id/rule_progress" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="center" android:layout_margin="24dp" />
             <ListView android:id="@+id/rule_list" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:divider="@color/primary_light" android:dividerHeight="1dp" android:visibility="gone" />
         </LinearLayout>
+        <LinearLayout android:id="@+id/treasure_panel" android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="vertical" android:visibility="gone">
+            <SearchView android:id="@+id/magic_item_search" android:layout_width="match_parent" android:layout_height="wrap_content" android:queryHint="@string/search_magic_items" android:iconifiedByDefault="false" />
+            <Spinner android:id="@+id/magic_item_group_filter" android:layout_width="match_parent" android:layout_height="48dp" android:layout_marginStart="12dp" android:layout_marginEnd="12dp" android:contentDescription="@string/filter_magic_items_by_group" />
+            <TextView android:id="@+id/magic_item_count" android:layout_width="match_parent" android:layout_height="wrap_content" android:paddingStart="18dp" android:paddingEnd="18dp" android:paddingBottom="8dp" android:textColor="@color/text_secondary" />
+            <ProgressBar android:id="@+id/magic_item_progress" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="center" android:layout_margin="24dp" />
+            <ListView android:id="@+id/magic_item_list" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:divider="@color/primary_light" android:dividerHeight="1dp" android:visibility="gone" />
+        </LinearLayout>
     </FrameLayout>
     <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="12dp" android:gravity="center" android:text="@string/core_status" android:textColor="@color/primary_dark" android:background="@color/primary_light" android:textSize="13sp" />
 </LinearLayout>

@@ -1,5 +1,6 @@
 using CombatManager;
 using ScottsUtils;
+using System.Text.RegularExpressions;
 
 namespace CombatManagerCore.Android.Tests;
 
@@ -147,5 +148,44 @@ public sealed class CoreUtilityTests
         Assert.AreEqual("Pathfinder Core Rulebook", SourceInfo.GetSource("PF Core"));
         Assert.AreEqual(SourceType.Core, SourceInfo.GetSourceType("PFRPG CORE"));
         Assert.AreEqual(SourceType.Other, SourceInfo.GetSourceType("Unknown Test Source"));
+    }
+
+    [TestMethod]
+    public void AttackParsesFormatsAndResolvesSeededWeapon()
+    {
+        var longsword = new Weapon
+        {
+            Name = "longsword",
+            Plural = "longswords",
+            Hands = "One-Handed",
+            Class = "Martial"
+        };
+        Weapon.SetWeapons([longsword]);
+        WeaponSpecialAbility.SetSpecialAbilities([]);
+
+        const string text = "longsword +7/+2 (1d8+4/19-20)";
+        Match match = Regex.Match(text, Attack.RegexString(null), RegexOptions.IgnoreCase);
+
+        Assert.IsTrue(match.Success);
+        Attack attack = Attack.ParseAttack(match);
+        Assert.AreSame(longsword, attack.Weapon);
+        Assert.AreEqual("1d8+4", attack.Damage.Text);
+        Assert.AreEqual(19, attack.CritRange);
+        CollectionAssert.AreEqual(new[] { 7, 2 }, attack.Bonus);
+        Assert.AreEqual(text, attack.Text);
+    }
+
+    [TestMethod]
+    public void AttackSetCountsHandsAndClonesAttacks()
+    {
+        var greatsword = new Weapon { Name = "greatsword", Hands = "Two-Handed", Class = "Martial" };
+        var attack = new Attack(1, "greatsword", 5, new DieRoll(2, 6, 3), null) { Weapon = greatsword };
+        var set = new AttackSet { WeaponAttacks = [attack] };
+
+        var clone = (AttackSet)set.Clone();
+
+        Assert.AreEqual(2, set.Hands);
+        Assert.AreNotSame(set.WeaponAttacks[0], clone.WeaponAttacks[0]);
+        Assert.AreEqual(set.ToString(), clone.ToString());
     }
 }

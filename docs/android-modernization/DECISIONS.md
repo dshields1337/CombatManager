@@ -69,3 +69,10 @@
 - Status: accepted
 - Decision: separate attack parsing/formatting helpers and weapon lookup boundaries before linking `Attack` and `AttackSet` into the modern core.
 - Reason: `Attack` currently calls static helpers on the large `Monster` model and initializes XML-backed weapon/special-ability registries. Importing that graph merely to compile attacks would mix plain combat behavior with persistence and eventually SQLite, making failures harder to isolate and test.
+
+## D011: Seed reference-data registries explicitly in modern builds
+
+- Date: 2026-08-26
+- Status: accepted
+- Decision: modern core builds initialize weapon and weapon-special-ability registries empty and expose methods to seed them from an external loader; legacy builds retain their existing XML-backed static initialization.
+- Reason: attack parsing needs reference data but should not own its storage mechanism. This keeps the model testable and platform-neutral while leaving the eventual Android asset/data loader as a separate migration concern.

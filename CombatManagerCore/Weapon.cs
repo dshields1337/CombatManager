@@ -71,7 +71,11 @@ namespace CombatManager
 
         static Weapon()
         {
+#if MODERN_CORE
+            SetWeapons(Enumerable.Empty<Weapon>());
+#else
             LoadWeapons();		
+#endif
         }
         public Weapon()
         {
@@ -709,6 +713,22 @@ namespace CombatManager
 
             return null;
         }
+        public static void SetWeapons(IEnumerable<Weapon> source)
+        {
+            weapons = new Dictionary<string, Weapon>(new InsensitiveEqualityCompararer());
+            weaponsPlural = new Dictionary<string, Weapon>(new InsensitiveEqualityCompararer());
+            weaponsOriginalName = new Dictionary<string, Weapon>(new InsensitiveEqualityCompararer());
+            weaponsAltName = new Dictionary<string, Weapon>(new InsensitiveEqualityCompararer());
+
+            foreach (Weapon weapon in source)
+            {
+                if (!string.IsNullOrEmpty(weapon.Name)) weapons[weapon.Name] = weapon;
+                if (!string.IsNullOrEmpty(weapon.Plural)) weaponsPlural[weapon.Plural] = weapon;
+                if (!string.IsNullOrEmpty(weapon.OriginalName)) weaponsOriginalName[weapon.OriginalName] = weapon;
+                if (!string.IsNullOrEmpty(weapon.AltName)) weaponsAltName[weapon.AltName] = weapon;
+            }
+        }
+#if !MODERN_CORE
         static void LoadWeapons()
         {
             FileStream fs = null;
@@ -762,6 +782,7 @@ namespace CombatManager
                 }
             }
         }
+#endif
         public static string ReplaceOriginalWeaponNames(string text, bool uppercase)
         {
             string returnText = text;

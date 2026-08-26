@@ -5,6 +5,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <!-- Legacy source predates nullable annotations; enable this incrementally. -->
     <Nullable>disable</Nullable>
+    <DefineConstants>$(DefineConstants);MODERN_CORE</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>
@@ -12,6 +13,7 @@
     <Compile Include="..\CombatManagerCore\CMListUtilities.cs" Link="LegacyCore\CMListUtilities.cs" />
     <Compile Include="..\CombatManagerCore\CMStringUtilities.cs" Link="LegacyCore\CMStringUtilities.cs" />
     <Compile Include="..\CombatManagerCore\CharacterClass.cs" Link="LegacyCore\CharacterClass.cs" />
+    <Compile Include="..\CombatManagerCore\CombatText.cs" Link="LegacyCore\CombatText.cs" />
     <Compile Include="..\CombatManagerCore\Coin.cs" Link="LegacyCore\Coin.cs" />
     <Compile Include="..\CombatManagerCore\ConditionBonus.cs" Link="LegacyCore\ConditionBonus.cs" />
     <Compile Include="..\CombatManagerCore\DieRoll.cs" Link="LegacyCore\DieRoll.cs" />
@@ -27,6 +29,10 @@
     <Compile Include="..\CombatManagerCore\Stat.cs" Link="LegacyCore\Stat.cs" />
     <Compile Include="..\CombatManagerCore\StringCapitalizer.cs" Link="LegacyCore\StringCapitalizer.cs" />
     <Compile Include="..\CombatManagerCore\TitleValuePair.cs" Link="LegacyCore\TitleValuePair.cs" />
+    <Compile Include="..\CombatManagerCore\Attack.cs" Link="LegacyCore\Attack.cs" />
+    <Compile Include="..\CombatManagerCore\AttackSet.cs" Link="LegacyCore\AttackSet.cs" />
+    <Compile Include="..\CombatManagerCore\Weapon.cs" Link="LegacyCore\Weapon.cs" />
+    <Compile Include="..\CombatManagerCore\WeaponSpecialAbility.cs" Link="LegacyCore\WeaponSpecialAbility.cs" />
   </ItemGroup>
 
 </Project>

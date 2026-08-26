@@ -57,10 +57,6 @@ namespace CombatManager
         private bool _AltDamageDrain;
 		private bool _TwoHanded;
 
-        private static string _SpecialAbilityString;
-
-
-
         public Attack()
         {
         }
@@ -397,29 +393,10 @@ namespace CombatManager
         {
             get
             {
-                if (_SpecialAbilityString == null)
-                {
-                    StringBuilder bld = new StringBuilder();
-
-                    bool first = true;
-
-                    foreach (WeaponSpecialAbility w in WeaponSpecialAbility.SpecialAbilities)
-                    {
-                        bld.Append(first ? w.Name : ("|" + w.Name));
-
-                        if (w.AltName != null && w.AltName.Length > 0)
-                        {
-
-                            bld.Append("|" + w.AltName);
-                        }
-
-                        first = false;
-                    }
-
-                    _SpecialAbilityString = bld.ToString();
-                }
-
-                return _SpecialAbilityString;
+                return string.Join("|", WeaponSpecialAbility.SpecialAbilities
+                    .SelectMany(w => new[] { w.Name, w.AltName })
+                    .Where(name => !string.IsNullOrEmpty(name))
+                    .Select(Regex.Escape));
             }
         }
         public static Attack ParseAttack(Match m)
@@ -459,17 +436,17 @@ namespace CombatManager
             }
 
 
-            info.Damage = Monster.FindNextDieRoll(m.Groups["damage"].Value, 0);
+            info.Damage = CombatText.FindNextDieRoll(m.Groups["damage"].Value, 0);
 
 			if (m.Groups["offhanddamage"].Success)
             {
-                info.OffHandDamage = Monster.FindNextDieRoll(m.Groups["offhanddamage"].Value, 0);
+                info.OffHandDamage = CombatText.FindNextDieRoll(m.Groups["offhanddamage"].Value, 0);
             }
 
             if (m.Groups["altdamage"].Success)
             {
                 info.AltDamage = true;
-                info.AltDamageStat = Monster.StatFromName(m.Groups["altdamagestat"].Value);
+                info.AltDamageStat = CombatText.StatFromName(m.Groups["altdamagestat"].Value);
                 info.AltDamageDrain = (String.Compare(m.Groups["altdamagetype"].Value, "drain", true) == 0);
             }
 
@@ -592,11 +569,11 @@ namespace CombatManager
 
             text += " " + AttackBonusText(info.Bonus) + " (";
 
-            text += Monster.DieRollText(info.Damage);
+            text += CombatText.DieRollText(info.Damage);
 
             if (info.OffHandDamage != null)
             {
-                text += "/" + Monster.DieRollText(info.OffHandDamage);
+                text += "/" + CombatText.DieRollText(info.OffHandDamage);
             }
 
             if (info.CritRange != 20)
@@ -610,7 +587,7 @@ namespace CombatManager
 
             if (info.AltDamage)
             {
-                text += " " + Monster.StatText(info.AltDamageStat) + " " + (info.AltDamageDrain ? "drain" : "damage");
+                text += " " + CombatText.StatText(info.AltDamageStat) + " " + (info.AltDamageDrain ? "drain" : "damage");
             }
 
             if (info.Plus != null && info.Plus.Length > 0)

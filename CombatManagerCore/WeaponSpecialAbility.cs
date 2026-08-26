@@ -53,16 +53,20 @@ namespace CombatManager
         private static List<WeaponSpecialAbility> abilities;
         static WeaponSpecialAbility()
         {
-
+#if MODERN_CORE
+            abilities = new List<WeaponSpecialAbility>();
+#else
             Load();
-
+#endif
         }
 
+#if !MODERN_CORE
         static void Load()
         {
             abilities = XmlListLoader<WeaponSpecialAbility>.Load("WeaponSpecialAbility.xml");
 
         }
+#endif
 
         public static List<WeaponSpecialAbility> SpecialAbilities
         {
@@ -70,6 +74,11 @@ namespace CombatManager
             {
                 return new List<WeaponSpecialAbility>(abilities);
             }
+        }
+
+        public static void SetSpecialAbilities(IEnumerable<WeaponSpecialAbility> source)
+        {
+            abilities = new List<WeaponSpecialAbility>(source);
         }
 
         public static List<WeaponSpecialAbility> RangedAbilities

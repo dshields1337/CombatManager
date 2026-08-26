@@ -59,10 +59,16 @@ Last updated: 2026-08-26
 - Latest core result: 13 passed, 0 failed, 0 skipped, 0 warnings.
 - Mapped the attack boundary: `Attack` currently depends on the large `Monster` class for text/parsing helpers and on XML-backed `Weapon`/`WeaponSpecialAbility` registries. These concerns must be separated before attacks can join the platform-neutral model cleanly.
 - Full modern Android solution after the second model slice: succeeded with 0 warnings and 0 errors.
+- Extracted attack parsing and formatting dependencies from `Monster` into the platform-neutral `CombatText` helper.
+- Added load-independent, explicitly seedable registries to `Weapon` and `WeaponSpecialAbility`; modern builds start with empty registries while the legacy build retains XML loading.
+- Linked `Attack`, `AttackSet`, `Weapon`, and `WeaponSpecialAbility` into the modern core without linking `Monster`, `XMLLoader`, SQLite, or Android code.
+- Added attack regression tests covering regex parsing, text round-tripping, seeded weapon resolution, hand counting, and cloning.
+- Latest core result: 15 passed, 0 failed, 0 skipped, 0 warnings.
+- Full modern Android solution after the attack slice: succeeded with 0 warnings and 0 errors.
 
 ## In progress
 
-- Phase 4: two platform-neutral model slices complete; separate attack parsing/formatting from Monster and XML registry dependencies.
+- Phase 4: three platform-neutral model slices complete; attack parsing and weapon lookup are now separated from Monster/XML loading.
 
 ## Blockers and required actions
 
@@ -81,10 +87,10 @@ Last updated: 2026-08-26
 
 ## Next actions
 
-1. Extract or relocate the reusable attack parsing/formatting helpers currently owned by `Monster`.
-2. Define a load-independent boundary for weapon and special-ability lookup.
-3. Link and test `Attack` and `AttackSet` without pulling in SQLite or Android code.
-4. Continue to full conditions only after their spell/affliction/persistence dependencies are separated.
+1. Map the condition/effect model boundary and isolate its spell, affliction, and persistence dependencies.
+2. Link the next closed condition/effect model slice with regression tests.
+3. Decide how bundled weapon and special-ability XML assets will populate the modern registries when application data migration begins.
+4. Continue expanding the core without pulling Android or SQLite concerns into model assemblies.
 
 ## Tracking convention
 

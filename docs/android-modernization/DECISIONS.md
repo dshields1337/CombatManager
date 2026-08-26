@@ -160,3 +160,10 @@
 - Status: accepted
 - Decision: allow damage to reduce current HP below zero, cap healing at maximum HP, and expose a derived defeated state when HP is zero or lower. Do not automatically create legacy condition records yet.
 - Reason: negative HP and recovery are required for useful Pathfinder combat tracking, while automatic unconscious/dying/dead conditions depend on character-specific rules not present in the lightweight creature summary. A derived visual state is accurate without pretending the full condition system has been migrated.
+
+## D024: Persist active encounters as explicit versioned XML
+
+- Date: 2026-08-26
+- Status: accepted
+- Decision: save the lightweight combat roster after every mutation as a versioned XML document in Android application-private storage, using explicit field reading/writing and safe empty-roster fallback for corrupt or unsupported data.
+- Reason: active encounters must survive activity and process recreation without requiring storage permissions or importing the legacy database. Explicit serialization is deterministic, testable, and safe under Release trimming, unlike reflection-based `XmlSerializer` use that generated trimming warnings during validation.

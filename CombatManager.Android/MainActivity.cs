@@ -7,6 +7,7 @@ using global::Android.Views;
 public class MainActivity : Activity
 {
     private const string PreferenceName = "combat_manager_modern";
+    private const string EncounterFileName = "active-encounter.xml";
     private const string SelectedPageKey = "selected_page";
     private const string MonsterQueryKey = "monster_query";
     private const string MonsterTypeKey = "monster_type";
@@ -44,7 +45,7 @@ public class MainActivity : Activity
     private List<MagicItemSummary> _visibleMagicItems = [];
     private readonly Dictionary<int, MagicItemDetails> _magicItemDetailCache = [];
     private bool _initializingMagicItemFilters;
-    private readonly CombatRoster _combatRoster = new();
+    private CombatRoster _combatRoster = new();
     private readonly Page[] _pages =
     [
         new(Resource.Id.combat_button, "Combat", "C"), new(Resource.Id.monsters_button, "Monsters", "M"),
@@ -56,18 +57,19 @@ public class MainActivity : Activity
     {
         base.OnCreate(savedInstanceState);
         SetContentView(Resource.Layout.activity_main);
+        _combatRoster = LoadPersistedCombatRoster();
         foreach (Page page in _pages) FindViewById<Button>(page.ButtonId)!.Click += (_, _) => SelectPage(page);
         FindViewById<ListView>(Resource.Id.combat_list)!.ItemClick += (_, args) => ShowCombatParticipant(_combatRoster.Participants[args.Position]);
         FindViewById<Button>(Resource.Id.clear_combat_button)!.Click += (_, _) => ConfirmClearCombat();
         FindViewById<Button>(Resource.Id.next_turn_button)!.Click += (_, _) =>
         {
             _combatRoster.NextTurn();
-            RefreshCombatRoster();
+            CommitCombatChange();
         };
         FindViewById<Button>(Resource.Id.previous_turn_button)!.Click += (_, _) =>
         {
             _combatRoster.PreviousTurn();
-            RefreshCombatRoster();
+            CommitCombatChange();
         };
         FindViewById<SearchView>(Resource.Id.monster_search)!.QueryTextChange += (_, args) => OnQueryChanged(args.NewText);
         FindViewById<Spinner>(Resource.Id.monster_type_filter)!.ItemSelected += (_, _) => OnFilterChanged();
@@ -691,7 +693,7 @@ public class MainActivity : Activity
     private void AddCreatureToCombat(CreatureSummary creature)
     {
         CombatParticipant participant = _combatRoster.Add(creature);
-        RefreshCombatRoster();
+        CommitCombatChange();
         Toast.MakeText(this, participant.DisplayName + " added to combat.", ToastLength.Short)?.Show();
     }
 
@@ -724,7 +726,7 @@ public class MainActivity : Activity
         builder.SetNegativeButton(Resource.String.remove_from_combat, (_, _) =>
         {
             _combatRoster.Remove(participant.Sequence);
-            RefreshCombatRoster();
+            CommitCombatChange();
         });
         builder.SetPositiveButton(global::Android.Resource.String.Ok, (_, _) => { });
         AlertDialog? dialog = builder.Show();
@@ -764,7 +766,7 @@ public class MainActivity : Activity
             {
                 if (damage) _combatRoster.ApplyDamage(participant.Sequence, amount);
                 else _combatRoster.ApplyHealing(participant.Sequence, amount);
-                RefreshCombatRoster();
+                CommitCombatChange();
             }
             else Toast.MakeText(this, Resource.String.invalid_hp_amount, ToastLength.Short)?.Show();
         });
@@ -795,7 +797,7 @@ public class MainActivity : Activity
             if (int.TryParse(input.Text, out int initiative))
             {
                 _combatRoster.SetInitiative(participant.Sequence, initiative);
-                RefreshCombatRoster();
+                CommitCombatChange();
             }
             else Toast.MakeText(this, "Enter a whole number for initiative.", ToastLength.Short)?.Show();
         });
@@ -813,9 +815,39 @@ public class MainActivity : Activity
         dialog.SetPositiveButton(Resource.String.clear_encounter, (_, _) =>
         {
             _combatRoster.Clear();
-            RefreshCombatRoster();
+            CommitCombatChange();
         });
         dialog.Show();
+    }
+
+    private CombatRoster LoadPersistedCombatRoster()
+    {
+        try
+        {
+            if (!(FileList()?.Contains(EncounterFileName) ?? false)) return new CombatRoster();
+            using Stream stream = OpenFileInput(EncounterFileName)!;
+            if (CombatRoster.TryLoad(stream, out CombatRoster roster)) return roster;
+            DeleteFile(EncounterFileName);
+        }
+        catch (Exception exception)
+        {
+            global::Android.Util.Log.Error("CombatManager", "Unable to restore encounter: " + exception);
+        }
+        return new CombatRoster();
+    }
+
+    private void CommitCombatChange()
+    {
+        try
+        {
+            using Stream stream = OpenFileOutput(EncounterFileName, global::Android.Content.FileCreationMode.Private)!;
+            _combatRoster.Save(stream);
+        }
+        catch (Exception exception)
+        {
+            global::Android.Util.Log.Error("CombatManager", "Unable to save encounter: " + exception);
+        }
+        RefreshCombatRoster();
     }
 
     private async Task ShowFullDetailsAsync(CreatureSummary creature)

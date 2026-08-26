@@ -141,14 +141,20 @@ Last updated: 2026-08-26
 - Added explicit `DEFEATED` feedback for combatants at zero or fewer HP.
 - Latest core result: 29 passed, 0 failed, 0 skipped; Debug and Release Android builds succeeded with 0 warnings and 0 errors.
 - API 36 verification damaged a 6 HP Goblin by 8 to show `DEFEATED • HP -2 / 6`, healed it to 1 / 6, then verified excess healing capped at 6 / 6; the process remained alive.
+- Added a versioned, explicit XML snapshot for the complete modern encounter: participant identity/naming, CR, maximum/current HP, initiative, active participant, and round.
+- The Android app now saves every encounter mutation to application-private storage and restores it during activity creation. Invalid or unsupported snapshots safely fall back to an empty roster.
+- Latest core result: 30 passed, 0 failed, 0 skipped, including full persistence round-trip and corrupt-data fallback coverage.
+- API 36 Debug verification restored two Goblins with initiatives 20/12, Goblin at 4 / 6 HP, active marker, and Round 1 after a forced process stop.
+- Replaced reflection-based serialization after Release trim analysis warned it could remove required members. The explicit XML reader/writer produced a clean Release build with 0 warnings and 0 errors.
+- A stale Android packaging cache briefly produced `Invalid compressed assembly descriptor index 34`; `dotnet clean` followed by Release build corrected the package. The rebuilt signed Release APK launched successfully and restored a newly added Goblin after force-stop/relaunch.
 
 ## In progress
 
-- All five planned read-only reference destinations are complete. Combat now supports encounter assembly, damage/healing, defeated feedback, initiative ordering, active turns, and round navigation.
+- All five planned read-only reference destinations are complete. Combat supports encounter assembly, damage/healing, defeated feedback, initiative/turn/round tracking, and restart-safe private persistence.
 
 ## Blockers and required actions
 
-- No current implementation blocker. The combat interaction model is now broad enough to introduce encounter persistence without freezing an untested schema.
+- No current implementation blocker.
 
 ## Repository ownership and publishing
 
@@ -163,9 +169,9 @@ Last updated: 2026-08-26
 
 ## Next actions
 
-1. Add modern encounter serialization and application-private persistence.
-2. Restore an active encounter after activity/process recreation.
-3. Add focused persistence round-trip and corrupt-data fallback tests.
+1. Add manual player/NPC combatants so an encounter is not limited to bestiary monsters.
+2. Support editing manual names and maximum/current HP.
+3. Extend persisted encounter coverage to manual participants.
 
 ## Tracking convention
 

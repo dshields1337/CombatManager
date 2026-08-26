@@ -456,4 +456,28 @@ public sealed class CoreUtilityTests
         Assert.AreEqual(6, goblin.CurrentHP);
         Assert.IsFalse(roster.ApplyDamage(goblin.Sequence, -1));
     }
+
+    [TestMethod]
+    public void CombatRosterPersistsFullEncounterAndRejectsCorruptData()
+    {
+        var roster = new CombatRoster();
+        CombatParticipant goblin = roster.Add(new CreatureSummary { Id = 7, Name = "Goblin", CR = "1/3", HP = 6 });
+        roster.SetInitiative(goblin.Sequence, 12);
+        roster.ApplyDamage(goblin.Sequence, 8);
+        roster.NextTurn();
+        using var stream = new MemoryStream();
+        roster.Save(stream);
+        stream.Position = 0;
+
+        Assert.IsTrue(CombatRoster.TryLoad(stream, out CombatRoster restored));
+        Assert.HasCount(1, restored.Participants);
+        Assert.AreEqual(-2, restored.Participants[0].CurrentHP);
+        Assert.AreEqual(12, restored.Participants[0].Initiative);
+        Assert.AreEqual("Goblin", restored.ActiveParticipant.DisplayName);
+        Assert.AreEqual(1, restored.Round);
+
+        using var corrupt = new MemoryStream(Encoding.UTF8.GetBytes("not an encounter"));
+        Assert.IsFalse(CombatRoster.TryLoad(corrupt, out CombatRoster fallback));
+        Assert.IsEmpty(fallback.Participants);
+    }
 }

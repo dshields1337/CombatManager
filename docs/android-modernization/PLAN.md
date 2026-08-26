@@ -52,7 +52,7 @@ Deliverable: empty modern projects that build successfully.
 - [ ] Remove obsolete compatibility packages supplied by modern .NET.
 - [ ] Update Newtonsoft.Json, EmbedIO, Swan.Lite, SQLite, ZIP, and Xamarin.Essentials functionality.
 - [ ] Resolve incompatibilities involving Mono.Data.Sqlite, serialization, System.Web.Services, System.ServiceModel, and platform-specific paths.
-- [ ] Add focused tests for calculations, serialization, database queries, and import/export parsing. (29 utility/value/dice/attack/affliction/initiative/read-only-data/combat-roster tests added; persistence tests remain.)
+- [ ] Add focused tests for calculations, serialization, database queries, and import/export parsing. (30 utility/value/dice/attack/affliction/initiative/read-only-data/combat-roster tests added; broader database/import tests remain.)
 
 Deliverable: the shared core project builds independently.
 
@@ -84,7 +84,7 @@ Deliverable: a valid manifest accepted by current Android tooling.
 - [ ] Loading and startup activity. (Direct startup and asynchronous bundled-bestiary loading work; full legacy initialization remains.)
 - [x] Home activity and navigation.
 - [ ] Lookup and list fragments. (Searchable native lists are working for Monsters, Feats, and Spells.)
-- [ ] Combat screen. (Monster encounter selection, duplicate naming, damage/healing, defeated state, initiative ordering, active-turn navigation, round tracking, individual removal, and confirmed clear are complete; persistence and deeper conditions remain.)
+- [ ] Combat screen. (Monster encounter selection, duplicate naming, damage/healing, defeated state, initiative ordering, active-turn navigation, round tracking, private encounter persistence, individual removal, and confirmed clear are complete; manual player entries and deeper conditions remain.)
 - [ ] Character and initiative adapters. (Modern combat adapter displays initiative and active combatant; legacy character/condition behavior remains.)
 - [x] Monster browsing and selection. (Searchable/filterable complete 2,837-entry legacy bestiary, structured rows, persisted browser state, lazy full record details, and encounter selection are complete.)
 - [ ] Monster editor screens.
@@ -100,7 +100,7 @@ Deliverable: all screens open and navigate without crashes.
 
 - [ ] Select and validate a modern SQLite provider.
 - [ ] Preserve existing database compatibility wherever possible.
-- [ ] Copy bundled databases into application-owned storage.
+- [ ] Copy bundled databases into application-owned storage. (Modern active-encounter state now uses application-private storage; legacy database migration remains.)
 - [ ] Test schema compatibility and upgrades.
 - [ ] Replace direct external-storage access with app-private storage, the document picker, content URIs, and `FileProvider` as appropriate.
 - [ ] Update import/export for scoped storage.

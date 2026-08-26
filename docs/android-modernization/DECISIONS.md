@@ -97,3 +97,10 @@
 - Status: accepted
 - Decision: load `BestiaryShort.xml` from the APK into a new `CreatureSummary` projection for the first Monsters screen rather than linking the legacy `Monster`, `BaseDBClass`, `MonsterDB`, and SQLite graph.
 - Reason: the existing short bestiary already provides useful browse/search/detail fields for 1,000 creatures. A stream-based projection delivers an independently testable vertical slice now and leaves full detail storage and custom-creature persistence as explicit later decisions.
+
+## D015: Stream full creature details on demand
+
+- Date: 2026-08-26
+- Status: accepted
+- Decision: bundle the full `Bestiary.xml` and scan it with `XmlReader` for a selected creature ID, caching successful records for the session, rather than deserializing the 42 MB document or importing the legacy database model.
+- Reason: users gain full descriptive and rules content for the current browser while startup memory remains tied to the small summary dataset. The APK-size and first-open latency costs are explicit and can later be replaced by indexed storage without changing the UI projection.

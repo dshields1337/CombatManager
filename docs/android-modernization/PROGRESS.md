@@ -92,6 +92,11 @@ Last updated: 2026-08-26
 - Added a regression test for combined name/type/CR filtering and fractional CR ordering; latest core result: 20 passed, 0 failed, 0 skipped.
 - Full modern solution and final Android APK build after filter work: succeeded with 0 warnings and 0 errors.
 - Installed on `CombatManager_API_36`; verified 46 aberrations and a combined aberration/CR 7 result of Aboleth, Chuul, and Drider.
+- Added the 42 MB full `Bestiary.xml` as a bundled asset and a streaming `CreatureDetails` reader that stops after finding the requested ID.
+- Added on-demand full details for ability scores, feats, skills, languages, special attacks/abilities, ecology, visual description, and descriptive text, with an in-memory cache for repeat views.
+- Added a focused streaming lookup regression test; latest core result: 21 passed, 0 failed, 0 skipped.
+- Final Android APK size with full bestiary content: approximately 50 MB.
+- Android build succeeded with 0 warnings and 0 errors; API 36 verification loaded Aboleth's full record successfully in approximately 2.9 seconds including UI polling.
 
 ## In progress
 
@@ -114,9 +119,9 @@ Last updated: 2026-08-26
 
 ## Next actions
 
-1. Expand creature details using the full bestiary data without importing the legacy database graph.
-2. Improve monster list row presentation and preserve filter selection across navigation/restart.
-3. Decide whether to combine `BestiaryShort2.xml` for broader bundled coverage before introducing custom SQLite creatures.
+1. Improve monster list row presentation and preserve filter selection across navigation/restart.
+2. Decide whether to combine `BestiaryShort2.xml` for broader bundled coverage before introducing custom SQLite creatures.
+3. Add encounter selection from the Monsters screen when the combat model/UI boundary is ready.
 4. Begin the next read-only destination after the Monsters slice is acceptance-tested.
 
 ## Tracking convention

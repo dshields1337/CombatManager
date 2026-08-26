@@ -286,4 +286,23 @@ public sealed class CoreUtilityTests
         Assert.AreEqual("Goblin", filtered[0].Name);
         Assert.IsLessThan(CreatureSummary.ChallengeRatingValue("1"), CreatureSummary.ChallengeRatingValue("1/2"));
     }
+
+    [TestMethod]
+    public void CreatureDetailsFindsOneFullRecordById()
+    {
+        const string xml = """
+            <ArrayOfMonster>
+              <Monster><Name>Goblin</Name><Description>Wrong record</Description><id>1</id></Monster>
+              <Monster><Name>Aboleth</Name><AbilityScores>Str 20, Dex 12</AbilityScores><SpecialAbilities>Mucus Cloud</SpecialAbilities><Description>Ancient aquatic creature.</Description><id>21</id></Monster>
+            </ArrayOfMonster>
+            """;
+        using var stream = new MemoryStream(Encoding.UTF8.GetBytes(xml));
+
+        CreatureDetails details = CreatureDetails.Find(stream, 21);
+
+        Assert.IsNotNull(details);
+        Assert.AreEqual("Aboleth", details.Name);
+        Assert.AreEqual("Str 20, Dex 12", details.AbilityScores);
+        Assert.AreEqual("Mucus Cloud", details.SpecialAbilities);
+    }
 }

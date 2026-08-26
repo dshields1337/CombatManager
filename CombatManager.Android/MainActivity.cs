@@ -12,6 +12,7 @@ public class MainActivity : Activity
     private const string AllChallengeRatings = "All CRs";
     private List<CreatureSummary>? _creatures;
     private List<CreatureSummary> _visibleCreatures = [];
+    private readonly Dictionary<int, CreatureDetails> _detailCache = [];
     private ArrayAdapter<string>? _monsterAdapter;
     private readonly Page[] _pages =
     [
@@ -136,8 +137,66 @@ public class MainActivity : Activity
         var dialog = new AlertDialog.Builder(this);
         dialog.SetTitle(creature.Name);
         dialog.SetMessage(details);
+        dialog.SetNeutralButton(Resource.String.full_details, (_, _) => _ = ShowFullDetailsAsync(creature));
         dialog.SetPositiveButton(global::Android.Resource.String.Ok, (_, _) => { });
         dialog.Show();
+    }
+
+    private async Task ShowFullDetailsAsync(CreatureSummary creature)
+    {
+        var loadingBuilder = new AlertDialog.Builder(this);
+        loadingBuilder.SetMessage(Resource.String.loading_details);
+        loadingBuilder.SetCancelable(false);
+        AlertDialog? loading = loadingBuilder.Show();
+        try
+        {
+            if (!_detailCache.TryGetValue(creature.Id, out CreatureDetails? details))
+            {
+                details = await Task.Run(() =>
+                {
+                    using Stream stream = Assets!.Open("Bestiary.xml");
+                    return CreatureDetails.Find(stream, creature.Id);
+                });
+                if (details is not null) _detailCache[creature.Id] = details;
+            }
+
+            loading?.Dismiss();
+            if (IsDestroyed) return;
+            var dialog = new AlertDialog.Builder(this);
+            dialog.SetTitle(creature.Name);
+            dialog.SetMessage(details is null ? GetString(Resource.String.details_not_found) : FormatFullDetails(details));
+            dialog.SetPositiveButton(global::Android.Resource.String.Ok, (_, _) => { });
+            dialog.Show();
+        }
+        catch (Exception exception)
+        {
+            loading?.Dismiss();
+            global::Android.Util.Log.Error("CombatManager", exception.ToString());
+            Toast.MakeText(this, Resource.String.details_not_found, ToastLength.Long)?.Show();
+        }
+    }
+
+    private static string FormatFullDetails(CreatureDetails details)
+    {
+        var sections = new List<string>();
+        AddSection(sections, null, details.VisualDescription);
+        AddSection(sections, "ABILITY SCORES", details.AbilityScores);
+        AddSection(sections, "FEATS", details.Feats);
+        AddSection(sections, "SKILLS", details.Skills);
+        AddSection(sections, "LANGUAGES", details.Languages);
+        AddSection(sections, "SPECIAL ATTACKS", details.SpecialAttacks);
+        AddSection(sections, "SPECIAL ABILITIES", details.SpecialAbilities);
+        AddSection(sections, "ENVIRONMENT", details.Environment);
+        AddSection(sections, "ORGANIZATION", details.Organization);
+        AddSection(sections, "TREASURE", details.Treasure);
+        AddSection(sections, "DESCRIPTION", details.Description);
+        return string.Join("\n\n", sections);
+    }
+
+    private static void AddSection(List<string> sections, string? heading, string value)
+    {
+        if (string.IsNullOrWhiteSpace(value)) return;
+        sections.Add(heading is null ? value : heading + "\n" + value);
     }
 
     private static string ValueOrDash(string value) => string.IsNullOrWhiteSpace(value) ? "—" : value;

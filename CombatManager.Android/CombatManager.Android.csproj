@@ -1,6 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <ItemGroup>
     <ProjectReference Include="..\CombatManagerCore.Android\CombatManagerCore.Android.csproj" />
+    <AndroidAsset Include="..\CombatManagerCore\BestiaryShort.xml" Link="BestiaryShort.xml" />
   </ItemGroup>
   <PropertyGroup>
     <TargetFramework>net10.0-android</TargetFramework>

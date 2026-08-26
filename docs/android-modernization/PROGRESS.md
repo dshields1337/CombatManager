@@ -80,10 +80,17 @@ Last updated: 2026-08-26
 - Fixed API 36 edge-to-edge system-bar overlap discovered during device interaction by applying system-window insets to the root layout.
 - Modern Android application build: succeeded with 0 warnings and 0 errors.
 - Installed the updated APK on `CombatManager_API_36`; verified tab switching, tab persistence after process restart, About dialog interaction, and a live foreground process.
+- Added the platform-neutral `CreatureSummary` projection and stream-based bestiary loader instead of importing the legacy `Monster`/SQLite graph.
+- Linked the existing 1.7 MB `BestiaryShort.xml` into the modern APK as a bundled Android asset.
+- Implemented asynchronous bestiary loading, a searchable Monsters list, live result counts, and read-only creature summary dialogs.
+- The initial bundled dataset exposes 1,000 creatures with CR, XP, alignment/type, HP/HD, AC, saves, speed, attacks, senses, and source where available.
+- Added a regression test for XML projection, numeric parsing, list text, and alphabetical ordering; latest core result: 19 passed, 0 failed, 0 skipped.
+- Full modern solution after the first usable vertical slice: succeeded with 0 warnings and 0 errors.
+- Installed the final APK on `CombatManager_API_36`; verified 1,000-creature startup, search down to Aboleth, the Aboleth details dialog, and a live application process.
 
 ## In progress
 
-- Phase 5 started: the first interactive home-navigation resource/UI slice is installed and verified in the API 36 VM; feature destinations currently show explicit migration placeholders.
+- First usable vertical slice complete: the installed API 36 app can browse, search, and inspect summary details for 1,000 bundled creatures.
 
 ## Blockers and required actions
 
@@ -102,10 +109,10 @@ Last updated: 2026-08-26
 
 ## Next actions
 
-1. Build the first read-only Monsters destination behind the working navigation shell.
-2. Define a minimal load-independent creature summary model and seed it with bundled/reference data.
-3. Add monster list/search interaction and a read-only details view.
-4. Continue condition/spell separation only where the vertical slice requires it.
+1. Expand creature details using the full bestiary data without importing the legacy database graph.
+2. Add CR/type filters and improve the list row presentation.
+3. Decide whether to combine `BestiaryShort2.xml` for broader bundled coverage before introducing custom SQLite creatures.
+4. Begin the next read-only destination after the Monsters slice is acceptance-tested.
 
 ## Tracking convention
 

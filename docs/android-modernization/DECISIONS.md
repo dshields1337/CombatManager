@@ -90,3 +90,10 @@
 - Status: accepted
 - Decision: after establishing several tested core slices, prioritize an interactive home shell followed by a read-only Monsters list/details path instead of continuing broad core migration in isolation.
 - Reason: installing visible, navigable increments in the emulator provides earlier usability, exposes current-Android UI issues such as edge-to-edge insets, and gives clearer acceptance checkpoints for a non-Android specialist.
+
+## D014: Project bundled bestiary XML into lightweight read-only models
+
+- Date: 2026-08-26
+- Status: accepted
+- Decision: load `BestiaryShort.xml` from the APK into a new `CreatureSummary` projection for the first Monsters screen rather than linking the legacy `Monster`, `BaseDBClass`, `MonsterDB`, and SQLite graph.
+- Reason: the existing short bestiary already provides useful browse/search/detail fields for 1,000 creatures. A stream-based projection delivers an independently testable vertical slice now and leaves full detail storage and custom-creature persistence as explicit later decisions.

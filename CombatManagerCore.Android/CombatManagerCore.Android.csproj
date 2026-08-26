@@ -21,6 +21,7 @@
     <Compile Include="..\CombatManagerCore\RandomWeightChart.cs" Link="LegacyCore\RandomWeightChart.cs" />
     <Compile Include="..\CombatManagerCore\RomanNumbers.cs" Link="LegacyCore\RomanNumbers.cs" />
     <Compile Include="..\CombatManagerCore\CreatureTypeInfo.cs" Link="LegacyCore\CreatureTypeInfo.cs" />
+    <Compile Include="..\CombatManagerCore\CreatureSummary.cs" Link="LegacyCore\CreatureSummary.cs" />
     <Compile Include="..\CombatManagerCore\PropertyConverters.cs" Link="LegacyCore\PropertyConverters.cs" />
     <Compile Include="..\CombatManagerCore\SizeMods.cs" Link="LegacyCore\SizeMods.cs" />
     <Compile Include="..\CombatManagerCore\SkillValue.cs" Link="LegacyCore\SkillValue.cs" />

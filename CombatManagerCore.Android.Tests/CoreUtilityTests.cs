@@ -1,6 +1,7 @@
 using CombatManager;
 using ScottsUtils;
 using System.Text.RegularExpressions;
+using System.Text;
 
 namespace CombatManagerCore.Android.Tests;
 
@@ -247,5 +248,25 @@ public sealed class CoreUtilityTests
         Assert.IsTrue(higherDex < higherBase);
         Assert.AreEqual("15-4-1", higherDex.Text);
         Assert.AreEqual(higherDex, (InitiativeCount)higherDex.Clone());
+    }
+
+    [TestMethod]
+    public void CreatureSummariesLoadAndSortFromBestiaryXml()
+    {
+        const string xml = """
+            <ArrayOfMonster>
+              <Monster><Name>Zombie</Name><CR>1/2</CR><HP>12</HP><Type>undead</Type><id>2</id></Monster>
+              <Monster><Name>Aboleth</Name><CR>7</CR><HP>84</HP><Type>aberration</Type><id>1</id></Monster>
+            </ArrayOfMonster>
+            """;
+        using var stream = new MemoryStream(Encoding.UTF8.GetBytes(xml));
+
+        List<CreatureSummary> creatures = CreatureSummary.Load(stream);
+
+        Assert.HasCount(2, creatures);
+        Assert.AreEqual("Aboleth", creatures[0].Name);
+        Assert.AreEqual("Aboleth  •  CR 7", creatures[0].ListText);
+        Assert.AreEqual(84, creatures[0].HP);
+        Assert.AreEqual("undead", creatures[1].Type);
     }
 }

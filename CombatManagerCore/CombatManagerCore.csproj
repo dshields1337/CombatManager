@@ -90,6 +90,7 @@
     <Compile Include="ArmorWeaponSpecialChart.cs" />
     <Compile Include="Attack.cs" />
     <Compile Include="CombatText.cs" />
+    <Compile Include="CreatureSummary.cs" />
     <Compile Include="AttackSet.cs" />
     <Compile Include="BaseDBClass.cs" />
     <Compile Include="BaseMonster.cs" />

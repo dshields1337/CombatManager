@@ -11,6 +11,10 @@ public class MainActivity : Activity
     private const string MonsterQueryKey = "monster_query";
     private const string MonsterTypeKey = "monster_type";
     private const string MonsterCrKey = "monster_cr";
+    private const string FeatQueryKey = "feat_query";
+    private const string FeatTypeKey = "feat_type";
+    private const string SpellQueryKey = "spell_query";
+    private const string SpellSchoolKey = "spell_school";
     private const string AllTypes = "All types";
     private const string AllChallengeRatings = "All CRs";
     private const string AllFeatTypes = "All feat types";
@@ -21,9 +25,11 @@ public class MainActivity : Activity
     private bool _initializingFilters;
     private List<FeatSummary>? _feats;
     private List<FeatSummary> _visibleFeats = [];
+    private bool _initializingFeatFilters;
     private List<SpellSummary>? _spells;
     private List<SpellSummary> _visibleSpells = [];
     private readonly Dictionary<int, SpellDetails> _spellDetailCache = [];
+    private bool _initializingSpellFilters;
     private readonly Page[] _pages =
     [
         new(Resource.Id.combat_button, "Combat", "C"), new(Resource.Id.monsters_button, "Monsters", "M"),
@@ -40,11 +46,11 @@ public class MainActivity : Activity
         FindViewById<Spinner>(Resource.Id.monster_type_filter)!.ItemSelected += (_, _) => OnFilterChanged();
         FindViewById<Spinner>(Resource.Id.monster_cr_filter)!.ItemSelected += (_, _) => OnFilterChanged();
         FindViewById<ListView>(Resource.Id.monster_list)!.ItemClick += (_, args) => ShowCreature(_visibleCreatures[args.Position]);
-        FindViewById<SearchView>(Resource.Id.feat_search)!.QueryTextChange += (_, args) => FilterFeats(args.NewText);
-        FindViewById<Spinner>(Resource.Id.feat_type_filter)!.ItemSelected += (_, _) => FilterFeats(CurrentFeatQuery());
+        FindViewById<SearchView>(Resource.Id.feat_search)!.QueryTextChange += (_, args) => OnFeatQueryChanged(args.NewText);
+        FindViewById<Spinner>(Resource.Id.feat_type_filter)!.ItemSelected += (_, _) => OnFeatFilterChanged();
         FindViewById<ListView>(Resource.Id.feat_list)!.ItemClick += (_, args) => ShowFeat(_visibleFeats[args.Position]);
-        FindViewById<SearchView>(Resource.Id.spell_search)!.QueryTextChange += (_, args) => FilterSpells(args.NewText);
-        FindViewById<Spinner>(Resource.Id.spell_school_filter)!.ItemSelected += (_, _) => FilterSpells(CurrentSpellQuery());
+        FindViewById<SearchView>(Resource.Id.spell_search)!.QueryTextChange += (_, args) => OnSpellQueryChanged(args.NewText);
+        FindViewById<Spinner>(Resource.Id.spell_school_filter)!.ItemSelected += (_, _) => OnSpellFilterChanged();
         FindViewById<ListView>(Resource.Id.spell_list)!.ItemClick += (_, args) => ShowSpell(_visibleSpells[args.Position]);
         FindViewById<ImageButton>(Resource.Id.about_button)!.Click += (_, _) =>
         {
@@ -97,8 +103,15 @@ public class MainActivity : Activity
             string[] schools = [AllSpellSchools, .. _spells.Select(spell => spell.School)
                 .Where(school => !string.IsNullOrWhiteSpace(school))
                 .Distinct(StringComparer.OrdinalIgnoreCase).OrderBy(school => school, StringComparer.OrdinalIgnoreCase)];
+            _initializingSpellFilters = true;
             FindViewById<Spinner>(Resource.Id.spell_school_filter)!.Adapter =
                 new ArrayAdapter<string>(this, global::Android.Resource.Layout.SimpleSpinnerDropDownItem, schools);
+            var preferences = GetSharedPreferences(PreferenceName, global::Android.Content.FileCreationMode.Private)!;
+            SelectSpinnerValue(FindViewById<Spinner>(Resource.Id.spell_school_filter)!, schools,
+                preferences.GetString(SpellSchoolKey, AllSpellSchools) ?? AllSpellSchools);
+            FindViewById<SearchView>(Resource.Id.spell_search)!.SetQuery(
+                preferences.GetString(SpellQueryKey, string.Empty), false);
+            _initializingSpellFilters = false;
             FindViewById<ProgressBar>(Resource.Id.spell_progress)!.Visibility = ViewStates.Gone;
             FindViewById<ListView>(Resource.Id.spell_list)!.Visibility = ViewStates.Visible;
             FilterSpells(CurrentSpellQuery());
@@ -123,6 +136,21 @@ public class MainActivity : Activity
     }
 
     private string CurrentSpellQuery() => FindViewById<SearchView>(Resource.Id.spell_search)!.Query ?? string.Empty;
+
+    private void OnSpellQueryChanged(string? query)
+    {
+        if (_initializingSpellFilters) return;
+        SavePreference(SpellQueryKey, query ?? string.Empty);
+        FilterSpells(query);
+    }
+
+    private void OnSpellFilterChanged()
+    {
+        if (_initializingSpellFilters || _spells is null) return;
+        SavePreference(SpellSchoolKey,
+            FindViewById<Spinner>(Resource.Id.spell_school_filter)!.SelectedItem?.ToString() ?? AllSpellSchools);
+        FilterSpells(CurrentSpellQuery());
+    }
 
     private void ShowSpell(SpellSummary spell)
     {
@@ -206,8 +234,15 @@ public class MainActivity : Activity
             string[] types = [AllFeatTypes, .. _feats.SelectMany(feat => feat.Type.Split(','))
                 .Select(type => type.Trim()).Where(type => type.Length > 0)
                 .Distinct(StringComparer.OrdinalIgnoreCase).OrderBy(type => type, StringComparer.OrdinalIgnoreCase)];
+            _initializingFeatFilters = true;
             FindViewById<Spinner>(Resource.Id.feat_type_filter)!.Adapter =
                 new ArrayAdapter<string>(this, global::Android.Resource.Layout.SimpleSpinnerDropDownItem, types);
+            var preferences = GetSharedPreferences(PreferenceName, global::Android.Content.FileCreationMode.Private)!;
+            SelectSpinnerValue(FindViewById<Spinner>(Resource.Id.feat_type_filter)!, types,
+                preferences.GetString(FeatTypeKey, AllFeatTypes) ?? AllFeatTypes);
+            FindViewById<SearchView>(Resource.Id.feat_search)!.SetQuery(
+                preferences.GetString(FeatQueryKey, string.Empty), false);
+            _initializingFeatFilters = false;
             FindViewById<ProgressBar>(Resource.Id.feat_progress)!.Visibility = ViewStates.Gone;
             FindViewById<ListView>(Resource.Id.feat_list)!.Visibility = ViewStates.Visible;
             FilterFeats(CurrentFeatQuery());
@@ -232,6 +267,21 @@ public class MainActivity : Activity
     }
 
     private string CurrentFeatQuery() => FindViewById<SearchView>(Resource.Id.feat_search)!.Query ?? string.Empty;
+
+    private void OnFeatQueryChanged(string? query)
+    {
+        if (_initializingFeatFilters) return;
+        SavePreference(FeatQueryKey, query ?? string.Empty);
+        FilterFeats(query);
+    }
+
+    private void OnFeatFilterChanged()
+    {
+        if (_initializingFeatFilters || _feats is null) return;
+        SavePreference(FeatTypeKey,
+            FindViewById<Spinner>(Resource.Id.feat_type_filter)!.SelectedItem?.ToString() ?? AllFeatTypes);
+        FilterFeats(CurrentFeatQuery());
+    }
 
     private void ShowFeat(FeatSummary feat)
     {

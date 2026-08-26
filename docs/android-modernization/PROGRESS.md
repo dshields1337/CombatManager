@@ -115,6 +115,9 @@ Last updated: 2026-08-26
 - Combined bestiary partitions by unique ID and alphabetical name, with regression coverage preventing accidental duplicate IDs when data partitions change.
 - Latest core result: 24 passed, 0 failed, 0 skipped; Release Android build succeeded with 0 warnings and 0 errors. The signed APK is 19,663,043 bytes (approximately 18.8 MiB).
 - API 36 verification passed for the 2,837-creature count and for `Globster`, a second-partition-only record, including its CR, statistics, source, and live application process.
+- Persisted Feats search/type and Spells search/school selections using application preferences, completing state restoration across tab changes and process restarts for all three read-only browsers.
+- Release Android build after browser-state persistence succeeded with 0 warnings and 0 errors.
+- API 36 restart verification restored `Power Attack` + `Combat` to one feat and `Acid Arrow` + `conjuration` to one spell; the application process remained alive.
 
 ## In progress
 
@@ -122,7 +125,7 @@ Last updated: 2026-08-26
 
 ## Blockers and required actions
 
-- No current implementation blocker. The next work can persist Feats/Spells browser state, add the Rules destination, or begin encounter selection.
+- No current implementation blocker. The next work can add the Rules destination or begin encounter selection.
 
 ## Repository ownership and publishing
 
@@ -137,10 +140,9 @@ Last updated: 2026-08-26
 
 ## Next actions
 
-1. Persist Feats and Spells search/filter state through tab changes and process restarts.
-2. Build the read-only Rules destination from the bundled rules reference data.
-3. Add encounter selection from Monsters when the combat model/UI boundary is ready.
-4. Continue separating condition/spell state only where the next vertical slice requires it.
+1. Build the read-only Rules destination from the bundled rules reference data.
+2. Add encounter selection from Monsters when the combat model/UI boundary is ready.
+3. Continue separating condition/spell state only where the next vertical slice requires it.
 
 ## Tracking convention
 

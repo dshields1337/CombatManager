@@ -850,7 +850,7 @@ public class MainActivity : Activity
         input.RequestFocus();
     }
 
-    private void ShowTimedConditionDialog(CombatParticipant participant)
+    private void ShowTimedConditionDialog(CombatParticipant participant, int? conditionIndex = null)
     {
         View view = LayoutInflater.Inflate(Resource.Layout.timed_condition_dialog, null)!;
         EditText name = view.FindViewById<EditText>(Resource.Id.condition_name)!;
@@ -859,17 +859,29 @@ public class MainActivity : Activity
         _conditionReferences ??= LoadConditionReferences();
         string[] choices = [GetString(Resource.String.custom_condition), .. _conditionReferences.Select(item => item.Name)];
         preset.Adapter = new ArrayAdapter<string>(this, global::Android.Resource.Layout.SimpleSpinnerDropDownItem, choices);
+        if (conditionIndex.HasValue)
+        {
+            CombatCondition condition = participant.Conditions[conditionIndex.Value];
+            name.Text = condition.Name;
+            turns.Text = condition.RemainingTurns.ToString();
+            int presetIndex = Array.FindIndex(choices, choice => string.Equals(choice, condition.Name, StringComparison.OrdinalIgnoreCase));
+            preset.SetSelection(Math.Max(0, presetIndex));
+        }
         preset.ItemSelected += (_, args) =>
         {
             if (args.Position > 0) name.Text = choices[args.Position];
         };
         var builder = new AlertDialog.Builder(this);
-        builder.SetTitle(participant.DisplayName);
+        builder.SetTitle(conditionIndex.HasValue ? Resource.String.edit_condition : Resource.String.add_timed_condition);
         builder.SetView(view);
         builder.SetNegativeButton(global::Android.Resource.String.Cancel, (_, _) => { });
         builder.SetPositiveButton(global::Android.Resource.String.Ok, (_, _) =>
         {
-            if (int.TryParse(turns.Text, out int duration) && _combatRoster.AddCondition(participant.Sequence, name.Text ?? string.Empty, duration))
+            bool validDuration = int.TryParse(turns.Text, out int duration);
+            bool changed = validDuration && (conditionIndex.HasValue
+                ? _combatRoster.UpdateCondition(participant.Sequence, conditionIndex.Value, name.Text ?? string.Empty, duration)
+                : _combatRoster.AddCondition(participant.Sequence, name.Text ?? string.Empty, duration));
+            if (changed)
                 CommitCombatChange();
             else Toast.MakeText(this, Resource.String.invalid_condition, ToastLength.Short)?.Show();
         });
@@ -911,14 +923,17 @@ public class MainActivity : Activity
         CombatCondition condition = participant.Conditions[index];
         _conditionReferences ??= LoadConditionReferences();
         ConditionReference? reference = ConditionReference.Find(_conditionReferences, condition.Name);
-        string[] actions = reference is null
-            ? [GetString(Resource.String.remove_condition)]
-            : [GetString(Resource.String.view_condition_rules), GetString(Resource.String.remove_condition)];
+        var actions = new List<string>();
+        if (reference is not null) actions.Add(GetString(Resource.String.view_condition_rules));
+        int editIndex = actions.Count;
+        actions.Add(GetString(Resource.String.edit_condition));
+        actions.Add(GetString(Resource.String.remove_condition));
         var builder = new AlertDialog.Builder(this);
         builder.SetTitle(condition.DisplayText);
-        builder.SetItems(actions, (_, args) =>
+        builder.SetItems(actions.ToArray(), (_, args) =>
         {
             if (reference is not null && args.Which == 0) { ShowConditionRules(reference); return; }
+            if (args.Which == editIndex) { ShowTimedConditionDialog(participant, index); return; }
             ConfirmRemoveCondition(participant, index);
         });
         builder.SetNegativeButton(global::Android.Resource.String.Cancel, (_, _) => { });

@@ -193,6 +193,15 @@ namespace CombatManager
             return true;
         }
 
+        public bool UpdateCondition(int sequence, int index, string name, int turns)
+        {
+            CombatParticipant participant = _participants.FirstOrDefault(item => item.Sequence == sequence);
+            if (participant == null || index < 0 || index >= participant.Conditions.Count || string.IsNullOrWhiteSpace(name) || turns < 1) return false;
+            participant.Conditions[index].Name = name.Trim();
+            participant.Conditions[index].RemainingTurns = turns;
+            return true;
+        }
+
         public void ResetTurns()
         {
             foreach (CombatParticipant participant in _participants) participant.Initiative = null;

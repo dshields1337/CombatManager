@@ -27,6 +27,9 @@ Last updated: 2026-08-27
 - Latest core result: 39 passed, 0 failed, 0 skipped; Debug Android build succeeded with 0 warnings and 0 errors.
 - API 36 verification confirmed the condition dialog, Custom condition option, and legacy presets including Bleed, Blinded, Broken, and Confused.
 - Added active-condition action menus and full rules dialogs for standard catalogue conditions; custom conditions omit the unavailable rules action.
+- Added validated in-place editing of an active condition's preset/custom name and remaining duration, including persistence coverage.
+- Latest core result: 40 passed, 0 failed, 0 skipped; Debug Android build succeeded with 0 warnings and 0 errors.
+- API 36 verification reopened persisted `Bleed (3)`, prefilled its standard name and duration, edited it to `Bleed (5)`, refreshed the combat row, and left the process alive.
 
 ### 2026-08-26
 
@@ -214,8 +217,7 @@ Last updated: 2026-08-27
 
 ## Next actions
 
-1. Allow existing timed conditions to be edited without removing and recreating them.
-2. Continue vertical slices toward parity with legacy combat controls.
+1. Continue vertical slices toward parity with legacy combat controls.
 
 ## Tracking convention
 

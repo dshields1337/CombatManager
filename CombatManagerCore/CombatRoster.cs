@@ -120,6 +120,16 @@ namespace CombatManager
             return true;
         }
 
+        public bool SetInitiatives(IReadOnlyDictionary<int, int> initiatives)
+        {
+            if (initiatives == null || initiatives.Count == 0 ||
+                initiatives.Keys.Any(sequence => !_participants.Any(item => item.Sequence == sequence))) return false;
+            foreach (CombatParticipant participant in _participants)
+                if (initiatives.TryGetValue(participant.Sequence, out int initiative)) participant.Initiative = initiative;
+            SortByInitiative();
+            return true;
+        }
+
         public bool ApplyDamage(int sequence, int amount)
         {
             if (amount < 0) return false;

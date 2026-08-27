@@ -18,6 +18,10 @@ Last updated: 2026-08-27
 - Latest core result remains 37 passed, 0 failed, 0 skipped; a clean Debug Android build succeeded with 0 warnings and 0 errors.
 - API 36 verification confirmed all three action groups, correct Android resource mapping after a clean package rebuild, and a live application process.
 - Corrected the remaining modern UI encoding artifacts in Rules/Treasure row separators and Spell/Rule/Treasure loading messages; valid Unicode bullets and ellipses now render consistently.
+- Added one-dialog initiative setup for the entire encounter, with atomic core validation and deterministic sorting after all values are accepted.
+- Reworked the turn controls into a two-row layout so Previous, Initiative, Reset, and Next retain equal, usable touch targets.
+- Latest core result: 38 passed, 0 failed, 0 skipped; Debug Android build succeeded with 0 warnings and 0 errors.
+- API 36 verification entered initiative 18 through the bulk dialog, updated the participant row and Ready to start state, and confirmed the process remained alive.
 
 ### 2026-08-26
 
@@ -205,7 +209,7 @@ Last updated: 2026-08-27
 
 ## Next actions
 
-1. Add a focused combat convenience operation to reduce repetitive initiative setup.
+1. Add a reusable structured condition catalogue for common combat states.
 2. Continue vertical slices toward parity with legacy combat controls.
 
 ## Tracking convention

@@ -74,6 +74,7 @@ public class MainActivity : Activity
             CommitCombatChange();
         };
         FindViewById<Button>(Resource.Id.reset_turns_button)!.Click += (_, _) => ConfirmResetTurns();
+        FindViewById<Button>(Resource.Id.set_all_initiative_button)!.Click += (_, _) => ShowAllInitiativesDialog();
         FindViewById<SearchView>(Resource.Id.monster_search)!.QueryTextChange += (_, args) => OnQueryChanged(args.NewText);
         FindViewById<Spinner>(Resource.Id.monster_type_filter)!.ItemSelected += (_, _) => OnFilterChanged();
         FindViewById<Spinner>(Resource.Id.monster_cr_filter)!.ItemSelected += (_, _) => OnFilterChanged();
@@ -715,6 +716,7 @@ public class MainActivity : Activity
         FindViewById<Button>(Resource.Id.next_turn_button)!.Enabled = initiativeReady;
         FindViewById<Button>(Resource.Id.previous_turn_button)!.Enabled = initiativeReady;
         FindViewById<Button>(Resource.Id.reset_turns_button)!.Enabled = _combatRoster.Participants.Any(participant => participant.Initiative.HasValue);
+        FindViewById<Button>(Resource.Id.set_all_initiative_button)!.Enabled = count > 0;
         FindViewById<TextView>(Resource.Id.round_status)!.Text = !initiativeReady
             ? "Set initiative for all combatants"
             : _combatRoster.Round == 0 ? "Ready to start" : $"Round {_combatRoster.Round}";
@@ -967,6 +969,56 @@ public class MainActivity : Activity
         });
         dialog.Show();
         input.RequestFocus();
+    }
+
+    private void ShowAllInitiativesDialog()
+    {
+        int padding = (int)(24 * Resources!.DisplayMetrics!.Density);
+        var fields = new Dictionary<int, EditText>();
+        var rows = new LinearLayout(this) { Orientation = global::Android.Widget.Orientation.Vertical };
+        rows.SetPadding(padding, 0, padding, 0);
+        foreach (CombatParticipant participant in _combatRoster.Participants.OrderBy(item => item.Sequence))
+        {
+            var row = new LinearLayout(this) { Orientation = global::Android.Widget.Orientation.Horizontal };
+            row.SetGravity(GravityFlags.CenterVertical);
+            var label = new TextView(this) { Text = participant.DisplayName };
+            row.AddView(label, new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WrapContent, 1));
+            var input = new EditText(this)
+            {
+                InputType = global::Android.Text.InputTypes.ClassNumber | global::Android.Text.InputTypes.NumberFlagSigned,
+                Text = participant.Initiative?.ToString() ?? string.Empty,
+                Gravity = GravityFlags.Center
+            };
+            input.SetSelectAllOnFocus(true);
+            row.AddView(input, new LinearLayout.LayoutParams((int)(88 * Resources.DisplayMetrics.Density), LinearLayout.LayoutParams.WrapContent));
+            rows.AddView(row);
+            fields[participant.Sequence] = input;
+        }
+        var scroll = new ScrollView(this);
+        scroll.AddView(rows);
+        var builder = new AlertDialog.Builder(this);
+        builder.SetTitle(Resource.String.set_all_initiative_title);
+        builder.SetMessage(Resource.String.set_all_initiative_prompt);
+        builder.SetView(scroll);
+        builder.SetNegativeButton(global::Android.Resource.String.Cancel, (_, _) => { });
+        builder.SetPositiveButton(global::Android.Resource.String.Ok, (_, _) =>
+        {
+            var values = new Dictionary<int, int>();
+            if (fields.All(pair => int.TryParse(pair.Value.Text, out int value) && AddInitiative(values, pair.Key, value)))
+            {
+                _combatRoster.SetInitiatives(values);
+                CommitCombatChange();
+            }
+            else Toast.MakeText(this, Resource.String.invalid_initiatives, ToastLength.Short)?.Show();
+        });
+        builder.Show();
+        fields.Values.FirstOrDefault()?.RequestFocus();
+    }
+
+    private static bool AddInitiative(Dictionary<int, int> values, int sequence, int initiative)
+    {
+        values[sequence] = initiative;
+        return true;
     }
 
     private void ConfirmClearCombat()

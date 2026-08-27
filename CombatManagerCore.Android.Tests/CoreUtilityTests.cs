@@ -441,6 +441,21 @@ public sealed class CoreUtilityTests
     }
 
     [TestMethod]
+    public void CombatRosterSetsMultipleInitiativesAtomically()
+    {
+        var roster = new CombatRoster();
+        CombatParticipant goblin = roster.Add(new CreatureSummary { Id = 7, Name = "Goblin" });
+        CombatParticipant dragon = roster.Add(new CreatureSummary { Id = 8, Name = "Dragon" });
+        Assert.IsFalse(roster.SetInitiatives(new Dictionary<int, int> { [999] = 30 }));
+        Assert.IsNull(goblin.Initiative);
+        Assert.IsNull(dragon.Initiative);
+        Assert.IsTrue(roster.SetInitiatives(new Dictionary<int, int> { [goblin.Sequence] = 12, [dragon.Sequence] = 21 }));
+        Assert.AreEqual("Dragon", roster.Participants[0].DisplayName);
+        Assert.AreEqual(12, goblin.Initiative);
+        Assert.AreEqual(21, dragon.Initiative);
+    }
+
+    [TestMethod]
     public void CombatRosterAppliesDamageAndCapsHealingAtMaximumHP()
     {
         var roster = new CombatRoster();

@@ -209,3 +209,10 @@
 - Status: accepted
 - Decision: generate plain encounter text from the roster and share it with Android's `ACTION_SEND` chooser; do not expose the versioned private XML snapshot as the user-facing export.
 - Reason: the snapshot is an implementation contract intended for exact restoration, while a shared encounter should be readable in messages and session notes. Keeping formats separate allows either to evolve without breaking the other.
+
+## D031: Apply bulk initiative as one validated roster operation
+
+- Date: 2026-08-27
+- Status: accepted
+- Decision: collect initiative for every encounter participant in one scrollable dialog and apply the values through a single roster operation only after all entries are valid.
+- Reason: setting initiative participant by participant becomes tedious in a real encounter. Atomic application avoids leaving a partially reordered roster when one value is missing or invalid, while retaining deterministic initiative tie ordering.

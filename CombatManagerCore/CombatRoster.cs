@@ -29,7 +29,8 @@ namespace CombatManager
     {
         public string Name { get; set; }
         public int RemainingTurns { get; set; }
-        public string DisplayText => Name + " (" + RemainingTurns + ")";
+        public bool IsTimed => RemainingTurns > 0;
+        public string DisplayText => IsTimed ? Name + " (" + RemainingTurns + ")" : Name;
     }
 
     public class CombatRoster
@@ -180,7 +181,7 @@ namespace CombatManager
         public bool AddCondition(int sequence, string name, int turns)
         {
             CombatParticipant participant = _participants.FirstOrDefault(item => item.Sequence == sequence);
-            if (participant == null || string.IsNullOrWhiteSpace(name) || turns < 1) return false;
+            if (participant == null || string.IsNullOrWhiteSpace(name) || turns < 0) return false;
             participant.Conditions.Add(new CombatCondition { Name = name.Trim(), RemainingTurns = turns });
             return true;
         }
@@ -196,7 +197,7 @@ namespace CombatManager
         public bool UpdateCondition(int sequence, int index, string name, int turns)
         {
             CombatParticipant participant = _participants.FirstOrDefault(item => item.Sequence == sequence);
-            if (participant == null || index < 0 || index >= participant.Conditions.Count || string.IsNullOrWhiteSpace(name) || turns < 1) return false;
+            if (participant == null || index < 0 || index >= participant.Conditions.Count || string.IsNullOrWhiteSpace(name) || turns < 0) return false;
             participant.Conditions[index].Name = name.Trim();
             participant.Conditions[index].RemainingTurns = turns;
             return true;
@@ -241,8 +242,9 @@ namespace CombatManager
 
         private static void TickConditions(CombatParticipant participant)
         {
-            foreach (CombatCondition condition in participant.Conditions) condition.RemainingTurns--;
-            participant.Conditions.RemoveAll(condition => condition.RemainingTurns <= 0);
+            List<CombatCondition> timed = participant.Conditions.Where(item => item.IsTimed).ToList();
+            foreach (CombatCondition condition in timed) condition.RemainingTurns--;
+            participant.Conditions.RemoveAll(condition => timed.Contains(condition) && condition.RemainingTurns <= 0);
         }
 
         public CombatParticipant PreviousTurn()
@@ -340,7 +342,7 @@ namespace CombatManager
                     {
                         string name = (string)conditionElement.Attribute("name") ?? string.Empty;
                         int turns = AttributeInt(conditionElement, "turns");
-                        if (!string.IsNullOrWhiteSpace(name) && turns > 0)
+                        if (!string.IsNullOrWhiteSpace(name) && turns >= 0)
                             participant.Conditions.Add(new CombatCondition { Name = name, RemainingTurns = turns });
                     }
                     roster._participants.Add(participant);

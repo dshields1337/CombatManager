@@ -223,3 +223,10 @@
 - Status: accepted
 - Decision: load the 34 standard names and rules descriptions directly from the existing `Condition.xml` into lightweight `ConditionReference` records and offer them as timed-condition presets while preserving custom entry.
 - Reason: the source catalogue is useful and authoritative for this application, but the legacy `Condition` class also loads spells, monster afflictions, custom files, favourites, recents, and computed bonuses. A narrow projection makes the reference content immediately usable without taking on those unrelated persistence and model dependencies.
+
+## D033: Represent until-removed conditions with zero duration
+
+- Date: 2026-08-27
+- Status: accepted
+- Decision: treat condition duration `0` as untimed: display no remaining-turn suffix, do not decrement it during turn advancement, and retain it until the user removes or edits it.
+- Reason: common states such as Prone and Grappled do not have a predetermined duration. Zero is backward-compatible with the version-1 encounter XML and keeps the lightweight condition model simple while positive values retain existing expiry semantics.

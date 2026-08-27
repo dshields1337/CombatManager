@@ -574,7 +574,7 @@ public sealed class CoreUtilityTests
         roster.SetInitiative(goblin.Sequence, 20);
         roster.SetInitiative(ogre.Sequence, 10);
         Assert.IsTrue(roster.AddCondition(goblin.Sequence, "  Stunned  ", 2));
-        Assert.IsFalse(roster.AddCondition(goblin.Sequence, "Invalid", 0));
+        Assert.IsFalse(roster.AddCondition(goblin.Sequence, "Invalid", -1));
         roster.NextTurn();
         roster.NextTurn();
         Assert.AreEqual(1, goblin.Conditions[0].RemainingTurns);
@@ -615,7 +615,7 @@ public sealed class CoreUtilityTests
         roster.AddCondition(goblin.Sequence, "Prone", 2);
         Assert.IsFalse(roster.UpdateCondition(goblin.Sequence, 1, "Stunned", 3));
         Assert.IsFalse(roster.UpdateCondition(goblin.Sequence, 0, string.Empty, 3));
-        Assert.IsFalse(roster.UpdateCondition(goblin.Sequence, 0, "Stunned", 0));
+        Assert.IsFalse(roster.UpdateCondition(goblin.Sequence, 0, "Stunned", -1));
         Assert.IsTrue(roster.UpdateCondition(goblin.Sequence, 0, "  Stunned  ", 4));
         Assert.AreEqual("Stunned (4)", goblin.Conditions[0].DisplayText);
         using var stream = new MemoryStream();
@@ -623,6 +623,25 @@ public sealed class CoreUtilityTests
         stream.Position = 0;
         Assert.IsTrue(CombatRoster.TryLoad(stream, out CombatRoster restored));
         Assert.AreEqual("Stunned (4)", restored.Participants[0].Conditions[0].DisplayText);
+    }
+
+    [TestMethod]
+    public void CombatRosterKeepsUntimedConditionsUntilRemoved()
+    {
+        var roster = new CombatRoster();
+        CombatParticipant goblin = roster.Add(new CreatureSummary { Id = 7, Name = "Goblin" });
+        roster.SetInitiative(goblin.Sequence, 12);
+        Assert.IsTrue(roster.AddCondition(goblin.Sequence, "Prone", 0));
+        Assert.AreEqual("Prone", goblin.Conditions[0].DisplayText);
+        Assert.IsFalse(goblin.Conditions[0].IsTimed);
+        roster.NextTurn();
+        roster.NextTurn();
+        Assert.HasCount(1, goblin.Conditions);
+        using var stream = new MemoryStream();
+        roster.Save(stream);
+        stream.Position = 0;
+        Assert.IsTrue(CombatRoster.TryLoad(stream, out CombatRoster restored));
+        Assert.AreEqual("Prone", restored.Participants[0].Conditions[0].DisplayText);
     }
 
     [TestMethod]

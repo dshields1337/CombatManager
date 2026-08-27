@@ -3,7 +3,7 @@ namespace CombatManager.Android;
 using global::CombatManager;
 using global::Android.Views;
 
-[Activity(Label = "@string/app_name", MainLauncher = true, Theme = "@android:style/Theme.Material.Light.NoActionBar")]
+[Activity(Label = "@string/app_name", Icon = "@mipmap/appicon", MainLauncher = true, Theme = "@android:style/Theme.Material.Light.NoActionBar")]
 public class MainActivity : Activity
 {
     private const string PreferenceName = "combat_manager_modern";

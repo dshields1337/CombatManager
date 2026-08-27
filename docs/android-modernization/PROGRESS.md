@@ -211,6 +211,9 @@ Last updated: 2026-08-27
 
 ## In progress
 
+- Selected the red d20 `CM` concept as the application mark, generated legacy and adaptive launcher resources for all five Android density buckets, and explicitly configured the application icon.
+- Debug Android build succeeded with 0 warnings and 0 errors; the merged manifest resolves both standard and round icons to the new adaptive resource set, and the updated APK installed successfully on API 36.
+
 - Removed the development-preview title/About banner and regression-test footer from the production UI, leaving navigation and feature content to use the full screen while retaining the regression suite in the development workflow.
 - Debug Android build succeeded with 0 warnings and 0 errors; API 36 verification confirmed tabs begin at the top inset, both preview messages are absent, the persisted encounter remains visible, and the process stayed alive.
 

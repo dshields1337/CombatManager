@@ -202,3 +202,10 @@
 - Status: accepted
 - Decision: model a timed condition as a name plus remaining participant turns, decrementing it when Next moves away from that participant and removing it at zero. Previous navigation does not rewind durations.
 - Reason: tying duration to completed turns makes expiry deterministic and avoids double-decrementing before a combatant first acts. Previous is a navigation correction, not time travel, so reversing condition state would require a broader undo system.
+
+## D030: Share a human-readable summary, not the persistence document
+
+- Date: 2026-08-27
+- Status: accepted
+- Decision: generate plain encounter text from the roster and share it with Android's `ACTION_SEND` chooser; do not expose the versioned private XML snapshot as the user-facing export.
+- Reason: the snapshot is an implementation contract intended for exact restoration, while a shared encounter should be readable in messages and session notes. Keeping formats separate allows either to evolve without breaking the other.

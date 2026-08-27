@@ -62,6 +62,7 @@ public class MainActivity : Activity
         FindViewById<ListView>(Resource.Id.combat_list)!.ItemClick += (_, args) => ShowCombatParticipant(_combatRoster.Participants[args.Position]);
         FindViewById<Button>(Resource.Id.clear_combat_button)!.Click += (_, _) => ConfirmClearCombat();
         FindViewById<Button>(Resource.Id.add_combatant_button)!.Click += (_, _) => ShowAddCombatantDialog();
+        FindViewById<Button>(Resource.Id.share_encounter_button)!.Click += (_, _) => ShareEncounter();
         FindViewById<Button>(Resource.Id.next_turn_button)!.Click += (_, _) =>
         {
             _combatRoster.NextTurn();
@@ -703,6 +704,7 @@ public class MainActivity : Activity
         int count = _combatRoster.Participants.Count;
         FindViewById<TextView>(Resource.Id.combat_count)!.Text = count == 1 ? "1 combatant" : $"{count:N0} combatants";
         FindViewById<Button>(Resource.Id.clear_combat_button)!.Enabled = count > 0;
+        FindViewById<Button>(Resource.Id.share_encounter_button)!.Enabled = count > 0;
         FindViewById<TextView>(Resource.Id.combat_empty)!.Visibility = count == 0 ? ViewStates.Visible : ViewStates.Gone;
         ListView list = FindViewById<ListView>(Resource.Id.combat_list)!;
         list.Visibility = count == 0 ? ViewStates.Gone : ViewStates.Visible;
@@ -996,6 +998,15 @@ public class MainActivity : Activity
             global::Android.Util.Log.Error("CombatManager", "Unable to save encounter: " + exception);
         }
         RefreshCombatRoster();
+    }
+
+    private void ShareEncounter()
+    {
+        var intent = new global::Android.Content.Intent(global::Android.Content.Intent.ActionSend);
+        intent.SetType("text/plain");
+        intent.PutExtra(global::Android.Content.Intent.ExtraSubject, GetString(Resource.String.share_encounter));
+        intent.PutExtra(global::Android.Content.Intent.ExtraText, _combatRoster.ToSummaryText());
+        StartActivity(global::Android.Content.Intent.CreateChooser(intent, GetString(Resource.String.share_encounter)));
     }
 
     private async Task ShowFullDetailsAsync(CreatureSummary creature)

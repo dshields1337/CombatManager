@@ -579,4 +579,19 @@ public sealed class CoreUtilityTests
         Assert.IsEmpty(restored.Participants.Single(item => item.Name == "Ogre").Conditions);
         Assert.IsFalse(restored.RemoveCondition(ogre.Sequence, 0));
     }
+
+    [TestMethod]
+    public void CombatRosterBuildsReadableEncounterSummary()
+    {
+        var roster = new CombatRoster();
+        CombatParticipant valeros = roster.AddManual("Valeros", 30);
+        roster.SetInitiative(valeros.Sequence, 18);
+        roster.ApplyDamage(valeros.Sequence, 5);
+        roster.SetNotes(valeros.Sequence, "Blessed");
+        roster.AddCondition(valeros.Sequence, "Hasted", 3);
+        roster.NextTurn();
+        string summary = roster.ToSummaryText();
+        StringAssert.Contains(summary, "Combat Manager Encounter — Round 1");
+        StringAssert.Contains(summary, "▶ Valeros — HP 25/30 — Initiative 18 — Blessed — Hasted (3)");
+    }
 }

@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Xml;
 using System.Xml.Linq;
 
@@ -180,6 +181,21 @@ namespace CombatManager
             if (participant == null || index < 0 || index >= participant.Conditions.Count) return false;
             participant.Conditions.RemoveAt(index);
             return true;
+        }
+
+        public string ToSummaryText()
+        {
+            var text = new StringBuilder("Combat Manager Encounter");
+            if (_round > 0) text.Append(" — Round ").Append(_round);
+            foreach (CombatParticipant participant in _participants)
+            {
+                text.AppendLine().Append(participant == ActiveParticipant ? "▶ " : "• ").Append(participant.DisplayName)
+                    .Append(" — HP ").Append(participant.CurrentHP).Append('/').Append(participant.MaximumHP);
+                if (participant.Initiative.HasValue) text.Append(" — Initiative ").Append(participant.Initiative.Value);
+                if (!string.IsNullOrWhiteSpace(participant.Notes)) text.Append(" — ").Append(participant.Notes);
+                if (participant.Conditions.Count > 0) text.Append(" — ").Append(string.Join(", ", participant.Conditions.Select(condition => condition.DisplayText)));
+            }
+            return text.ToString();
         }
 
         public CombatParticipant NextTurn()

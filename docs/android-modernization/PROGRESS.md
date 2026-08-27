@@ -166,6 +166,9 @@ Last updated: 2026-08-26
 - Added a condition manager that lists active durations, opens additional-condition entry, and removes a selected condition through confirmation before natural expiry.
 - Core remains 35 passed, 0 failed, 0 skipped with explicit removal and invalid-index coverage; Release Android build succeeded with 0 warnings and 0 errors.
 - API 36 verification removed persisted `Stunned (2)` through the manager and confirmed it remained absent after force-stop/relaunch.
+- Added a stable human-readable encounter summary containing round, active combatant, HP, initiative, notes, and timed conditions, plus Android text sharing through the system chooser.
+- Latest core result: 36 passed, 0 failed, 0 skipped; Release Android build succeeded with 0 warnings and 0 errors.
+- API 36 verification confirmed Add/Share/Clear fit the combat header and Share opens the installed system chooser targets.
 
 ## In progress
 
@@ -188,9 +191,9 @@ Last updated: 2026-08-26
 
 ## Next actions
 
-1. Add a compact encounter summary view suitable for sharing or session notes.
-2. Add Android text sharing through a modern chooser intent.
-3. Keep encounter export separate from the internal persistence format.
+1. Add explicit encounter reset/start-over choices without conflating clear roster and reset initiative.
+2. Improve combat action discoverability as the action set grows.
+3. Continue vertical slices toward parity with legacy combat controls.
 
 ## Tracking convention
 

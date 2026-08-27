@@ -13,7 +13,8 @@ internal sealed class CombatParticipantListAdapter(Activity context, IReadOnlyLi
     {
         View view = convertView ?? context.LayoutInflater.Inflate(Resource.Layout.combat_participant_item, parent, false)!;
         CombatParticipant participant = participants[position];
-        view.FindViewById<TextView>(Resource.Id.combat_row_name)!.Text = (participant.Sequence == activeSequence ? "▶ " : "") + participant.DisplayName;
+        bool active = participant.Sequence == activeSequence;
+        view.FindViewById<TextView>(Resource.Id.combat_row_name)!.Text = (active ? "▶ " : "") + participant.DisplayName;
         view.FindViewById<TextView>(Resource.Id.combat_row_cr)!.Text = "CR " + participant.ChallengeRating +
             (string.IsNullOrWhiteSpace(participant.Notes) ? string.Empty : "\n" + participant.Notes) +
             (participant.Conditions.Count == 0 ? string.Empty : "\n" + string.Join(" • ", participant.Conditions.Select(condition => condition.DisplayText)));
@@ -21,6 +22,17 @@ internal sealed class CombatParticipantListAdapter(Activity context, IReadOnlyLi
         view.FindViewById<TextView>(Resource.Id.combat_row_hp)!.Text = participant.IsDefeated
             ? $"DEFEATED  •  HP {participant.CurrentHP} / {participant.MaximumHP}"
             : $"HP {participant.CurrentHP} / {participant.MaximumHP}";
+        view.SetBackgroundColor(new global::Android.Graphics.Color(context.GetColor(active ? Resource.Color.primary_light : participant.IsDefeated
+            ? Resource.Color.defeated_background : Resource.Color.page_background)));
+        view.ContentDescription = string.Join(", ", new[]
+        {
+            active ? "Active combatant" : string.Empty, participant.DisplayName,
+            $"HP {participant.CurrentHP} of {participant.MaximumHP}",
+            participant.Initiative.HasValue ? "Initiative " + participant.Initiative.Value : "Initiative not set",
+            participant.IsDefeated ? "Defeated" : string.Empty,
+            participant.Notes ?? string.Empty,
+            string.Join(", ", participant.Conditions.Select(condition => condition.DisplayText))
+        }.Where(value => !string.IsNullOrWhiteSpace(value)));
         return view;
     }
 }

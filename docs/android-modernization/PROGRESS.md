@@ -172,6 +172,9 @@ Last updated: 2026-08-26
 - Added confirmed Reset Turns behavior that clears initiative, active participant, and round while preserving the roster, HP, notes, and timed conditions.
 - Latest core result: 37 passed, 0 failed, 0 skipped; Release Android build succeeded with 0 warnings and 0 errors.
 - API 36 verification reset a persisted initiative value and confirmed encounter notes/HP remained after force-stop/relaunch.
+- Added distinct active-combatant and defeated-row backgrounds plus full accessibility descriptions covering identity, HP, initiative, defeated state, notes, and timed conditions.
+- Release Android build remained clean with 0 warnings and 0 errors; core remains 37 passed, 0 failed, 0 skipped.
+- API 36 visual/accessibility verification confirmed the pale-red defeated treatment, readable mixed roster layout, and descriptive accessibility nodes for both combatants.
 
 ## In progress
 
@@ -195,7 +198,7 @@ Last updated: 2026-08-26
 ## Next actions
 
 1. Improve combat action discoverability as the action set grows.
-2. Add accessibility/content descriptions and clearer active/defeated row styling.
+2. Add a focused participant action sheet with grouped destructive/non-destructive operations.
 3. Continue vertical slices toward parity with legacy combat controls.
 
 ## Tracking convention

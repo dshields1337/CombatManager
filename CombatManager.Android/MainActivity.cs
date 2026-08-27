@@ -9,6 +9,8 @@ public class MainActivity : Activity
     private const string PreferenceName = "combat_manager_modern";
     private const string EncounterFileName = "active-encounter.xml";
     private const string SavedCharactersFileName = "saved-characters.xml";
+    private const string SavedEncountersFileName = "saved-encounters.xml";
+    private const string ActiveSavedEncounterIdKey = "active_saved_encounter_id";
     private const string SelectedPageKey = "selected_page";
     private const string MonsterQueryKey = "monster_query";
     private const string MonsterTypeKey = "monster_type";
@@ -48,11 +50,14 @@ public class MainActivity : Activity
     private bool _initializingMagicItemFilters;
     private CombatRoster _combatRoster = new();
     private SavedCharacterLibrary _savedCharacters = new();
+    private SavedEncounterLibrary _savedEncounters = new();
+    private int _activeSavedEncounterId;
     private List<ConditionReference>? _conditionReferences;
     private readonly Page[] _pages =
     [
         new(Resource.Id.combat_button, "Combat", "C"), new(Resource.Id.monsters_button, "Monsters", "M"),
         new(Resource.Id.characters_button, "Characters", "C"),
+        new(Resource.Id.encounters_button, "Encounters", "E"),
         new(Resource.Id.feats_button, "Feats", "F"), new(Resource.Id.spells_button, "Spells", "S"),
         new(Resource.Id.rules_button, "Rules", "R"), new(Resource.Id.treasure_button, "Treasure", "T")
     ];
@@ -63,12 +68,18 @@ public class MainActivity : Activity
         SetContentView(Resource.Layout.activity_main);
         _combatRoster = LoadPersistedCombatRoster();
         _savedCharacters = LoadSavedCharacters();
+        _savedEncounters = LoadSavedEncounters();
+        _activeSavedEncounterId = GetSharedPreferences(PreferenceName, global::Android.Content.FileCreationMode.Private)!.GetInt(ActiveSavedEncounterIdKey, 0);
+        if (_savedEncounters.Find(_activeSavedEncounterId) is null) _activeSavedEncounterId = 0;
         foreach (Page page in _pages) FindViewById<Button>(page.ButtonId)!.Click += (_, _) => SelectPage(page);
         FindViewById<ListView>(Resource.Id.combat_list)!.ItemClick += (_, args) => ShowCombatParticipant(_combatRoster.Participants[args.Position]);
         FindViewById<Button>(Resource.Id.clear_combat_button)!.Click += (_, _) => ConfirmClearCombat();
         FindViewById<Button>(Resource.Id.add_combatant_button)!.Click += (_, _) => ShowAddCombatantOptions();
         FindViewById<Button>(Resource.Id.new_saved_character_button)!.Click += (_, _) => ShowSavedCharacterEditor();
         FindViewById<ListView>(Resource.Id.saved_character_list)!.ItemClick += (_, args) => ShowSavedCharacter(_savedCharacters.Characters[args.Position]);
+        FindViewById<Button>(Resource.Id.save_encounter_button)!.Click += (_, _) => PromptSaveEncounter();
+        FindViewById<Button>(Resource.Id.load_encounter_button)!.Click += (_, _) => ShowSavedEncounterPicker();
+        FindViewById<ListView>(Resource.Id.saved_encounter_list)!.ItemClick += (_, args) => ShowSavedEncounter(_savedEncounters.Encounters[args.Position]);
         FindViewById<Button>(Resource.Id.name_encounter_button)!.Click += (_, _) => ShowEncounterNamePrompt();
         FindViewById<Button>(Resource.Id.share_encounter_button)!.Click += (_, _) => ShareEncounter();
         FindViewById<Button>(Resource.Id.next_turn_button)!.Click += (_, _) =>
@@ -108,14 +119,16 @@ public class MainActivity : Activity
         bool showCombat = selected.Title == "Combat";
         bool showMonsters = selected.Title == "Monsters";
         bool showCharacters = selected.Title == "Characters";
+        bool showEncounters = selected.Title == "Encounters";
         bool showFeats = selected.Title == "Feats";
         bool showSpells = selected.Title == "Spells";
         bool showRules = selected.Title == "Rules";
         bool showTreasure = selected.Title == "Treasure";
-        FindViewById<LinearLayout>(Resource.Id.placeholder_panel)!.Visibility = showCombat || showMonsters || showCharacters || showFeats || showSpells || showRules || showTreasure ? ViewStates.Gone : ViewStates.Visible;
+        FindViewById<LinearLayout>(Resource.Id.placeholder_panel)!.Visibility = showCombat || showMonsters || showCharacters || showEncounters || showFeats || showSpells || showRules || showTreasure ? ViewStates.Gone : ViewStates.Visible;
         FindViewById<LinearLayout>(Resource.Id.combat_panel)!.Visibility = showCombat ? ViewStates.Visible : ViewStates.Gone;
         FindViewById<LinearLayout>(Resource.Id.monsters_panel)!.Visibility = showMonsters ? ViewStates.Visible : ViewStates.Gone;
         FindViewById<LinearLayout>(Resource.Id.characters_panel)!.Visibility = showCharacters ? ViewStates.Visible : ViewStates.Gone;
+        FindViewById<LinearLayout>(Resource.Id.encounters_panel)!.Visibility = showEncounters ? ViewStates.Visible : ViewStates.Gone;
         FindViewById<LinearLayout>(Resource.Id.feats_panel)!.Visibility = showFeats ? ViewStates.Visible : ViewStates.Gone;
         FindViewById<LinearLayout>(Resource.Id.spells_panel)!.Visibility = showSpells ? ViewStates.Visible : ViewStates.Gone;
         FindViewById<LinearLayout>(Resource.Id.rules_panel)!.Visibility = showRules ? ViewStates.Visible : ViewStates.Gone;
@@ -134,6 +147,7 @@ public class MainActivity : Activity
         if (showCombat) RefreshCombatRoster();
         if (showMonsters) _ = EnsureCreaturesLoadedAsync();
         if (showCharacters) RefreshSavedCharacters();
+        if (showEncounters) RefreshSavedEncounters();
         if (showFeats) _ = EnsureFeatsLoadedAsync();
         if (showSpells) _ = EnsureSpellsLoadedAsync();
         if (showRules) _ = EnsureRulesLoadedAsync();
@@ -712,6 +726,7 @@ public class MainActivity : Activity
             ? countText : $"{_combatRoster.EncounterName}  •  {countText}";
         FindViewById<Button>(Resource.Id.clear_combat_button)!.Enabled = count > 0;
         FindViewById<Button>(Resource.Id.share_encounter_button)!.Enabled = count > 0;
+        FindViewById<Button>(Resource.Id.load_encounter_button)!.Enabled = _savedEncounters.Encounters.Count > 0;
         FindViewById<TextView>(Resource.Id.combat_empty)!.Visibility = count == 0 ? ViewStates.Visible : ViewStates.Gone;
         ListView list = FindViewById<ListView>(Resource.Id.combat_list)!;
         list.Visibility = count == 0 ? ViewStates.Gone : ViewStates.Visible;
@@ -1139,6 +1154,167 @@ public class MainActivity : Activity
         Toast.MakeText(this, participant.DisplayName + " added to combat.", ToastLength.Short)?.Show();
     }
 
+    private void RefreshSavedEncounters()
+    {
+        int count = _savedEncounters.Encounters.Count;
+        FindViewById<TextView>(Resource.Id.saved_encounter_count)!.Text = count == 1 ? "1 saved encounter" : $"{count:N0} saved encounters";
+        FindViewById<TextView>(Resource.Id.saved_encounter_empty)!.Visibility = count == 0 ? ViewStates.Visible : ViewStates.Gone;
+        ListView list = FindViewById<ListView>(Resource.Id.saved_encounter_list)!;
+        list.Visibility = count == 0 ? ViewStates.Gone : ViewStates.Visible;
+        list.Adapter = new SavedEncounterListAdapter(this, _savedEncounters.Encounters);
+        FindViewById<Button>(Resource.Id.load_encounter_button)!.Enabled = count > 0;
+    }
+
+    private void ShowSavedEncounter(SavedEncounter encounter)
+    {
+        var builder = new AlertDialog.Builder(this);
+        builder.SetTitle(encounter.Name);
+        builder.SetMessage("Saved encounter");
+        builder.SetNegativeButton(Resource.String.delete_encounter, (_, _) => ConfirmDeleteSavedEncounter(encounter));
+        builder.SetNeutralButton(Resource.String.rename_encounter, (_, _) => PromptRenameSavedEncounter(encounter));
+        builder.SetPositiveButton(Resource.String.open_encounter, (_, _) => ConfirmOpenSavedEncounter(encounter));
+        builder.Show();
+    }
+
+    private void ShowSavedEncounterPicker()
+    {
+        if (_savedEncounters.Encounters.Count == 0)
+        {
+            Toast.MakeText(this, Resource.String.no_saved_encounters, ToastLength.Long)?.Show();
+            return;
+        }
+        SavedEncounter[] encounters = [.. _savedEncounters.Encounters];
+        var builder = new AlertDialog.Builder(this);
+        builder.SetTitle(Resource.String.load_encounter);
+        builder.SetItems(encounters.Select(encounter => encounter.Name).ToArray(), (_, args) => ConfirmOpenSavedEncounter(encounters[args.Which]));
+        builder.SetNegativeButton(global::Android.Resource.String.Cancel, (_, _) => { });
+        builder.Show();
+    }
+
+    private void ConfirmOpenSavedEncounter(SavedEncounter encounter)
+    {
+        if (_combatRoster.Participants.Count == 0 && string.IsNullOrWhiteSpace(_combatRoster.EncounterName))
+        {
+            OpenSavedEncounter(encounter);
+            return;
+        }
+        var builder = new AlertDialog.Builder(this);
+        builder.SetTitle(Resource.String.save_before_switch_title);
+        builder.SetMessage(Resource.String.save_before_switch_message);
+        builder.SetNegativeButton(global::Android.Resource.String.Cancel, (_, _) => { });
+        builder.SetNeutralButton(Resource.String.dont_save, (_, _) => OpenSavedEncounter(encounter));
+        builder.SetPositiveButton(Resource.String.save_encounter, (_, _) => PromptSaveEncounter(() => OpenSavedEncounter(encounter)));
+        builder.Show();
+    }
+
+    private void OpenSavedEncounter(SavedEncounter encounter)
+    {
+        if (!TryDeserializeEncounter(encounter.Snapshot, out CombatRoster roster))
+        {
+            Toast.MakeText(this, "Unable to open this saved encounter.", ToastLength.Long)?.Show();
+            return;
+        }
+        _combatRoster = roster;
+        SetActiveSavedEncounter(encounter.Id);
+        CommitCombatChange();
+        SelectPage(_pages[0]);
+    }
+
+    private void PromptSaveEncounter(Action? afterSave = null)
+    {
+        SavedEncounter? existing = _savedEncounters.Find(_activeSavedEncounterId);
+        var input = new EditText(this)
+        {
+            Hint = GetString(Resource.String.name_encounter_title),
+            Text = string.IsNullOrWhiteSpace(_combatRoster.EncounterName) ? existing?.Name ?? string.Empty : _combatRoster.EncounterName
+        };
+        input.SetSingleLine(true);
+        input.SetSelectAllOnFocus(true);
+        int padding = (int)(24 * Resources!.DisplayMetrics!.Density);
+        var container = new FrameLayout(this);
+        container.SetPadding(padding, 0, padding, 0);
+        container.AddView(input);
+        var builder = new AlertDialog.Builder(this);
+        builder.SetTitle(Resource.String.save_encounter_title);
+        builder.SetView(container);
+        builder.SetNegativeButton(global::Android.Resource.String.Cancel, (_, _) => { });
+        builder.SetPositiveButton(Resource.String.save_encounter, (_, _) =>
+        {
+            if (string.IsNullOrWhiteSpace(input.Text))
+            {
+                Toast.MakeText(this, Resource.String.encounter_name_required, ToastLength.Short)?.Show();
+                return;
+            }
+            string name = input.Text.Trim();
+            _combatRoster.SetEncounterName(name);
+            string snapshot = SerializeEncounter(_combatRoster);
+            if (existing is null)
+            {
+                existing = _savedEncounters.Add(name, snapshot);
+                SetActiveSavedEncounter(existing.Id);
+            }
+            else _savedEncounters.Update(existing.Id, name, snapshot);
+            CommitSavedEncounters();
+            CommitCombatChange();
+            afterSave?.Invoke();
+        });
+        builder.Show();
+        input.RequestFocus();
+    }
+
+    private void PromptRenameSavedEncounter(SavedEncounter encounter)
+    {
+        var input = new EditText(this) { Text = encounter.Name };
+        input.SetSingleLine(true);
+        input.SetSelectAllOnFocus(true);
+        int padding = (int)(24 * Resources!.DisplayMetrics!.Density);
+        var container = new FrameLayout(this);
+        container.SetPadding(padding, 0, padding, 0);
+        container.AddView(input);
+        var builder = new AlertDialog.Builder(this);
+        builder.SetTitle(Resource.String.rename_encounter_title);
+        builder.SetView(container);
+        builder.SetNegativeButton(global::Android.Resource.String.Cancel, (_, _) => { });
+        builder.SetPositiveButton(global::Android.Resource.String.Ok, (_, _) =>
+        {
+            if (string.IsNullOrWhiteSpace(input.Text))
+            {
+                Toast.MakeText(this, Resource.String.encounter_name_required, ToastLength.Short)?.Show();
+                return;
+            }
+            string name = input.Text.Trim();
+            if (TryDeserializeEncounter(encounter.Snapshot, out CombatRoster roster))
+            {
+                roster.SetEncounterName(name);
+                _savedEncounters.Update(encounter.Id, name, SerializeEncounter(roster));
+            }
+            else _savedEncounters.Rename(encounter.Id, name);
+            if (_activeSavedEncounterId == encounter.Id)
+            {
+                _combatRoster.SetEncounterName(name);
+                CommitCombatChange();
+            }
+            CommitSavedEncounters();
+        });
+        builder.Show();
+        input.RequestFocus();
+    }
+
+    private void ConfirmDeleteSavedEncounter(SavedEncounter encounter)
+    {
+        var builder = new AlertDialog.Builder(this);
+        builder.SetTitle(Resource.String.delete_encounter_title);
+        builder.SetMessage(Resource.String.delete_encounter_message);
+        builder.SetNegativeButton(global::Android.Resource.String.Cancel, (_, _) => { });
+        builder.SetPositiveButton(Resource.String.delete_encounter, (_, _) =>
+        {
+            _savedEncounters.Remove(encounter.Id);
+            if (_activeSavedEncounterId == encounter.Id) SetActiveSavedEncounter(0);
+            CommitSavedEncounters();
+        });
+        builder.Show();
+    }
+
     private void ShowAddCombatantOptions()
     {
         string[] choices = [GetString(Resource.String.saved_character), GetString(Resource.String.temporary_combatant)];
@@ -1322,6 +1498,7 @@ public class MainActivity : Activity
         dialog.SetPositiveButton(Resource.String.clear_encounter, (_, _) =>
         {
             _combatRoster.Clear();
+            SetActiveSavedEncounter(0);
             CommitCombatChange();
         });
         dialog.Show();
@@ -1385,6 +1562,56 @@ public class MainActivity : Activity
             global::Android.Util.Log.Error("CombatManager", "Unable to save characters: " + exception);
         }
         RefreshSavedCharacters();
+    }
+
+    private SavedEncounterLibrary LoadSavedEncounters()
+    {
+        try
+        {
+            if (!(FileList()?.Contains(SavedEncountersFileName) ?? false)) return new SavedEncounterLibrary();
+            using Stream stream = OpenFileInput(SavedEncountersFileName)!;
+            if (SavedEncounterLibrary.TryLoad(stream, out SavedEncounterLibrary library)) return library;
+            DeleteFile(SavedEncountersFileName);
+        }
+        catch (Exception exception)
+        {
+            global::Android.Util.Log.Error("CombatManager", "Unable to restore saved encounters: " + exception);
+        }
+        return new SavedEncounterLibrary();
+    }
+
+    private void CommitSavedEncounters()
+    {
+        try
+        {
+            using Stream stream = OpenFileOutput(SavedEncountersFileName, global::Android.Content.FileCreationMode.Private)!;
+            _savedEncounters.Save(stream);
+        }
+        catch (Exception exception)
+        {
+            global::Android.Util.Log.Error("CombatManager", "Unable to save encounters: " + exception);
+        }
+        RefreshSavedEncounters();
+    }
+
+    private void SetActiveSavedEncounter(int id)
+    {
+        _activeSavedEncounterId = id;
+        GetSharedPreferences(PreferenceName, global::Android.Content.FileCreationMode.Private)!.Edit()!
+            .PutInt(ActiveSavedEncounterIdKey, id)!.Apply();
+    }
+
+    private static string SerializeEncounter(CombatRoster roster)
+    {
+        using var stream = new MemoryStream();
+        roster.Save(stream);
+        return System.Text.Encoding.UTF8.GetString(stream.ToArray());
+    }
+
+    private static bool TryDeserializeEncounter(string snapshot, out CombatRoster roster)
+    {
+        using var stream = new MemoryStream(System.Text.Encoding.UTF8.GetBytes(snapshot ?? string.Empty));
+        return CombatRoster.TryLoad(stream, out roster);
     }
 
     private void CommitCombatChange()

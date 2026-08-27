@@ -211,6 +211,11 @@ Last updated: 2026-08-27
 
 ## In progress
 
+- Added an Encounters tab between Characters and Feats plus bottom-of-Combat Save encounter and Load encounter controls. Named snapshots persist separately from the active recovery autosave and can be opened, renamed, or deleted with confirmation.
+- Saving prefills the current encounter name and updates a previously loaded snapshot by stable ID. Switching from current work requires an explicit Save, Don't save, or Cancel choice; clearing or deleting the linked snapshot safely detaches the active encounter.
+- Latest core result: 49 passed, 0 failed, 0 skipped; Debug Android build succeeded with 0 warnings and 0 errors.
+- API 36 verification saved `VaultAmbush`, renamed it `VaultFinale`, saved a second `EmptyRoom` snapshot, displayed all three switch choices, reopened the full Vault roster without saving EmptyRoom, deleted EmptyRoom, retained the active Vault encounter, and kept the process alive.
+
 - Added a Characters tab between Monsters and Feats with a restart-safe, versioned custom-character library. Templates support Name, Maximum HP, Initiative modifier, optional Notes, creation, editing, details, confirmed deletion, and direct Add to combat.
 - Combat Add now chooses between a saved character and a temporary combatant. Saved encounter copies retain template identity and expose copied notes through Full details, while remaining independent from later template edits or deletion.
 - Latest core result: 47 passed, 0 failed, 0 skipped; Debug Android build succeeded with 0 warnings and 0 errors.

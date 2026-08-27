@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Combat Manager</string>
-    <string name="combat">Combat</string><string name="monsters">Monsters</string><string name="characters">Characters</string><string name="feats">Feats</string>
+    <string name="combat">Combat</string><string name="monsters">Monsters</string><string name="characters">Characters</string><string name="encounters">Encounters</string><string name="feats">Feats</string>
     <string name="spells">Spells</string><string name="rules">Rules</string><string name="treasure">Treasure</string>
     <string name="encounter_empty">Add monsters from the Monsters tab to begin an encounter.</string>
     <string name="clear_encounter">Clear</string>
@@ -48,6 +48,20 @@
     <string name="delete_character_title">Delete character?</string>
     <string name="delete_character_message">Delete this reusable character? Existing encounter copies will remain.</string>
     <string name="character_full_details">Full details</string>
+    <string name="save_encounter">Save encounter</string>
+    <string name="load_encounter">Load encounter</string>
+    <string name="save_encounter_title">Save encounter</string>
+    <string name="encounter_name_required">Enter an encounter name.</string>
+    <string name="no_saved_encounters">Save an encounter from the Combat screen to make it available here.</string>
+    <string name="open_encounter">Open</string>
+    <string name="rename_encounter">Rename</string>
+    <string name="rename_encounter_title">Rename encounter</string>
+    <string name="delete_encounter">Delete</string>
+    <string name="delete_encounter_title">Delete encounter?</string>
+    <string name="delete_encounter_message">Permanently delete this saved encounter? The current active encounter will not be changed.</string>
+    <string name="save_before_switch_title">Save current encounter?</string>
+    <string name="save_before_switch_message">Would you like to save your current encounter before opening another one?</string>
+    <string name="dont_save">Don\'t save</string>
     <string name="combatant_name">Name</string>
     <string name="maximum_hp">Maximum HP</string>
     <string name="invalid_combatant">Enter a name, maximum HP of at least 1, and a whole-number initiative modifier.</string>

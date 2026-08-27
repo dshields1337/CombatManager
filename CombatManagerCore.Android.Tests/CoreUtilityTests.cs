@@ -583,6 +583,35 @@ public sealed class CoreUtilityTests
     }
 
     [TestMethod]
+    public void SavedEncounterLibraryCreatesUpdatesRenamesDeletesAndPersistsSnapshots()
+    {
+        var library = new SavedEncounterLibrary();
+        SavedEncounter vault = library.Add("  Vault ambush  ", "<CombatRoster version=\"1\" round=\"0\" />");
+        SavedEncounter bridge = library.Add("Bridge", "snapshot two");
+        Assert.AreEqual("Bridge", library.Encounters[0].Name);
+        Assert.IsTrue(library.Update(vault.Id, "Vault finale", "updated snapshot"));
+        Assert.IsTrue(library.Rename(bridge.Id, "Old Bridge"));
+        Assert.IsFalse(library.Rename(999, "Missing"));
+        Assert.IsTrue(library.Remove(bridge.Id));
+        using var stream = new MemoryStream();
+        library.Save(stream);
+        stream.Position = 0;
+        Assert.IsTrue(SavedEncounterLibrary.TryLoad(stream, out SavedEncounterLibrary restored));
+        Assert.HasCount(1, restored.Encounters);
+        Assert.AreEqual("Vault finale", restored.Encounters[0].Name);
+        Assert.AreEqual("updated snapshot", restored.Encounters[0].Snapshot);
+        Assert.IsGreaterThan(restored.Encounters[0].Id, restored.Add("Next", "next snapshot").Id);
+    }
+
+    [TestMethod]
+    public void SavedEncounterLibraryRejectsCorruptData()
+    {
+        using var corrupt = new MemoryStream(Encoding.UTF8.GetBytes("not encounters"));
+        Assert.IsFalse(SavedEncounterLibrary.TryLoad(corrupt, out SavedEncounterLibrary fallback));
+        Assert.IsEmpty(fallback.Encounters);
+    }
+
+    [TestMethod]
     public void CombatRosterPersistsFullEncounterAndRejectsCorruptData()
     {
         var roster = new CombatRoster();

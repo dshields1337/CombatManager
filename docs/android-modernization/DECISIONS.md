@@ -265,3 +265,10 @@
 - Status: accepted
 - Decision: store reusable custom characters in a separate versioned private XML library. Adding one to combat copies its name, HP, initiative modifier, notes, and stable template ID into the encounter; later template edits or deletion do not mutate or remove that encounter copy.
 - Reason: an active encounter is a historical working state and must remain stable. Independent copies prevent library housekeeping from unexpectedly changing current HP, notes, initiative, or roster membership while retaining enough identity to expose character Full details in Combat.
+
+## D039: Separate the active autosave from named encounter snapshots
+
+- Date: 2026-08-27
+- Status: accepted
+- Decision: retain the existing private active-encounter autosave for crash/restart recovery and add a separate versioned named-snapshot library. Track the active saved snapshot by stable ID so Save updates it, while Clear or deleting that snapshot detaches the working encounter. Opening another snapshot requires Save, Don't save, or Cancel when current work exists.
+- Reason: recovery state and deliberate reusable saves have different lifecycles. Separating them prevents every small autosave mutation from silently overwriting the user's named restore points while still allowing an explicitly loaded encounter to be updated naturally.

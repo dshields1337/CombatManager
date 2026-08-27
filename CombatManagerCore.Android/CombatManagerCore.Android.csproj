@@ -32,6 +32,7 @@
     <Compile Include="..\CombatManagerCore\MagicItemDetails.cs" Link="LegacyCore\MagicItemDetails.cs" />
     <Compile Include="..\CombatManagerCore\CombatRoster.cs" Link="LegacyCore\CombatRoster.cs" />
     <Compile Include="..\CombatManagerCore\SavedCharacterLibrary.cs" Link="LegacyCore\SavedCharacterLibrary.cs" />
+    <Compile Include="..\CombatManagerCore\SavedEncounterLibrary.cs" Link="LegacyCore\SavedEncounterLibrary.cs" />
     <Compile Include="..\CombatManagerCore\ConditionReference.cs" Link="LegacyCore\ConditionReference.cs" />
     <Compile Include="..\CombatManagerCore\PropertyConverters.cs" Link="LegacyCore\PropertyConverters.cs" />
     <Compile Include="..\CombatManagerCore\SizeMods.cs" Link="LegacyCore\SizeMods.cs" />

@@ -496,6 +496,30 @@ public sealed class CoreUtilityTests
     }
 
     [TestMethod]
+    public void CombatRosterConsumesAndPersistsTemporaryHpBeforeCurrentHp()
+    {
+        var roster = new CombatRoster();
+        CombatParticipant goblin = roster.Add(new CreatureSummary { Id = 7, Name = "Goblin", HP = 10 });
+        Assert.IsTrue(roster.SetTemporaryHp(goblin.Sequence, 5));
+        Assert.IsTrue(roster.ApplyDamage(goblin.Sequence, 3));
+        Assert.AreEqual(2, goblin.TemporaryHP);
+        Assert.AreEqual(10, goblin.CurrentHP);
+        Assert.IsTrue(roster.ApplyDamage(goblin.Sequence, 6));
+        Assert.AreEqual(0, goblin.TemporaryHP);
+        Assert.AreEqual(6, goblin.CurrentHP);
+        Assert.IsTrue(roster.ApplyHealing(goblin.Sequence, 2));
+        Assert.AreEqual(8, goblin.CurrentHP);
+        Assert.AreEqual(0, goblin.TemporaryHP);
+        Assert.IsFalse(roster.SetTemporaryHp(goblin.Sequence, -1));
+        roster.SetTemporaryHp(goblin.Sequence, 4);
+        using var stream = new MemoryStream();
+        roster.Save(stream);
+        stream.Position = 0;
+        Assert.IsTrue(CombatRoster.TryLoad(stream, out CombatRoster restored));
+        Assert.AreEqual(4, restored.Participants[0].TemporaryHP);
+    }
+
+    [TestMethod]
     public void CombatRosterPersistsFullEncounterAndRejectsCorruptData()
     {
         var roster = new CombatRoster();
@@ -690,12 +714,13 @@ public sealed class CoreUtilityTests
         CombatParticipant valeros = roster.AddManual("Valeros", 30);
         roster.SetInitiative(valeros.Sequence, 18);
         roster.ApplyDamage(valeros.Sequence, 5);
+        roster.SetTemporaryHp(valeros.Sequence, 3);
         roster.SetNotes(valeros.Sequence, "Blessed");
         roster.AddCondition(valeros.Sequence, "Hasted", 3);
         roster.NextTurn();
         string summary = roster.ToSummaryText();
         StringAssert.Contains(summary, "Combat Manager Encounter — Round 1");
-        StringAssert.Contains(summary, "▶ Valeros — HP 25/30 — Initiative 18 — Blessed — Hasted (3)");
+        StringAssert.Contains(summary, "▶ Valeros — HP 25/30 + 3 temporary — Initiative 18 — Blessed — Hasted (3)");
     }
 
     [TestMethod]

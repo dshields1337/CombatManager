@@ -17,6 +17,7 @@ namespace CombatManager
         public string ChallengeRating { get; set; }
         public int MaximumHP { get; set; }
         public int CurrentHP { get; set; }
+        public int TemporaryHP { get; set; }
         public int? Initiative { get; set; }
         public int InitiativeModifier { get; set; }
         public string Notes { get; set; }
@@ -152,7 +153,17 @@ namespace CombatManager
             if (amount < 0) return false;
             CombatParticipant participant = _participants.FirstOrDefault(item => item.Sequence == sequence);
             if (participant == null) return false;
-            participant.CurrentHP -= amount;
+            int absorbed = System.Math.Min(participant.TemporaryHP, amount);
+            participant.TemporaryHP -= absorbed;
+            participant.CurrentHP -= amount - absorbed;
+            return true;
+        }
+
+        public bool SetTemporaryHp(int sequence, int amount)
+        {
+            CombatParticipant participant = _participants.FirstOrDefault(item => item.Sequence == sequence);
+            if (participant == null || amount < 0) return false;
+            participant.TemporaryHP = amount;
             return true;
         }
 
@@ -242,6 +253,7 @@ namespace CombatManager
             {
                 text.AppendLine().Append(participant == ActiveParticipant ? "▶ " : "• ").Append(participant.DisplayName)
                     .Append(" — HP ").Append(participant.CurrentHP).Append('/').Append(participant.MaximumHP);
+                if (participant.TemporaryHP > 0) text.Append(" + ").Append(participant.TemporaryHP).Append(" temporary");
                 if (participant.Initiative.HasValue) text.Append(" — Initiative ").Append(participant.Initiative.Value);
                 if (!string.IsNullOrWhiteSpace(participant.Notes)) text.Append(" — ").Append(participant.Notes);
                 if (participant.Conditions.Count > 0) text.Append(" — ").Append(string.Join(", ", participant.Conditions.Select(condition => condition.DisplayText)));
@@ -325,6 +337,7 @@ namespace CombatManager
                     writer.WriteAttributeString("cr", participant.ChallengeRating ?? string.Empty);
                     writer.WriteAttributeString("maximumHp", participant.MaximumHP.ToString(CultureInfo.InvariantCulture));
                     writer.WriteAttributeString("currentHp", participant.CurrentHP.ToString(CultureInfo.InvariantCulture));
+                    if (participant.TemporaryHP > 0) writer.WriteAttributeString("temporaryHp", participant.TemporaryHP.ToString(CultureInfo.InvariantCulture));
                     if (participant.Initiative.HasValue) writer.WriteAttributeString("initiative", participant.Initiative.Value.ToString(CultureInfo.InvariantCulture));
                     if (participant.InitiativeModifier != 0) writer.WriteAttributeString("initiativeModifier", participant.InitiativeModifier.ToString(CultureInfo.InvariantCulture));
                     if (!string.IsNullOrEmpty(participant.Notes)) writer.WriteAttributeString("notes", participant.Notes);
@@ -360,6 +373,7 @@ namespace CombatManager
                         ChallengeRating = (string)element.Attribute("cr") ?? string.Empty,
                         MaximumHP = AttributeInt(element, "maximumHp"),
                         CurrentHP = AttributeInt(element, "currentHp"),
+                        TemporaryHP = AttributeIntOrDefault(element, "temporaryHp"),
                         Initiative = string.IsNullOrEmpty(initiativeText) ? (int?)null : int.Parse(initiativeText, CultureInfo.InvariantCulture),
                         InitiativeModifier = AttributeIntOrDefault(element, "initiativeModifier"),
                         Notes = (string)element.Attribute("notes") ?? string.Empty

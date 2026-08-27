@@ -19,15 +19,17 @@ internal sealed class CombatParticipantListAdapter(Activity context, IReadOnlyLi
             (string.IsNullOrWhiteSpace(participant.Notes) ? string.Empty : "\n" + participant.Notes) +
             (participant.Conditions.Count == 0 ? string.Empty : "\n" + string.Join(" • ", participant.Conditions.Select(condition => condition.DisplayText)));
         view.FindViewById<TextView>(Resource.Id.combat_row_initiative)!.Text = participant.Initiative.HasValue ? "Initiative " + participant.Initiative.Value : "Initiative —";
+        string temporaryHp = participant.TemporaryHP > 0 ? $"  +  {participant.TemporaryHP} temp" : string.Empty;
         view.FindViewById<TextView>(Resource.Id.combat_row_hp)!.Text = participant.IsDefeated
             ? $"DEFEATED  •  HP {participant.CurrentHP} / {participant.MaximumHP}"
-            : $"HP {participant.CurrentHP} / {participant.MaximumHP}";
+            : $"HP {participant.CurrentHP} / {participant.MaximumHP}{temporaryHp}";
         view.SetBackgroundColor(new global::Android.Graphics.Color(context.GetColor(active ? Resource.Color.primary_light : participant.IsDefeated
             ? Resource.Color.defeated_background : Resource.Color.page_background)));
         view.ContentDescription = string.Join(", ", new[]
         {
             active ? "Active combatant" : string.Empty, participant.DisplayName,
             $"HP {participant.CurrentHP} of {participant.MaximumHP}",
+            participant.TemporaryHP > 0 ? $"Temporary HP {participant.TemporaryHP}" : string.Empty,
             participant.Initiative.HasValue ? "Initiative " + participant.Initiative.Value : "Initiative not set",
             participant.IsDefeated ? "Defeated" : string.Empty,
             participant.Notes ?? string.Empty,

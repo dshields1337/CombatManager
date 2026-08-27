@@ -40,6 +40,9 @@ Last updated: 2026-08-27
 - Added one-tap d20 initiative rolling for every bestiary combatant from the bulk initiative dialog; manual players remain user-entered and monster modifier labels are visible beside their fields.
 - Latest core result: 43 passed, 0 failed, 0 skipped.
 - API 36 verification added a bundled Goblin, displayed its `+6` modifier in bulk initiative, rolled it to 22, left the manual participant blank, persisted the roll, and kept the process alive.
+- Added persistent temporary HP, explicit row/action-sheet display, and a setter that accepts `0` to clear it. Damage consumes temporary HP before current HP; healing does not restore temporary HP.
+- Encounter summaries now include temporary HP; latest core result is 44 passed, 0 failed, 0 skipped, and the Debug Android build succeeded with 0 warnings and 0 errors.
+- API 36 verification gave Goblin 5 temporary HP, displayed `HP 6 / 6 + 5 temp`, applied 3 damage, retained normal HP at 6 / 6, reduced temporary HP to 2, and left the process alive.
 
 ### 2026-08-26
 

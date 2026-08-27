@@ -6,6 +6,9 @@
     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
         <Button android:id="@+id/damage_button" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/damage" />
         <Button android:id="@+id/heal_button" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/heal" />
+    </LinearLayout>
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
+        <Button android:id="@+id/temporary_hp_button" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/temporary_hp" />
         <Button android:id="@+id/reset_hp_button" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/reset_hp" />
     </LinearLayout>
     <TextView style="@style/ActionGroupHeading" android:text="@string/turn_status_actions" />

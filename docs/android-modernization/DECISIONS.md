@@ -237,3 +237,10 @@
 - Status: accepted
 - Decision: project each bestiary summary's existing initiative modifier into combat participants and allow the bulk initiative dialog to roll `d20 + modifier` for all bestiary combatants. Manual participants are never automatically rolled.
 - Reason: the source data already supplies the required modifier, making monster initiative substantially faster without importing full monster statistics. Players commonly roll their own initiative, so preserving manual entry avoids making assumptions about character data the lightweight roster does not own.
+
+## D035: Track temporary HP separately from current HP
+
+- Date: 2026-08-27
+- Status: accepted
+- Decision: store non-negative temporary HP independently per participant, consume it before current HP when applying damage, and leave it unchanged by healing or Full HP.
+- Reason: temporary HP is not healing and does not increase maximum HP. A separate persisted value preserves Pathfinder damage semantics and prevents temporary protection from being accidentally restored by ordinary healing operations.

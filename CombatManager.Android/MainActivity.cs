@@ -729,7 +729,9 @@ public class MainActivity : Activity
         string initiative = participant.Initiative.HasValue ? participant.Initiative.Value.ToString() : "Not set";
         string conditionCount = participant.Conditions.Count == 0 ? "None" : participant.Conditions.Count.ToString();
         actions.FindViewById<TextView>(Resource.Id.combatant_details)!.Text =
-            $"CR {participant.ChallengeRating}  •  HP {participant.CurrentHP} / {participant.MaximumHP}\nInitiative: {initiative}  •  Timed conditions: {conditionCount}";
+            $"CR {participant.ChallengeRating}  •  HP {participant.CurrentHP} / {participant.MaximumHP}" +
+            (participant.TemporaryHP > 0 ? $"  +  {participant.TemporaryHP} temporary" : string.Empty) +
+            $"\nInitiative: {initiative}  •  Conditions: {conditionCount}";
         var builder = new AlertDialog.Builder(this);
         builder.SetTitle(participant.DisplayName);
         builder.SetView(actions);
@@ -745,6 +747,11 @@ public class MainActivity : Activity
         {
             dialog?.Dismiss();
             ShowHpPrompt(participant, false);
+        };
+        actions.FindViewById<Button>(Resource.Id.temporary_hp_button)!.Click += (_, _) =>
+        {
+            dialog?.Dismiss();
+            ShowTemporaryHpPrompt(participant);
         };
         actions.FindViewById<Button>(Resource.Id.set_initiative_button)!.Click += (_, _) =>
         {
@@ -817,6 +824,33 @@ public class MainActivity : Activity
                 else _combatRoster.ApplyHealing(participant.Sequence, amount);
                 CommitCombatChange();
             }
+            else Toast.MakeText(this, Resource.String.invalid_hp_amount, ToastLength.Short)?.Show();
+        });
+        builder.Show();
+        input.RequestFocus();
+    }
+
+    private void ShowTemporaryHpPrompt(CombatParticipant participant)
+    {
+        var input = new EditText(this)
+        {
+            InputType = global::Android.Text.InputTypes.ClassNumber,
+            Text = participant.TemporaryHP.ToString()
+        };
+        input.SetSelectAllOnFocus(true);
+        int padding = (int)(24 * Resources!.DisplayMetrics!.Density);
+        var container = new LinearLayout(this) { Orientation = global::Android.Widget.Orientation.Vertical };
+        container.SetPadding(padding, 0, padding, 0);
+        container.AddView(input);
+        var builder = new AlertDialog.Builder(this);
+        builder.SetTitle(participant.DisplayName);
+        builder.SetMessage(Resource.String.temporary_hp_prompt);
+        builder.SetView(container);
+        builder.SetNegativeButton(global::Android.Resource.String.Cancel, (_, _) => { });
+        builder.SetPositiveButton(global::Android.Resource.String.Ok, (_, _) =>
+        {
+            if (int.TryParse(input.Text, out int amount) && _combatRoster.SetTemporaryHp(participant.Sequence, amount))
+                CommitCombatChange();
             else Toast.MakeText(this, Resource.String.invalid_hp_amount, ToastLength.Short)?.Show();
         });
         builder.Show();

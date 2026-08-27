@@ -894,25 +894,57 @@ public class MainActivity : Activity
     private void ShowConditionManager(CombatParticipant participant)
     {
         if (participant.Conditions.Count == 0) { ShowTimedConditionDialog(participant); return; }
-        string[] choices = [.. participant.Conditions.Select(condition => "Remove " + condition.DisplayText), GetString(Resource.String.add_timed_condition)];
+        string[] choices = [.. participant.Conditions.Select(condition => condition.DisplayText), GetString(Resource.String.add_timed_condition)];
         var builder = new AlertDialog.Builder(this);
         builder.SetTitle(Resource.String.timed_conditions);
         builder.SetItems(choices, (_, args) =>
         {
             if (args.Which == participant.Conditions.Count) { ShowTimedConditionDialog(participant); return; }
-            int index = args.Which;
-            var confirm = new AlertDialog.Builder(this);
-            confirm.SetTitle(Resource.String.remove_condition_title);
-            confirm.SetMessage(participant.Conditions[index].DisplayText);
-            confirm.SetNegativeButton(global::Android.Resource.String.Cancel, (_, _) => { });
-            confirm.SetPositiveButton(Resource.String.remove_from_combat, (_, _) =>
-            {
-                _combatRoster.RemoveCondition(participant.Sequence, index);
-                CommitCombatChange();
-            });
-            confirm.Show();
+            ShowConditionActions(participant, args.Which);
         });
         builder.SetNegativeButton(global::Android.Resource.String.Cancel, (_, _) => { });
+        builder.Show();
+    }
+
+    private void ShowConditionActions(CombatParticipant participant, int index)
+    {
+        CombatCondition condition = participant.Conditions[index];
+        _conditionReferences ??= LoadConditionReferences();
+        ConditionReference? reference = ConditionReference.Find(_conditionReferences, condition.Name);
+        string[] actions = reference is null
+            ? [GetString(Resource.String.remove_condition)]
+            : [GetString(Resource.String.view_condition_rules), GetString(Resource.String.remove_condition)];
+        var builder = new AlertDialog.Builder(this);
+        builder.SetTitle(condition.DisplayText);
+        builder.SetItems(actions, (_, args) =>
+        {
+            if (reference is not null && args.Which == 0) { ShowConditionRules(reference); return; }
+            ConfirmRemoveCondition(participant, index);
+        });
+        builder.SetNegativeButton(global::Android.Resource.String.Cancel, (_, _) => { });
+        builder.Show();
+    }
+
+    private void ShowConditionRules(ConditionReference condition)
+    {
+        var builder = new AlertDialog.Builder(this);
+        builder.SetTitle(condition.Name);
+        builder.SetMessage(condition.Description);
+        builder.SetPositiveButton(global::Android.Resource.String.Ok, (_, _) => { });
+        builder.Show();
+    }
+
+    private void ConfirmRemoveCondition(CombatParticipant participant, int index)
+    {
+        var builder = new AlertDialog.Builder(this);
+        builder.SetTitle(Resource.String.remove_condition_title);
+        builder.SetMessage(participant.Conditions[index].DisplayText);
+        builder.SetNegativeButton(global::Android.Resource.String.Cancel, (_, _) => { });
+        builder.SetPositiveButton(Resource.String.remove_condition, (_, _) =>
+        {
+            _combatRoster.RemoveCondition(participant.Sequence, index);
+            CommitCombatChange();
+        });
         builder.Show();
     }
 

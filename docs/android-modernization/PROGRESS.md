@@ -26,6 +26,7 @@ Last updated: 2026-08-27
 - Bundled the existing condition catalogue and added an alphabetical preset picker to timed-condition entry while retaining custom names.
 - Latest core result: 39 passed, 0 failed, 0 skipped; Debug Android build succeeded with 0 warnings and 0 errors.
 - API 36 verification confirmed the condition dialog, Custom condition option, and legacy presets including Bleed, Blinded, Broken, and Confused.
+- Added active-condition action menus and full rules dialogs for standard catalogue conditions; custom conditions omit the unavailable rules action.
 
 ### 2026-08-26
 
@@ -213,9 +214,8 @@ Last updated: 2026-08-27
 
 ## Next actions
 
-1. Expose condition rules text from the new catalogue during combat.
-2. Allow existing timed conditions to be edited without removing and recreating them.
-3. Continue vertical slices toward parity with legacy combat controls.
+1. Allow existing timed conditions to be edited without removing and recreating them.
+2. Continue vertical slices toward parity with legacy combat controls.
 
 ## Tracking convention
 

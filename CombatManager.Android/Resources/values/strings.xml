@@ -44,6 +44,8 @@
     <string name="timed_conditions">Conditions</string>
     <string name="add_timed_condition">Add timed condition…</string>
     <string name="remove_condition_title">Remove condition?</string>
+    <string name="remove_condition">Remove condition</string>
+    <string name="view_condition_rules">View rules</string>
     <string name="share">Share</string>
     <string name="share_encounter">Share encounter</string>
     <string name="reset_turns">Reset</string>

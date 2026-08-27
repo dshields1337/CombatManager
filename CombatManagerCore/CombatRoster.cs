@@ -291,6 +291,14 @@ namespace CombatManager
             return true;
         }
 
+        public bool SetCurrentHp(int sequence, int currentHp)
+        {
+            CombatParticipant participant = _participants.FirstOrDefault(item => item.Sequence == sequence);
+            if (participant == null) return false;
+            participant.CurrentHP = currentHp;
+            return true;
+        }
+
         public bool SetTemporaryHp(int sequence, int amount)
         {
             CombatParticipant participant = _participants.FirstOrDefault(item => item.Sequence == sequence);

@@ -598,6 +598,9 @@ public sealed class CoreUtilityTests
         Assert.IsTrue(roster.ApplyHealing(goblin.Sequence, 20));
         Assert.AreEqual(6, goblin.CurrentHP);
         Assert.IsFalse(roster.ApplyDamage(goblin.Sequence, -1));
+        Assert.IsTrue(roster.SetCurrentHp(goblin.Sequence, -12));
+        Assert.AreEqual(-12, goblin.CurrentHP);
+        Assert.IsFalse(roster.SetCurrentHp(999, 4));
     }
 
     [TestMethod]

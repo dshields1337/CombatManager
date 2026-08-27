@@ -211,6 +211,10 @@ Last updated: 2026-08-28
 
 ## In progress
 
+- Added compact current-HP controls to every Sequence row: a signed editable value, one-point minus/plus buttons, and a subdued `/ maximum` reference beneath initiative. Changes commit immediately, persist, and refresh monster health-band colours.
+- Preserved row actions and post-initiative drag ordering by making the full left identity area an explicit tap/long-press target despite the focusable HP editor on the right.
+- Latest core result: 53 passed, 0 failed, 0 skipped; Debug Android build succeeded with 0 warnings and 0 errors. API 36 verification changed Goblin from 3 to 2 and back with step buttons, directly entered 1 HP, opened its action sheet from the same row, dragged the active combatant after editing, and kept the process alive.
+
 - Added optional Assign Mini descriptions to encounter monsters. Labels persist and appear after the numbered monster name across Combat views in smaller, lighter parenthesized text, while remaining absent from Party members.
 - Changed the bottom Sequence action to green before combat and red `IN COMBAT` after one-tap initiative starts round one. A second tap asks whether combat is over; No preserves state and Yes resets initiative/round tracking without changing participants, HP, notes, or conditions.
 - Added long-press Android drag-and-drop reordering after combat starts. Explicit roster order persists independently of initiative totals so held/delayed turns survive process restart without falsifying their rolls.

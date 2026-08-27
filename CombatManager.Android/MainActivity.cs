@@ -82,7 +82,7 @@ public class MainActivity : Activity
         FindViewById<ListView>(Resource.Id.combat_list)!.ItemClick += (_, args) => ShowCombatParticipant(_sequenceParticipants[args.Position]);
         FindViewById<ListView>(Resource.Id.combat_list)!.ItemLongClick += (_, args) =>
         {
-            if (args.View is not null) BeginCombatantDrag(args.Position, args.View);
+            if (args.View is not null) BeginCombatantDragAtPosition(args.Position, args.View);
         };
         FindViewById<ListView>(Resource.Id.combat_list)!.Drag += (_, args) => HandleCombatantDrag(args);
         FindViewById<ListView>(Resource.Id.combat_party_list)!.ItemClick += (_, args) => ShowCombatParticipant(_partyParticipants[args.Position]);
@@ -808,7 +808,10 @@ public class MainActivity : Activity
         FindViewById<TextView>(Resource.Id.combat_empty)!.Visibility = count == 0 ? ViewStates.Visible : ViewStates.Gone;
         ListView list = FindViewById<ListView>(Resource.Id.combat_list)!;
         list.Visibility = count == 0 ? ViewStates.Gone : ViewStates.Visible;
-        list.Adapter = new CombatParticipantListAdapter(this, _sequenceParticipants, _combatRoster.ActiveParticipant?.Sequence, true);
+        list.Adapter = new CombatParticipantListAdapter(this, _sequenceParticipants,
+            _combatRoster.ActiveParticipant?.Sequence, true, UpdateParticipantHp,
+            sequence => ShowCombatParticipant(_combatRoster.Participants.Single(participant => participant.Sequence == sequence)),
+            BeginCombatantDrag);
         FindViewById<TextView>(Resource.Id.combat_party_empty)!.Visibility = _partyParticipants.Count == 0 ? ViewStates.Visible : ViewStates.Gone;
         ListView partyList = FindViewById<ListView>(Resource.Id.combat_party_list)!;
         partyList.Visibility = _partyParticipants.Count == 0 ? ViewStates.Gone : ViewStates.Visible;
@@ -847,10 +850,21 @@ public class MainActivity : Activity
         }
     }
 
-    private void BeginCombatantDrag(int position, View row)
+    private void UpdateParticipantHp(int sequence, int currentHp)
+    {
+        if (_combatRoster.SetCurrentHp(sequence, currentHp)) CommitCombatChange();
+    }
+
+    private void BeginCombatantDragAtPosition(int position, View row)
     {
         if (_combatRoster.Round <= 0 || position < 0 || position >= _sequenceParticipants.Count) return;
-        _draggedCombatantSequence = _sequenceParticipants[position].Sequence;
+        BeginCombatantDrag(_sequenceParticipants[position].Sequence, row);
+    }
+
+    private void BeginCombatantDrag(int sequence, View row)
+    {
+        if (_combatRoster.Round <= 0 || !_sequenceParticipants.Any(participant => participant.Sequence == sequence)) return;
+        _draggedCombatantSequence = sequence;
         var data = global::Android.Content.ClipData.NewPlainText("combatant", _draggedCombatantSequence.Value.ToString());
         row.StartDragAndDrop(data, new View.DragShadowBuilder(row), null, 0);
     }

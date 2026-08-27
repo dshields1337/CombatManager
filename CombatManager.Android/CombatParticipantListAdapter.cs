@@ -4,7 +4,8 @@ using global::CombatManager;
 using global::Android.Views;
 
 internal sealed class CombatParticipantListAdapter(Activity context, IReadOnlyList<CombatParticipant> participants,
-    int? activeSequence, bool compact = false) : BaseAdapter<CombatParticipant>
+    int? activeSequence, bool compact = false, Action<int, int>? updateCurrentHp = null,
+    Action<int>? openParticipant = null, Action<int, View>? beginDrag = null) : BaseAdapter<CombatParticipant>
 {
     public override int Count => participants.Count;
     public override CombatParticipant this[int position] => participants[position];
@@ -12,7 +13,8 @@ internal sealed class CombatParticipantListAdapter(Activity context, IReadOnlyLi
 
     public override View GetView(int position, View? convertView, ViewGroup? parent)
     {
-        View view = convertView ?? context.LayoutInflater.Inflate(Resource.Layout.combat_participant_item, parent, false)!;
+        View view = compact ? context.LayoutInflater.Inflate(Resource.Layout.combat_participant_item, parent, false)!
+            : convertView ?? context.LayoutInflater.Inflate(Resource.Layout.combat_participant_item, parent, false)!;
         CombatParticipant participant = participants[position];
         bool active = participant.Sequence == activeSequence;
         string inactivePrefix = participant.IsManual && !participant.IsPartyActive ? "Zzz…  " : string.Empty;
@@ -33,14 +35,50 @@ internal sealed class CombatParticipantListAdapter(Activity context, IReadOnlyLi
             initiative.Text = participant.Initiative.HasValue
                 ? (participant.InitiativeRoll.HasValue ? $"({participant.InitiativeRoll})  {participant.Initiative}" : participant.Initiative.ToString())
                 : "—";
+            LinearLayout controls = view.FindViewById<LinearLayout>(Resource.Id.combat_row_hp_controls)!;
+            controls.Visibility = ViewStates.Visible;
+            EditText currentHp = view.FindViewById<EditText>(Resource.Id.combat_row_hp_value)!;
+            currentHp.Text = participant.CurrentHP.ToString();
+            view.FindViewById<TextView>(Resource.Id.combat_row_hp_maximum)!.Text = "/ " + participant.MaximumHP;
+            view.FindViewById<Button>(Resource.Id.combat_row_hp_minus)!.Click += (_, _) =>
+                updateCurrentHp?.Invoke(participant.Sequence, participant.CurrentHP - 1);
+            view.FindViewById<Button>(Resource.Id.combat_row_hp_plus)!.Click += (_, _) =>
+                updateCurrentHp?.Invoke(participant.Sequence, participant.CurrentHP + 1);
+            int lastCommittedHp = participant.CurrentHP;
+            void CommitTypedHp()
+            {
+                if (int.TryParse(currentHp.Text, out int value) && value != lastCommittedHp)
+                {
+                    lastCommittedHp = value;
+                    updateCurrentHp?.Invoke(participant.Sequence, value);
+                }
+            }
+            currentHp.EditorAction += (_, args) =>
+            {
+                if (args.ActionId != global::Android.Views.InputMethods.ImeAction.Done) return;
+                CommitTypedHp();
+                args.Handled = true;
+            };
+            currentHp.FocusChange += (_, args) => { if (!args.HasFocus) CommitTypedHp(); };
         }
         else
         {
             view.FindViewById<TextView>(Resource.Id.combat_row_cr)!.Visibility = ViewStates.Visible;
             view.FindViewById<TextView>(Resource.Id.combat_row_hp)!.Visibility = ViewStates.Visible;
+            view.FindViewById<LinearLayout>(Resource.Id.combat_row_hp_controls)!.Visibility = ViewStates.Gone;
         }
         SetParticipantName(view.FindViewById<TextView>(Resource.Id.combat_row_name)!, participant,
             (active ? "▶ " : string.Empty) + inactivePrefix);
+        if (compact)
+        {
+            LinearLayout identity = view.FindViewById<LinearLayout>(Resource.Id.combat_row_identity)!;
+            identity.Click += (_, _) => openParticipant?.Invoke(participant.Sequence);
+            identity.LongClick += (_, args) =>
+            {
+                beginDrag?.Invoke(participant.Sequence, view);
+                args.Handled = true;
+            };
+        }
         int background = active ? Resource.Color.primary_light : participant.IsManual && !participant.IsPartyActive
             ? Resource.Color.inactive_background : compact && !participant.IsManual ? MonsterHealthColor(participant)
             : participant.IsDefeated ? Resource.Color.defeated_background : Resource.Color.page_background;

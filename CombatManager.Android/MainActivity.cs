@@ -51,6 +51,10 @@ public class MainActivity : Activity
     private readonly Dictionary<int, MagicItemDetails> _magicItemDetailCache = [];
     private bool _initializingMagicItemFilters;
     private CombatRoster _combatRoster = new();
+    private List<CombatParticipant> _sequenceParticipants = [];
+    private List<CombatParticipant> _partyParticipants = [];
+    private List<CombatParticipant> _encounterParticipants = [];
+    private int _combatSubTab;
     private SavedCharacterLibrary _savedCharacters = new();
     private SavedEncounterLibrary _savedEncounters = new();
     private int _activeSavedEncounterId;
@@ -74,9 +78,15 @@ public class MainActivity : Activity
         _activeSavedEncounterId = GetSharedPreferences(PreferenceName, global::Android.Content.FileCreationMode.Private)!.GetInt(ActiveSavedEncounterIdKey, 0);
         if (_savedEncounters.Find(_activeSavedEncounterId) is null) _activeSavedEncounterId = 0;
         foreach (Page page in _pages) FindViewById<Button>(page.ButtonId)!.Click += (_, _) => SelectPage(page);
-        FindViewById<ListView>(Resource.Id.combat_list)!.ItemClick += (_, args) => ShowCombatParticipant(_combatRoster.Participants[args.Position]);
+        FindViewById<ListView>(Resource.Id.combat_list)!.ItemClick += (_, args) => ShowCombatParticipant(_sequenceParticipants[args.Position]);
+        FindViewById<ListView>(Resource.Id.combat_party_list)!.ItemClick += (_, args) => ShowCombatParticipant(_partyParticipants[args.Position]);
+        FindViewById<ListView>(Resource.Id.combat_monsters_list)!.ItemClick += (_, args) => ShowCombatParticipant(_encounterParticipants[args.Position]);
+        FindViewById<Button>(Resource.Id.combat_sequence_tab)!.Click += (_, _) => SelectCombatSubTab(0);
+        FindViewById<Button>(Resource.Id.combat_party_tab)!.Click += (_, _) => SelectCombatSubTab(1);
+        FindViewById<Button>(Resource.Id.combat_monsters_tab)!.Click += (_, _) => SelectCombatSubTab(2);
         FindViewById<Button>(Resource.Id.clear_combat_button)!.Click += (_, _) => ConfirmClearCombat();
         FindViewById<Button>(Resource.Id.add_combatant_button)!.Click += (_, _) => ShowAddCombatantOptions();
+        FindViewById<Button>(Resource.Id.browse_encounter_monsters_button)!.Click += (_, _) => SelectPage(_pages[1]);
         FindViewById<Button>(Resource.Id.new_saved_character_button)!.Click += (_, _) => ShowSavedCharacterEditor();
         FindViewById<ListView>(Resource.Id.saved_character_list)!.ItemClick += (_, args) => ShowSavedCharacter(_savedCharacters.Characters[args.Position]);
         FindViewById<Button>(Resource.Id.save_encounter_button)!.Click += (_, _) => PromptSaveEncounter();
@@ -94,8 +104,7 @@ public class MainActivity : Activity
             _combatRoster.PreviousTurn();
             CommitCombatChange();
         };
-        FindViewById<Button>(Resource.Id.reset_turns_button)!.Click += (_, _) => ConfirmResetTurns();
-        FindViewById<Button>(Resource.Id.set_all_initiative_button)!.Click += (_, _) => ShowAllInitiativesDialog();
+        FindViewById<Button>(Resource.Id.set_all_initiative_button)!.Click += (_, _) => StartCombat();
         FindViewById<SearchView>(Resource.Id.monster_search)!.QueryTextChange += (_, args) => OnQueryChanged(args.NewText);
         FindViewById<Spinner>(Resource.Id.monster_type_filter)!.ItemSelected += (_, _) => OnFilterChanged();
         FindViewById<Spinner>(Resource.Id.monster_cr_filter)!.ItemSelected += (_, _) => OnFilterChanged();
@@ -777,26 +786,61 @@ public class MainActivity : Activity
 
     private void RefreshCombatRoster()
     {
-        int count = _combatRoster.Participants.Count;
-        string countText = count == 1 ? "1 combatant" : $"{count:N0} combatants";
+        _sequenceParticipants = [.. _combatRoster.Participants];
+        _partyParticipants = [.. _combatRoster.Participants.Where(participant => participant.IsManual)];
+        _encounterParticipants = [.. _combatRoster.Participants.Where(participant => !participant.IsManual)];
+        int count = _sequenceParticipants.Count;
+        int monsterCount = _encounterParticipants.Count;
+        string countText = monsterCount == 1 ? "1 encounter monster" : $"{monsterCount:N0} encounter monsters";
         FindViewById<TextView>(Resource.Id.combat_count)!.Text = string.IsNullOrEmpty(_combatRoster.EncounterName)
             ? countText : $"{_combatRoster.EncounterName}  •  {countText}";
-        FindViewById<Button>(Resource.Id.clear_combat_button)!.Enabled = count > 0;
+        FindViewById<TextView>(Resource.Id.combat_party_count)!.Text = _partyParticipants.Count == 1
+            ? "1 persistent party member" : $"{_partyParticipants.Count:N0} persistent party members";
+        FindViewById<Button>(Resource.Id.clear_combat_button)!.Enabled = monsterCount > 0;
         FindViewById<Button>(Resource.Id.share_encounter_button)!.Enabled = count > 0;
         FindViewById<Button>(Resource.Id.load_encounter_button)!.Enabled = _savedEncounters.Encounters.Count > 0;
         FindViewById<TextView>(Resource.Id.combat_empty)!.Visibility = count == 0 ? ViewStates.Visible : ViewStates.Gone;
         ListView list = FindViewById<ListView>(Resource.Id.combat_list)!;
         list.Visibility = count == 0 ? ViewStates.Gone : ViewStates.Visible;
-        list.Adapter = new CombatParticipantListAdapter(this, _combatRoster.Participants, _combatRoster.ActiveParticipant?.Sequence);
+        list.Adapter = new CombatParticipantListAdapter(this, _sequenceParticipants, _combatRoster.ActiveParticipant?.Sequence, true);
+        FindViewById<TextView>(Resource.Id.combat_party_empty)!.Visibility = _partyParticipants.Count == 0 ? ViewStates.Visible : ViewStates.Gone;
+        ListView partyList = FindViewById<ListView>(Resource.Id.combat_party_list)!;
+        partyList.Visibility = _partyParticipants.Count == 0 ? ViewStates.Gone : ViewStates.Visible;
+        partyList.Adapter = new CombatParticipantListAdapter(this, _partyParticipants, _combatRoster.ActiveParticipant?.Sequence);
+        FindViewById<TextView>(Resource.Id.combat_monsters_empty)!.Visibility = monsterCount == 0 ? ViewStates.Visible : ViewStates.Gone;
+        ListView monsterList = FindViewById<ListView>(Resource.Id.combat_monsters_list)!;
+        monsterList.Visibility = monsterCount == 0 ? ViewStates.Gone : ViewStates.Visible;
+        monsterList.Adapter = new CombatParticipantListAdapter(this, _encounterParticipants, _combatRoster.ActiveParticipant?.Sequence);
         bool initiativeReady = count > 0 && _combatRoster.Participants.All(participant => participant.Initiative.HasValue);
-        FindViewById<LinearLayout>(Resource.Id.turn_controls)!.Visibility = count == 0 ? ViewStates.Gone : ViewStates.Visible;
-        FindViewById<Button>(Resource.Id.next_turn_button)!.Enabled = initiativeReady;
-        FindViewById<Button>(Resource.Id.previous_turn_button)!.Enabled = initiativeReady;
-        FindViewById<Button>(Resource.Id.reset_turns_button)!.Enabled = _combatRoster.Participants.Any(participant => participant.Initiative.HasValue);
+        FindViewById<Button>(Resource.Id.next_turn_button)!.Enabled = initiativeReady && _combatRoster.Round > 0;
+        FindViewById<Button>(Resource.Id.previous_turn_button)!.Enabled = initiativeReady && _combatRoster.Round > 0;
         FindViewById<Button>(Resource.Id.set_all_initiative_button)!.Enabled = count > 0;
         FindViewById<TextView>(Resource.Id.round_status)!.Text = !initiativeReady
-            ? "Set initiative for all combatants"
+            ? "Not started"
             : _combatRoster.Round == 0 ? "Ready to start" : $"Round {_combatRoster.Round}";
+        SelectCombatSubTab(_combatSubTab);
+    }
+
+    private void SelectCombatSubTab(int tab)
+    {
+        _combatSubTab = Math.Clamp(tab, 0, 2);
+        FindViewById<LinearLayout>(Resource.Id.combat_sequence_panel)!.Visibility = _combatSubTab == 0 ? ViewStates.Visible : ViewStates.Gone;
+        FindViewById<LinearLayout>(Resource.Id.combat_party_panel)!.Visibility = _combatSubTab == 1 ? ViewStates.Visible : ViewStates.Gone;
+        FindViewById<LinearLayout>(Resource.Id.combat_monsters_panel)!.Visibility = _combatSubTab == 2 ? ViewStates.Visible : ViewStates.Gone;
+        int[] buttons = [Resource.Id.combat_sequence_tab, Resource.Id.combat_party_tab, Resource.Id.combat_monsters_tab];
+        for (int index = 0; index < buttons.Length; index++)
+        {
+            Button button = FindViewById<Button>(buttons[index])!;
+            button.Enabled = index != _combatSubTab;
+            button.Alpha = index == _combatSubTab ? 1f : 0.65f;
+        }
+    }
+
+    private void StartCombat()
+    {
+        int rolled = _combatRoster.StartCombat(() => Random.Shared.Next(1, 21));
+        CommitCombatChange();
+        Toast.MakeText(this, $"Rolled initiative for {rolled} combatant{(rolled == 1 ? string.Empty : "s")}. Combat started.", ToastLength.Short)?.Show();
     }
 
     private void ShowEncounterNamePrompt()
@@ -1250,7 +1294,7 @@ public class MainActivity : Activity
 
     private void ConfirmOpenSavedEncounter(SavedEncounter encounter)
     {
-        if (_combatRoster.Participants.Count == 0 && string.IsNullOrWhiteSpace(_combatRoster.EncounterName))
+        if (!_combatRoster.Participants.Any(participant => !participant.IsManual) && string.IsNullOrWhiteSpace(_combatRoster.EncounterName))
         {
             OpenSavedEncounter(encounter);
             return;
@@ -1271,7 +1315,7 @@ public class MainActivity : Activity
             Toast.MakeText(this, "Unable to open this saved encounter.", ToastLength.Long)?.Show();
             return;
         }
-        _combatRoster = roster;
+        _combatRoster.ReplaceEncounter(roster);
         SetActiveSavedEncounter(encounter.Id);
         CommitCombatChange();
         SelectPage(_pages[0]);
@@ -1304,7 +1348,7 @@ public class MainActivity : Activity
             }
             string name = input.Text.Trim();
             _combatRoster.SetEncounterName(name);
-            string snapshot = SerializeEncounter(_combatRoster);
+            string snapshot = SerializeEncounter(_combatRoster.CreateEncounterSnapshot());
             if (existing is null)
             {
                 existing = _savedEncounters.Add(name, snapshot);
@@ -1573,7 +1617,7 @@ public class MainActivity : Activity
         dialog.SetNegativeButton(global::Android.Resource.String.Cancel, (_, _) => { });
         dialog.SetPositiveButton(Resource.String.clear_encounter, (_, _) =>
         {
-            _combatRoster.Clear();
+            _combatRoster.ClearEncounter();
             SetActiveSavedEncounter(0);
             CommitCombatChange();
         });

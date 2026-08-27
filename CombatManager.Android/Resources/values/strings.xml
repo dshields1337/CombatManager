@@ -48,6 +48,15 @@
     <string name="select_monsters">Select monsters</string>
     <string name="select_monster">Select monster</string>
     <string name="add_selected_monsters">Add selected (%1$d)</string>
+    <string name="combat_sequence">Sequence</string>
+    <string name="party">Party</string>
+    <string name="encounter_monsters">Monsters</string>
+    <string name="start_initiative">INITIATIVE — START COMBAT</string>
+    <string name="sequence_empty">Add party members and encounter monsters to build the combat sequence.</string>
+    <string name="add_party_member">Add party member</string>
+    <string name="party_empty">Your persistent party is empty. Add saved or temporary characters here.</string>
+    <string name="browse_monsters">Add monsters</string>
+    <string name="encounter_monsters_empty">No monsters are in this encounter.</string>
     <string name="delete_character">Delete</string>
     <string name="delete_character_title">Delete character?</string>
     <string name="delete_character_message">Delete this reusable character? Existing encounter copies will remain.</string>

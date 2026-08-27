@@ -480,6 +480,56 @@ public sealed class CoreUtilityTests
     }
 
     [TestMethod]
+    public void CombatRosterStartsAtHighestInitiativeInOneAction()
+    {
+        var roster = new CombatRoster();
+        roster.Add(new CreatureSummary { Id = 7, Name = "Goblin", InitiativeModifier = 2 });
+        roster.AddManual("Valeros", 30, 5);
+        int[] rolls = [10, 16];
+        int index = 0;
+
+        Assert.AreEqual(2, roster.StartCombat(() => rolls[index++]));
+        Assert.AreEqual(1, roster.Round);
+        Assert.AreEqual("Valeros", roster.ActiveParticipant.Name);
+        Assert.AreEqual(21, roster.Participants[0].Initiative);
+    }
+
+    [TestMethod]
+    public void EncounterSnapshotsExcludeAndPreservePersistentPartyMembers()
+    {
+        var roster = new CombatRoster();
+        CombatParticipant party = roster.AddManual("Valeros", 30, 5);
+        roster.ApplyDamage(party.Sequence, 4);
+        CombatParticipant goblin = roster.Add(new CreatureSummary { Id = 7, Name = "Goblin", HP = 6 });
+        roster.ApplyDamage(goblin.Sequence, 3);
+        roster.SetTemporaryHp(goblin.Sequence, 2);
+        roster.AddCondition(goblin.Sequence, "Prone", 0);
+        roster.SetEncounterName("Goblin cave");
+
+        CombatRoster snapshot = roster.CreateEncounterSnapshot();
+        Assert.HasCount(1, snapshot.Participants);
+        Assert.AreEqual("Goblin", snapshot.Participants[0].Name);
+        Assert.AreEqual(6, snapshot.Participants[0].CurrentHP);
+        Assert.AreEqual(0, snapshot.Participants[0].TemporaryHP);
+        Assert.IsEmpty(snapshot.Participants[0].Conditions);
+
+        var replacement = new CombatRoster();
+        replacement.Add(new CreatureSummary { Id = 8, Name = "Ogre", HP = 30 });
+        replacement.SetEncounterName("Ogre bridge");
+        roster.ReplaceEncounter(replacement);
+
+        Assert.HasCount(2, roster.Participants);
+        Assert.AreEqual(26, roster.Participants.Single(item => item.Name == "Valeros").CurrentHP);
+        Assert.IsTrue(roster.Participants.Any(item => item.Name == "Ogre"));
+        Assert.IsFalse(roster.Participants.Any(item => item.Name == "Goblin"));
+
+        roster.ClearEncounter();
+        Assert.HasCount(1, roster.Participants);
+        Assert.AreEqual("Valeros", roster.Participants[0].Name);
+        Assert.AreEqual(string.Empty, roster.EncounterName);
+    }
+
+    [TestMethod]
     public void CombatRosterAppliesDamageAndCapsHealingAtMaximumHP()
     {
         var roster = new CombatRoster();

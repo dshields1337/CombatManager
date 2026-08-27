@@ -1,5 +1,12 @@
 # Android modernization decision log
 
+## D008: Separate persistent party membership from saved encounter monsters
+
+- Date: 2026-08-27
+- Status: accepted
+- Decision: manual and saved-character participants form the persistent party, while bestiary participants form the encounter. Combat Sequence combines both groups at runtime, but new encounter snapshots store fresh monster setups only, without damage, temporary HP, initiative, or combat conditions.
+- Compatibility: when older snapshots contain characters, ignore those embedded copies during load and retain the current party. Clearing or switching encounters replaces monsters and resets turn order without removing party members.
+
 ## D001: Preserve the native Android UI model
 
 - Date: 2026-08-26

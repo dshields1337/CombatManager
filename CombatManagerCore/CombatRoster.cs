@@ -166,6 +166,71 @@ namespace CombatManager
             return results.Count;
         }
 
+        public int StartCombat(System.Func<int> rollD20)
+        {
+            int count = RollInitiatives(rollD20);
+            if (count > 0) NextTurn();
+            return count;
+        }
+
+        public CombatRoster CreateEncounterSnapshot()
+        {
+            var snapshot = new CombatRoster();
+            snapshot.SetEncounterName(EncounterName);
+            foreach (CombatParticipant participant in _participants.Where(item => !item.IsManual))
+            {
+                CombatParticipant copy = snapshot.AddCopy(participant);
+                copy.CurrentHP = copy.MaximumHP;
+                copy.TemporaryHP = 0;
+                copy.Conditions.Clear();
+            }
+            return snapshot;
+        }
+
+        public void ReplaceEncounter(CombatRoster encounter)
+        {
+            if (encounter == null) throw new System.ArgumentNullException("encounter");
+            _participants.RemoveAll(item => !item.IsManual);
+            EncounterName = encounter.EncounterName;
+            foreach (CombatParticipant participant in encounter.Participants.Where(item => !item.IsManual))
+                AddCopy(participant);
+            ResetTurns();
+            RebuildCreatureInstances();
+        }
+
+        public void ClearEncounter()
+        {
+            _participants.RemoveAll(item => !item.IsManual);
+            EncounterName = string.Empty;
+            ResetTurns();
+            RebuildCreatureInstances();
+        }
+
+        private CombatParticipant AddCopy(CombatParticipant source)
+        {
+            var copy = new CombatParticipant
+            {
+                Sequence = _nextSequence++, CreatureId = source.CreatureId, SavedCharacterId = source.SavedCharacterId,
+                InstanceNumber = source.InstanceNumber, Name = source.Name, ChallengeRating = source.ChallengeRating,
+                MaximumHP = source.MaximumHP, CurrentHP = source.CurrentHP, TemporaryHP = source.TemporaryHP,
+                InitiativeModifier = source.InitiativeModifier, Notes = source.Notes ?? string.Empty,
+                Conditions = source.Conditions.Select(condition => new CombatCondition
+                    { Name = condition.Name, RemainingTurns = condition.RemainingTurns }).ToList()
+            };
+            _participants.Add(copy);
+            return copy;
+        }
+
+        private void RebuildCreatureInstances()
+        {
+            _nextInstanceByCreature.Clear();
+            foreach (CombatParticipant participant in _participants.Where(item => !item.IsManual))
+            {
+                if (!_nextInstanceByCreature.TryGetValue(participant.CreatureId, out int next)) next = 1;
+                _nextInstanceByCreature[participant.CreatureId] = System.Math.Max(next, participant.InstanceNumber + 1);
+            }
+        }
+
         public bool ApplyDamage(int sequence, int amount)
         {
             if (amount < 0) return false;

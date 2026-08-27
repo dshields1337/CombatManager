@@ -3,7 +3,8 @@ namespace CombatManager.Android;
 using global::CombatManager;
 using global::Android.Views;
 
-internal sealed class CombatParticipantListAdapter(Activity context, IReadOnlyList<CombatParticipant> participants, int? activeSequence) : BaseAdapter<CombatParticipant>
+internal sealed class CombatParticipantListAdapter(Activity context, IReadOnlyList<CombatParticipant> participants,
+    int? activeSequence, bool compact = false) : BaseAdapter<CombatParticipant>
 {
     public override int Count => participants.Count;
     public override CombatParticipant this[int position] => participants[position];
@@ -23,6 +24,17 @@ internal sealed class CombatParticipantListAdapter(Activity context, IReadOnlyLi
         view.FindViewById<TextView>(Resource.Id.combat_row_hp)!.Text = participant.IsDefeated
             ? $"DEFEATED  •  HP {participant.CurrentHP} / {participant.MaximumHP}"
             : $"HP {participant.CurrentHP} / {participant.MaximumHP}{temporaryHp}";
+        if (compact)
+        {
+            view.FindViewById<TextView>(Resource.Id.combat_row_cr)!.Visibility = ViewStates.Gone;
+            view.FindViewById<TextView>(Resource.Id.combat_row_hp)!.Visibility = ViewStates.Gone;
+            view.FindViewById<TextView>(Resource.Id.combat_row_initiative)!.Text = participant.Initiative?.ToString() ?? "—";
+        }
+        else
+        {
+            view.FindViewById<TextView>(Resource.Id.combat_row_cr)!.Visibility = ViewStates.Visible;
+            view.FindViewById<TextView>(Resource.Id.combat_row_hp)!.Visibility = ViewStates.Visible;
+        }
         view.SetBackgroundColor(new global::Android.Graphics.Color(context.GetColor(active ? Resource.Color.primary_light : participant.IsDefeated
             ? Resource.Color.defeated_background : Resource.Color.page_background)));
         view.ContentDescription = string.Join(", ", new[]

@@ -14,30 +14,46 @@
     </HorizontalScrollView>
     <FrameLayout android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1">
         <LinearLayout android:id="@+id/combat_panel" android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="vertical" android:visibility="gone">
-            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="12dp">
-                <TextView android:id="@+id/combat_count" android:layout_width="match_parent" android:layout_height="wrap_content" android:paddingStart="4dp" android:paddingEnd="4dp" android:textColor="@color/text_secondary" />
-                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
-                    <Button android:id="@+id/name_encounter_button" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/name_encounter" />
-                    <Button android:id="@+id/add_combatant_button" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/add_combatant" />
-                    <Button android:id="@+id/share_encounter_button" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/share" />
-                    <Button android:id="@+id/clear_combat_button" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/clear_encounter" />
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:paddingStart="8dp" android:paddingEnd="8dp">
+                <Button android:id="@+id/combat_sequence_tab" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/combat_sequence" />
+                <Button android:id="@+id/combat_party_tab" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/party" />
+                <Button android:id="@+id/combat_monsters_tab" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/encounter_monsters" />
+            </LinearLayout>
+            <FrameLayout android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1">
+                <LinearLayout android:id="@+id/combat_sequence_panel" android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="vertical">
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:paddingStart="12dp" android:paddingEnd="12dp" android:paddingTop="8dp">
+                        <Button android:id="@+id/previous_turn_button" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/previous_turn" />
+                        <TextView android:id="@+id/round_status" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1.3" android:gravity="center" android:textColor="@color/text_primary" android:textStyle="bold" />
+                        <Button android:id="@+id/next_turn_button" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/next_turn" />
+                    </LinearLayout>
+                    <TextView android:id="@+id/combat_empty" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:gravity="center" android:padding="32dp" android:text="@string/sequence_empty" android:textColor="@color/text_secondary" android:textSize="17sp" />
+                    <ListView android:id="@+id/combat_list" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:divider="@color/primary_light" android:dividerHeight="1dp" android:visibility="gone" />
+                    <Button android:id="@+id/set_all_initiative_button" android:layout_width="match_parent" android:layout_height="72dp" android:layout_margin="12dp" android:backgroundTint="@color/combat_red" android:text="@string/start_initiative" android:textColor="@android:color/white" android:textSize="20sp" android:textStyle="bold" />
                 </LinearLayout>
-            </LinearLayout>
-            <LinearLayout android:id="@+id/turn_controls" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingStart="12dp" android:paddingEnd="12dp" android:paddingBottom="8dp" android:visibility="gone">
-                <TextView android:id="@+id/round_status" android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center" android:paddingBottom="4dp" android:textColor="@color/text_primary" android:textStyle="bold" />
-                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
-                    <Button android:id="@+id/previous_turn_button" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/previous_turn" />
-                    <Button android:id="@+id/set_all_initiative_button" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/initiative" />
-                    <Button android:id="@+id/reset_turns_button" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/reset_turns" />
-                    <Button android:id="@+id/next_turn_button" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/next_turn" />
+                <LinearLayout android:id="@+id/combat_party_panel" android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="vertical" android:visibility="gone">
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:padding="12dp">
+                        <TextView android:id="@+id/combat_party_count" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:textColor="@color/text_secondary" />
+                        <Button android:id="@+id/add_combatant_button" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/add_party_member" />
+                    </LinearLayout>
+                    <TextView android:id="@+id/combat_party_empty" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:gravity="center" android:padding="32dp" android:text="@string/party_empty" android:textColor="@color/text_secondary" android:textSize="17sp" />
+                    <ListView android:id="@+id/combat_party_list" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:divider="@color/primary_light" android:dividerHeight="1dp" android:visibility="gone" />
                 </LinearLayout>
-            </LinearLayout>
-            <TextView android:id="@+id/combat_empty" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:gravity="center" android:padding="32dp" android:text="@string/encounter_empty" android:textColor="@color/text_secondary" android:textSize="17sp" />
-            <ListView android:id="@+id/combat_list" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:divider="@color/primary_light" android:dividerHeight="1dp" android:visibility="gone" />
-            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:paddingStart="12dp" android:paddingEnd="12dp" android:paddingTop="4dp" android:paddingBottom="8dp">
-                <Button android:id="@+id/save_encounter_button" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/save_encounter" />
-                <Button android:id="@+id/load_encounter_button" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/load_encounter" />
-            </LinearLayout>
+                <LinearLayout android:id="@+id/combat_monsters_panel" android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="vertical" android:visibility="gone">
+                    <TextView android:id="@+id/combat_count" android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="16dp" android:textColor="@color/text_secondary" />
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:paddingStart="8dp" android:paddingEnd="8dp">
+                        <Button android:id="@+id/browse_encounter_monsters_button" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/browse_monsters" />
+                        <Button android:id="@+id/name_encounter_button" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/name_encounter" />
+                        <Button android:id="@+id/clear_combat_button" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/clear_encounter" />
+                    </LinearLayout>
+                    <TextView android:id="@+id/combat_monsters_empty" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:gravity="center" android:padding="32dp" android:text="@string/encounter_monsters_empty" android:textColor="@color/text_secondary" android:textSize="17sp" />
+                    <ListView android:id="@+id/combat_monsters_list" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:divider="@color/primary_light" android:dividerHeight="1dp" android:visibility="gone" />
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:padding="8dp">
+                        <Button android:id="@+id/save_encounter_button" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/save_encounter" />
+                        <Button android:id="@+id/load_encounter_button" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/load_encounter" />
+                        <Button android:id="@+id/share_encounter_button" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/share" />
+                    </LinearLayout>
+                </LinearLayout>
+            </FrameLayout>
         </LinearLayout>
         <LinearLayout android:id="@+id/placeholder_panel" android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="vertical" android:gravity="center" android:padding="28dp">
             <TextView android:id="@+id/page_icon" android:layout_width="72dp" android:layout_height="72dp" android:gravity="center" android:background="@drawable/circle_accent" android:textColor="@android:color/white" android:textSize="30sp" android:textStyle="bold" />

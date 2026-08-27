@@ -211,6 +211,11 @@ Last updated: 2026-08-27
 
 ## In progress
 
+- Split Combat into Sequence, Party, and Monsters sub-tabs. Sequence provides compact initiative-first rows, Previous/Next controls above the list, and a large red one-tap Initiative action below it that rolls, sorts, starts round one, and activates the highest result.
+- Party now contains all manual/saved-character participants and persists when encounters are cleared or switched. Monsters owns encounter composition, naming, clearing, saving, loading, sharing, and navigation to the searchable bestiary.
+- New saved encounters contain monsters only; legacy snapshots remain readable and their embedded character copies are ignored in favour of the current party. Added regression coverage for one-tap combat start and monster-only snapshot replacement.
+- Latest core result: 51 passed, 0 failed, 0 skipped; Debug Android build succeeded with 0 warnings and 0 errors. API 36 verification started an eight-combatant sequence at Round 1 in initiative order, cleared three monsters while retaining five party members, then loaded a legacy encounter monster while retaining the same party and a live process.
+
 - Added an explicit multi-select mode to the Monsters tab while preserving normal detail-first taps. Checked monsters remain selected across search/filter result refreshes, the action displays the live selection count, and one commit adds the complete selection to combat.
 - Latest core result: 49 passed, 0 failed, 0 skipped; Debug Android build succeeded with 0 warnings and 0 errors. API 36 verification selected Goblin and Goblin Dog together, added both in one tap, increased the persisted roster from six to eight combatants with correct instance numbering, and kept the process alive.
 

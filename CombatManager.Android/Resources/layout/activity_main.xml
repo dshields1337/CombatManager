@@ -51,6 +51,10 @@
                 <Spinner android:id="@+id/monster_cr_filter" android:layout_width="0dp" android:layout_height="48dp" android:layout_weight="1" android:contentDescription="@string/filter_by_cr" />
             </LinearLayout>
             <TextView android:id="@+id/monster_count" android:layout_width="match_parent" android:layout_height="wrap_content" android:paddingStart="18dp" android:paddingEnd="18dp" android:paddingBottom="8dp" android:textColor="@color/text_secondary" />
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:paddingStart="12dp" android:paddingEnd="12dp" android:paddingBottom="8dp">
+                <Button android:id="@+id/select_monsters_button" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/select_monsters" />
+                <Button android:id="@+id/cancel_monster_selection_button" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@android:string/cancel" android:visibility="gone" />
+            </LinearLayout>
             <ProgressBar android:id="@+id/monster_progress" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="center" android:layout_margin="24dp" />
             <ListView android:id="@+id/monster_list" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:divider="@color/primary_light" android:dividerHeight="1dp" android:visibility="gone" />
         </LinearLayout>

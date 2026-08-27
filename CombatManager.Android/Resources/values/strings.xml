@@ -45,6 +45,9 @@
     <string name="temporary_combatant">Temporary combatant</string>
     <string name="choose_saved_character">Choose saved character</string>
     <string name="add_selected_characters">Add selected</string>
+    <string name="select_monsters">Select monsters</string>
+    <string name="select_monster">Select monster</string>
+    <string name="add_selected_monsters">Add selected (%1$d)</string>
     <string name="delete_character">Delete</string>
     <string name="delete_character_title">Delete character?</string>
     <string name="delete_character_message">Delete this reusable character? Existing encounter copies will remain.</string>

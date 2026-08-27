@@ -8,4 +8,5 @@
         <TextView android:id="@+id/monster_row_type" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="2dp" android:textColor="@color/text_secondary" android:textSize="14sp" />
     </LinearLayout>
     <TextView android:id="@+id/monster_row_cr" android:layout_width="wrap_content" android:layout_height="wrap_content" android:minWidth="64dp" android:gravity="center" android:padding="8dp" android:background="@drawable/cr_badge" android:textColor="@android:color/white" android:textStyle="bold" />
+    <CheckBox android:id="@+id/monster_row_selected" android:layout_width="48dp" android:layout_height="48dp" android:focusable="false" android:clickable="false" android:visibility="gone" android:contentDescription="@string/select_monster" />
 </LinearLayout>

@@ -211,6 +211,9 @@ Last updated: 2026-08-27
 
 ## In progress
 
+- Added an explicit multi-select mode to the Monsters tab while preserving normal detail-first taps. Checked monsters remain selected across search/filter result refreshes, the action displays the live selection count, and one commit adds the complete selection to combat.
+- Latest core result: 49 passed, 0 failed, 0 skipped; Debug Android build succeeded with 0 warnings and 0 errors. API 36 verification selected Goblin and Goblin Dog together, added both in one tap, increased the persisted roster from six to eight combatants with correct instance numbering, and kept the process alive.
+
 - Replaced single-tap saved-character selection in Combat with a checkbox picker that adds any number of selected reusable characters in one committed roster update; Add selected remains disabled until at least one character is checked.
 - Debug Android build succeeded with 0 warnings and 0 errors; API 36 verification checked both `Kyra` and `Merisiel`, enabled Add selected, added both in one tap, increased the roster from four to six combatants, and kept the process alive.
 

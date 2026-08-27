@@ -3,7 +3,8 @@ namespace CombatManager.Android;
 using global::CombatManager;
 using global::Android.Views;
 
-internal sealed class MonsterListAdapter(Activity context, IReadOnlyList<CreatureSummary> creatures) : BaseAdapter<CreatureSummary>
+internal sealed class MonsterListAdapter(Activity context, IReadOnlyList<CreatureSummary> creatures,
+    bool selectionMode = false, IReadOnlySet<int>? selectedIds = null) : BaseAdapter<CreatureSummary>
 {
     public override int Count => creatures.Count;
     public override CreatureSummary this[int position] => creatures[position];
@@ -17,6 +18,9 @@ internal sealed class MonsterListAdapter(Activity context, IReadOnlyList<Creatur
         view.FindViewById<TextView>(Resource.Id.monster_row_type)!.Text =
             string.Join(" ", new[] { creature.Size, creature.Type, creature.SubType }.Where(value => !string.IsNullOrWhiteSpace(value)));
         view.FindViewById<TextView>(Resource.Id.monster_row_cr)!.Text = "CR " + creature.CR;
+        CheckBox selected = view.FindViewById<CheckBox>(Resource.Id.monster_row_selected)!;
+        selected.Visibility = selectionMode ? ViewStates.Visible : ViewStates.Gone;
+        selected.Checked = selectionMode && selectedIds?.Contains(creature.Id) == true;
         return view;
     }
 }

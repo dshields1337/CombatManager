@@ -29,6 +29,8 @@ public class MainActivity : Activity
     private const string AllSpellSchools = "All schools";
     private List<CreatureSummary>? _creatures;
     private List<CreatureSummary> _visibleCreatures = [];
+    private readonly HashSet<int> _selectedCreatureIds = [];
+    private bool _selectingMonsters;
     private readonly Dictionary<int, CreatureDetails> _detailCache = [];
     private bool _initializingFilters;
     private List<FeatSummary>? _feats;
@@ -97,7 +99,9 @@ public class MainActivity : Activity
         FindViewById<SearchView>(Resource.Id.monster_search)!.QueryTextChange += (_, args) => OnQueryChanged(args.NewText);
         FindViewById<Spinner>(Resource.Id.monster_type_filter)!.ItemSelected += (_, _) => OnFilterChanged();
         FindViewById<Spinner>(Resource.Id.monster_cr_filter)!.ItemSelected += (_, _) => OnFilterChanged();
-        FindViewById<ListView>(Resource.Id.monster_list)!.ItemClick += (_, args) => ShowCreature(_visibleCreatures[args.Position]);
+        FindViewById<ListView>(Resource.Id.monster_list)!.ItemClick += (_, args) => OnMonsterClicked(_visibleCreatures[args.Position]);
+        FindViewById<Button>(Resource.Id.select_monsters_button)!.Click += (_, _) => OnMonsterSelectionAction();
+        FindViewById<Button>(Resource.Id.cancel_monster_selection_button)!.Click += (_, _) => ExitMonsterSelection();
         FindViewById<SearchView>(Resource.Id.feat_search)!.QueryTextChange += (_, args) => OnFeatQueryChanged(args.NewText);
         FindViewById<Spinner>(Resource.Id.feat_type_filter)!.ItemSelected += (_, _) => OnFeatFilterChanged();
         FindViewById<ListView>(Resource.Id.feat_list)!.ItemClick += (_, args) => ShowFeat(_visibleFeats[args.Position]);
@@ -639,7 +643,8 @@ public class MainActivity : Activity
             selectedType == AllTypes ? string.Empty : selectedType,
             selectedCr == AllChallengeRatings ? string.Empty : selectedCr);
 
-        FindViewById<ListView>(Resource.Id.monster_list)!.Adapter = new MonsterListAdapter(this, _visibleCreatures);
+        FindViewById<ListView>(Resource.Id.monster_list)!.Adapter =
+            new MonsterListAdapter(this, _visibleCreatures, _selectingMonsters, _selectedCreatureIds);
         string noun = _visibleCreatures.Count == 1 ? "creature" : "creatures";
         FindViewById<TextView>(Resource.Id.monster_count)!.Text = $"{_visibleCreatures.Count:N0} {noun}";
     }
@@ -709,6 +714,58 @@ public class MainActivity : Activity
         dialog.SetNegativeButton(Resource.String.add_to_combat, (_, _) => AddCreatureToCombat(creature));
         dialog.SetPositiveButton(global::Android.Resource.String.Ok, (_, _) => { });
         dialog.Show();
+    }
+
+    private void OnMonsterClicked(CreatureSummary creature)
+    {
+        if (!_selectingMonsters)
+        {
+            ShowCreature(creature);
+            return;
+        }
+
+        if (!_selectedCreatureIds.Add(creature.Id)) _selectedCreatureIds.Remove(creature.Id);
+        RefreshMonsterSelectionControls();
+        FilterCreatures(CurrentQuery());
+    }
+
+    private void OnMonsterSelectionAction()
+    {
+        if (!_selectingMonsters)
+        {
+            _selectingMonsters = true;
+            _selectedCreatureIds.Clear();
+            RefreshMonsterSelectionControls();
+            FilterCreatures(CurrentQuery());
+            return;
+        }
+
+        if (_selectedCreatureIds.Count == 0) return;
+        CreatureSummary[] selected = _creatures!
+            .Where(creature => _selectedCreatureIds.Contains(creature.Id)).ToArray();
+        foreach (CreatureSummary creature in selected) _combatRoster.Add(creature);
+        CommitCombatChange();
+        Toast.MakeText(this, $"Added {selected.Length} monster{(selected.Length == 1 ? string.Empty : "s")} to combat.", ToastLength.Short)?.Show();
+        ExitMonsterSelection();
+    }
+
+    private void ExitMonsterSelection()
+    {
+        _selectingMonsters = false;
+        _selectedCreatureIds.Clear();
+        RefreshMonsterSelectionControls();
+        FilterCreatures(CurrentQuery());
+    }
+
+    private void RefreshMonsterSelectionControls()
+    {
+        Button action = FindViewById<Button>(Resource.Id.select_monsters_button)!;
+        action.Text = _selectingMonsters
+            ? GetString(Resource.String.add_selected_monsters, _selectedCreatureIds.Count)
+            : GetString(Resource.String.select_monsters);
+        action.Enabled = !_selectingMonsters || _selectedCreatureIds.Count > 0;
+        FindViewById<Button>(Resource.Id.cancel_monster_selection_button)!.Visibility =
+            _selectingMonsters ? ViewStates.Visible : ViewStates.Gone;
     }
 
     private void AddCreatureToCombat(CreatureSummary creature)

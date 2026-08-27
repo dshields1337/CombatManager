@@ -645,6 +645,22 @@ public sealed class CoreUtilityTests
     }
 
     [TestMethod]
+    public void CombatRosterClearsOnlySelectedParticipantsConditions()
+    {
+        var roster = new CombatRoster();
+        CombatParticipant goblin = roster.Add(new CreatureSummary { Id = 7, Name = "Goblin" });
+        CombatParticipant ogre = roster.Add(new CreatureSummary { Id = 8, Name = "Ogre" });
+        roster.AddCondition(goblin.Sequence, "Prone", 0);
+        roster.AddCondition(goblin.Sequence, "Stunned", 2);
+        roster.AddCondition(ogre.Sequence, "Shaken", 3);
+        Assert.IsTrue(roster.ClearConditions(goblin.Sequence));
+        Assert.IsEmpty(goblin.Conditions);
+        Assert.HasCount(1, ogre.Conditions);
+        Assert.IsFalse(roster.ClearConditions(goblin.Sequence));
+        Assert.IsFalse(roster.ClearConditions(999));
+    }
+
+    [TestMethod]
     public void CombatRosterBuildsReadableEncounterSummary()
     {
         var roster = new CombatRoster();

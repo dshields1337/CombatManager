@@ -906,15 +906,31 @@ public class MainActivity : Activity
     private void ShowConditionManager(CombatParticipant participant)
     {
         if (participant.Conditions.Count == 0) { ShowTimedConditionDialog(participant); return; }
-        string[] choices = [.. participant.Conditions.Select(condition => condition.DisplayText), GetString(Resource.String.add_timed_condition)];
+        string[] choices = [.. participant.Conditions.Select(condition => condition.DisplayText),
+            GetString(Resource.String.add_timed_condition), GetString(Resource.String.clear_all_conditions)];
         var builder = new AlertDialog.Builder(this);
         builder.SetTitle(Resource.String.timed_conditions);
         builder.SetItems(choices, (_, args) =>
         {
             if (args.Which == participant.Conditions.Count) { ShowTimedConditionDialog(participant); return; }
+            if (args.Which == participant.Conditions.Count + 1) { ConfirmClearConditions(participant); return; }
             ShowConditionActions(participant, args.Which);
         });
         builder.SetNegativeButton(global::Android.Resource.String.Cancel, (_, _) => { });
+        builder.Show();
+    }
+
+    private void ConfirmClearConditions(CombatParticipant participant)
+    {
+        var builder = new AlertDialog.Builder(this);
+        builder.SetTitle(Resource.String.clear_all_conditions_title);
+        builder.SetMessage($"Remove all conditions from {participant.DisplayName}?");
+        builder.SetNegativeButton(global::Android.Resource.String.Cancel, (_, _) => { });
+        builder.SetPositiveButton(Resource.String.clear_all_conditions, (_, _) =>
+        {
+            _combatRoster.ClearConditions(participant.Sequence);
+            CommitCombatChange();
+        });
         builder.Show();
     }
 

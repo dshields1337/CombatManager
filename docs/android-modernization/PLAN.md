@@ -84,7 +84,7 @@ Deliverable: a valid manifest accepted by current Android tooling.
 - [ ] Loading and startup activity. (Direct startup and asynchronous bundled-bestiary loading work; full legacy initialization remains.)
 - [x] Home activity and navigation.
 - [ ] Lookup and list fragments. (Searchable native lists are working for Monsters, Feats, and Spells.)
-- [ ] Combat screen. (Monster/manual entry, grouped participant actions, duplication/editing, HP controls, notes, editable timed/untimed conditions with turn expiry, 34-entry presets and rules text, individual/bulk initiative, turn/round tracking, persistence, confirmed removal, and confirmed clear are complete; broader legacy condition effects remain.)
+- [ ] Combat screen. (Monster/manual entry, grouped participant actions, duplication/editing, HP controls, notes, editable timed/untimed conditions with turn expiry, 34-entry presets/rules and bulk clearing, individual/bulk initiative, turn/round tracking, persistence, confirmed removal, and confirmed clear are complete; broader legacy condition effects remain.)
 - [ ] Character and initiative adapters. (Modern combat adapter displays initiative and active combatant; legacy character/condition behavior remains.)
 - [x] Monster browsing and selection. (Searchable/filterable complete 2,837-entry legacy bestiary, structured rows, persisted browser state, lazy full record details, and encounter selection are complete.)
 - [ ] Monster editor screens.

@@ -203,6 +203,14 @@ namespace CombatManager
             return true;
         }
 
+        public bool ClearConditions(int sequence)
+        {
+            CombatParticipant participant = _participants.FirstOrDefault(item => item.Sequence == sequence);
+            if (participant == null || participant.Conditions.Count == 0) return false;
+            participant.Conditions.Clear();
+            return true;
+        }
+
         public void ResetTurns()
         {
             foreach (CombatParticipant participant in _participants) participant.Initiative = null;

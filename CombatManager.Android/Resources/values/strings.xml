@@ -47,6 +47,8 @@
     <string name="remove_condition">Remove condition</string>
     <string name="view_condition_rules">View rules</string>
     <string name="edit_condition">Edit condition</string>
+    <string name="clear_all_conditions">Clear all conditions</string>
+    <string name="clear_all_conditions_title">Clear all conditions?</string>
     <string name="share">Share</string>
     <string name="share_encounter">Share encounter</string>
     <string name="reset_turns">Reset</string>
@@ -85,6 +87,6 @@
     <string name="magic_item_details_not_found">Details are not available for this magic item.</string>
     <string name="unable_to_load_bestiary">Unable to load the bundled bestiary.</string>
     <string name="migration_status">This section is connected to the new navigation shell. Its data and controls will arrive in the next vertical slices.</string>
-    <string name="core_status">Modern core: 41 regression tests passing</string>
+    <string name="core_status">Modern core: 42 regression tests passing</string>
     <string name="about_message">Combat Manager 1.27\n\nNative .NET for Android modernization build. The navigation shell is live; feature screens are being migrated incrementally.</string>
 </resources>

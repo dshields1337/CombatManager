@@ -33,6 +33,9 @@ Last updated: 2026-08-27
 - Added untimed conditions using duration `0`; they display without a countdown, survive completed turns and persistence, and remain until explicitly removed or edited.
 - Latest core result: 41 passed, 0 failed, 0 skipped.
 - API 36 verification added `Prone` with duration `0`, rendered it without `(0)`, persisted the encounter mutation, and left the process alive.
+- Added confirmed participant-level clearing of all structured conditions without changing notes or other encounter state.
+- Latest core result: 42 passed, 0 failed, 0 skipped; Debug Android build succeeded with 0 warnings and 0 errors.
+- API 36 verification showed the new clear-all action for `Prone`, required confirmation naming the participant, removed the condition while retaining the participant, and left the process alive.
 
 ### 2026-08-26
 

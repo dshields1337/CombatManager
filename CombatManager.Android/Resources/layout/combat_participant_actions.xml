@@ -5,5 +5,9 @@
         <Button android:id="@+id/damage_button" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/damage" />
         <Button android:id="@+id/heal_button" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/heal" />
     </LinearLayout>
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
+        <Button android:id="@+id/edit_combatant_button" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/edit_combatant" />
+        <Button android:id="@+id/reset_hp_button" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/reset_hp" />
+    </LinearLayout>
     <Button android:id="@+id/set_initiative_button" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/set_initiative" />
 </LinearLayout>

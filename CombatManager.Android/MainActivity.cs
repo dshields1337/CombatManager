@@ -746,6 +746,19 @@ public class MainActivity : Activity
             dialog?.Dismiss();
             ShowInitiativePrompt(participant);
         };
+        Button edit = actions.FindViewById<Button>(Resource.Id.edit_combatant_button)!;
+        edit.Visibility = participant.IsManual ? ViewStates.Visible : ViewStates.Gone;
+        edit.Click += (_, _) =>
+        {
+            dialog?.Dismiss();
+            ShowEditCombatantDialog(participant);
+        };
+        actions.FindViewById<Button>(Resource.Id.reset_hp_button)!.Click += (_, _) =>
+        {
+            dialog?.Dismiss();
+            _combatRoster.ResetHp(participant.Sequence);
+            CommitCombatChange();
+        };
     }
 
     private void ShowHpPrompt(CombatParticipant participant, bool damage)
@@ -795,6 +808,31 @@ public class MainActivity : Activity
         });
         builder.Show();
         name.RequestFocus();
+    }
+
+    private void ShowEditCombatantDialog(CombatParticipant participant)
+    {
+        View view = LayoutInflater.Inflate(Resource.Layout.edit_manual_combatant_dialog, null)!;
+        EditText name = view.FindViewById<EditText>(Resource.Id.edit_manual_name)!;
+        EditText maximumHp = view.FindViewById<EditText>(Resource.Id.edit_manual_max_hp)!;
+        EditText currentHp = view.FindViewById<EditText>(Resource.Id.edit_manual_current_hp)!;
+        name.Text = participant.Name;
+        maximumHp.Text = participant.MaximumHP.ToString();
+        currentHp.Text = participant.CurrentHP.ToString();
+        var builder = new AlertDialog.Builder(this);
+        builder.SetTitle(Resource.String.edit_combatant_title);
+        builder.SetView(view);
+        builder.SetNegativeButton(global::Android.Resource.String.Cancel, (_, _) => { });
+        builder.SetPositiveButton(global::Android.Resource.String.Ok, (_, _) =>
+        {
+            if (int.TryParse(maximumHp.Text, out int maximum) && int.TryParse(currentHp.Text, out int current) &&
+                _combatRoster.UpdateManual(participant.Sequence, name.Text ?? string.Empty, maximum, current))
+                CommitCombatChange();
+            else Toast.MakeText(this, Resource.String.invalid_combatant, ToastLength.Short)?.Show();
+        });
+        builder.Show();
+        name.RequestFocus();
+        name.SetSelectAllOnFocus(true);
     }
 
     private void ShowInitiativePrompt(CombatParticipant participant)

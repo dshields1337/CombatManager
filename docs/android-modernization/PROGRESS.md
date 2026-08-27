@@ -150,6 +150,9 @@ Last updated: 2026-08-26
 - Added manual player/NPC combatants with required names and custom maximum HP, including case-insensitive duplicate naming and full encounter persistence.
 - Latest core result: 31 passed, 0 failed, 0 skipped; Release Android build succeeded with 0 warnings and 0 errors.
 - API 36 verification created `Valeros` with 24 HP and restored `Valeros`, manual CR marker, and HP 24 / 24 after force-stop/relaunch.
+- Added editing for manual participant name, maximum HP, and current HP, plus a Full HP action available to both manual and bestiary combatants.
+- Latest core result: 32 passed, 0 failed, 0 skipped; Release Android build succeeded with 0 warnings and 0 errors.
+- API 36 verification edited the persisted Valeros entry to maximum HP 30/current HP 10, reset it to 30 / 30, and restored both edits after force-stop/relaunch.
 
 ## In progress
 
@@ -172,9 +175,9 @@ Last updated: 2026-08-26
 
 ## Next actions
 
-1. Support editing manual participant names and maximum/current HP.
-2. Add an explicit reset-to-maximum-HP action for encounter preparation.
-3. Improve compact combat-row treatment for mixed player and monster rosters.
+1. Add lightweight notes/conditions to combatants without importing the legacy global condition catalogue.
+2. Surface notes directly in combat rows and persist them with the encounter.
+3. Add focused condition/notes round-trip tests and emulator verification.
 
 ## Tracking convention
 

@@ -499,4 +499,20 @@ public sealed class CoreUtilityTests
         Assert.HasCount(2, restored.Participants);
         Assert.IsTrue(restored.Participants[0].IsManual);
     }
+
+    [TestMethod]
+    public void CombatRosterEditsManualParticipantsAndResetsHp()
+    {
+        var roster = new CombatRoster();
+        CombatParticipant valeros = roster.AddManual("Valeros", 24);
+        Assert.IsTrue(roster.UpdateManual(valeros.Sequence, "Valeros the Brave", 30, -4));
+        Assert.AreEqual("Valeros the Brave", valeros.DisplayName);
+        Assert.AreEqual(30, valeros.MaximumHP);
+        Assert.AreEqual(-4, valeros.CurrentHP);
+        Assert.IsTrue(valeros.IsDefeated);
+        Assert.IsTrue(roster.ResetHp(valeros.Sequence));
+        Assert.AreEqual(30, valeros.CurrentHP);
+        CombatParticipant goblin = roster.Add(new CreatureSummary { Id = 7, Name = "Goblin", HP = 6 });
+        Assert.IsFalse(roster.UpdateManual(goblin.Sequence, "Edited Goblin", 20, 20));
+    }
 }

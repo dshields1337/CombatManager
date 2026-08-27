@@ -174,3 +174,10 @@
 - Status: accepted
 - Decision: allow a named participant with user-supplied maximum HP to enter the same lightweight `CombatRoster`, marked by a non-bestiary creature ID and persisted in the existing version-1 snapshot.
 - Reason: useful encounters require player characters and NPCs that are not bestiary records. Reusing the tested roster behavior immediately provides initiative, turns, damage, healing, removal, and restart recovery without importing the legacy character database prematurely.
+
+## D026: Restrict identity/stat editing to manual participants
+
+- Date: 2026-08-27
+- Status: accepted
+- Decision: allow name, maximum HP, and direct current-HP editing only for manual participants, while providing a safe Full HP reset for every participant.
+- Reason: bestiary identity and base HP should continue reflecting the bundled source record; unrestricted editing would blur source data and encounter state. Manual entries are user-owned and need full correction, while monster health remains adjustable through damage, healing, and reset.

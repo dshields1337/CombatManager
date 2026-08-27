@@ -104,6 +104,27 @@ namespace CombatManager
             return true;
         }
 
+        public bool UpdateManual(int sequence, string name, int maximumHp, int currentHp)
+        {
+            CombatParticipant participant = _participants.FirstOrDefault(item => item.Sequence == sequence && item.IsManual);
+            if (participant == null || string.IsNullOrWhiteSpace(name) || maximumHp < 1) return false;
+            string cleanName = name.Trim();
+            participant.Name = cleanName;
+            participant.InstanceNumber = _participants.Where(item => item.Sequence != sequence && item.IsManual && string.Equals(item.Name, cleanName, System.StringComparison.OrdinalIgnoreCase))
+                .Select(item => item.InstanceNumber).DefaultIfEmpty(0).Max() + 1;
+            participant.MaximumHP = maximumHp;
+            participant.CurrentHP = currentHp;
+            return true;
+        }
+
+        public bool ResetHp(int sequence)
+        {
+            CombatParticipant participant = _participants.FirstOrDefault(item => item.Sequence == sequence);
+            if (participant == null) return false;
+            participant.CurrentHP = participant.MaximumHP;
+            return true;
+        }
+
         public CombatParticipant NextTurn()
         {
             if (_participants.Count == 0) return null;

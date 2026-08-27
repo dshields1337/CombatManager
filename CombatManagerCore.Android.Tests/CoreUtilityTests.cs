@@ -575,5 +575,8 @@ public sealed class CoreUtilityTests
         Assert.IsTrue(CombatRoster.TryLoad(stream, out CombatRoster restored));
         Assert.AreEqual("Slowed", restored.Participants.Single(item => item.Name == "Ogre").Conditions[0].Name);
         Assert.AreEqual(3, restored.Participants.Single(item => item.Name == "Ogre").Conditions[0].RemainingTurns);
+        Assert.IsTrue(restored.RemoveCondition(ogre.Sequence, 0));
+        Assert.IsEmpty(restored.Participants.Single(item => item.Name == "Ogre").Conditions);
+        Assert.IsFalse(restored.RemoveCondition(ogre.Sequence, 0));
     }
 }

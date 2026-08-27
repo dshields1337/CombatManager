@@ -773,7 +773,7 @@ public class MainActivity : Activity
         actions.FindViewById<Button>(Resource.Id.timed_conditions_button)!.Click += (_, _) =>
         {
             dialog?.Dismiss();
-            ShowTimedConditionDialog(participant);
+            ShowConditionManager(participant);
         };
     }
 
@@ -848,6 +848,31 @@ public class MainActivity : Activity
         });
         builder.Show();
         name.RequestFocus();
+    }
+
+    private void ShowConditionManager(CombatParticipant participant)
+    {
+        if (participant.Conditions.Count == 0) { ShowTimedConditionDialog(participant); return; }
+        string[] choices = [.. participant.Conditions.Select(condition => "Remove " + condition.DisplayText), GetString(Resource.String.add_timed_condition)];
+        var builder = new AlertDialog.Builder(this);
+        builder.SetTitle(Resource.String.timed_conditions);
+        builder.SetItems(choices, (_, args) =>
+        {
+            if (args.Which == participant.Conditions.Count) { ShowTimedConditionDialog(participant); return; }
+            int index = args.Which;
+            var confirm = new AlertDialog.Builder(this);
+            confirm.SetTitle(Resource.String.remove_condition_title);
+            confirm.SetMessage(participant.Conditions[index].DisplayText);
+            confirm.SetNegativeButton(global::Android.Resource.String.Cancel, (_, _) => { });
+            confirm.SetPositiveButton(Resource.String.remove_from_combat, (_, _) =>
+            {
+                _combatRoster.RemoveCondition(participant.Sequence, index);
+                CommitCombatChange();
+            });
+            confirm.Show();
+        });
+        builder.SetNegativeButton(global::Android.Resource.String.Cancel, (_, _) => { });
+        builder.Show();
     }
 
     private void ShowAddCombatantDialog()

@@ -32,7 +32,9 @@
     <string name="notes_conditions">Notes / conditions</string>
     <string name="notes_prompt">Notes or conditions (leave blank to clear)</string>
     <string name="duplicate_combatant">Duplicate</string>
-    <string name="timed_conditions">Timed condition</string>
+    <string name="timed_conditions">Conditions</string>
+    <string name="add_timed_condition">Add timed condition…</string>
+    <string name="remove_condition_title">Remove condition?</string>
     <string name="condition_name">Condition name</string>
     <string name="duration_turns">Duration in turns</string>
     <string name="invalid_condition">Enter a condition name and duration of at least 1 turn.</string>

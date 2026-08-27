@@ -153,6 +153,9 @@ Last updated: 2026-08-26
 - Added editing for manual participant name, maximum HP, and current HP, plus a Full HP action available to both manual and bestiary combatants.
 - Latest core result: 32 passed, 0 failed, 0 skipped; Release Android build succeeded with 0 warnings and 0 errors.
 - API 36 verification edited the persisted Valeros entry to maximum HP 30/current HP 10, reset it to 30 / 30, and restored both edits after force-stop/relaunch.
+- Added free-form per-combatant notes/conditions, displayed directly in combat rows and included in the versioned encounter snapshot.
+- Latest core result: 33 passed, 0 failed, 0 skipped; Release Android build succeeded with 0 warnings and 0 errors.
+- API 36 verification added `Prone poisoned` to ValerosPrime and restored the row annotation after force-stop/relaunch.
 
 ## In progress
 
@@ -175,9 +178,9 @@ Last updated: 2026-08-26
 
 ## Next actions
 
-1. Add lightweight notes/conditions to combatants without importing the legacy global condition catalogue.
-2. Surface notes directly in combat rows and persist them with the encounter.
-3. Add focused condition/notes round-trip tests and emulator verification.
+1. Add a duplicate-participant action for quickly constructing groups and recurring NPCs.
+2. Ensure copied combatants receive independent HP, initiative, and notes state.
+3. Continue toward structured conditions only where timer/turn behavior requires them.
 
 ## Tracking convention
 

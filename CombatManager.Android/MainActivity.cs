@@ -759,6 +759,11 @@ public class MainActivity : Activity
             _combatRoster.ResetHp(participant.Sequence);
             CommitCombatChange();
         };
+        actions.FindViewById<Button>(Resource.Id.notes_button)!.Click += (_, _) =>
+        {
+            dialog?.Dismiss();
+            ShowNotesPrompt(participant);
+        };
     }
 
     private void ShowHpPrompt(CombatParticipant participant, bool damage)
@@ -783,6 +788,33 @@ public class MainActivity : Activity
                 CommitCombatChange();
             }
             else Toast.MakeText(this, Resource.String.invalid_hp_amount, ToastLength.Short)?.Show();
+        });
+        builder.Show();
+        input.RequestFocus();
+    }
+
+    private void ShowNotesPrompt(CombatParticipant participant)
+    {
+        var input = new EditText(this)
+        {
+            InputType = global::Android.Text.InputTypes.ClassText | global::Android.Text.InputTypes.TextFlagCapSentences | global::Android.Text.InputTypes.TextFlagMultiLine,
+            Text = participant.Notes ?? string.Empty,
+            Gravity = global::Android.Views.GravityFlags.Top
+        };
+        input.SetMinLines(3);
+        int padding = (int)(24 * Resources!.DisplayMetrics!.Density);
+        var container = new LinearLayout(this) { Orientation = global::Android.Widget.Orientation.Vertical };
+        container.SetPadding(padding, 0, padding, 0);
+        container.AddView(input);
+        var builder = new AlertDialog.Builder(this);
+        builder.SetTitle(participant.DisplayName);
+        builder.SetMessage(Resource.String.notes_prompt);
+        builder.SetView(container);
+        builder.SetNegativeButton(global::Android.Resource.String.Cancel, (_, _) => { });
+        builder.SetPositiveButton(global::Android.Resource.String.Ok, (_, _) =>
+        {
+            _combatRoster.SetNotes(participant.Sequence, input.Text ?? string.Empty);
+            CommitCombatChange();
         });
         builder.Show();
         input.RequestFocus();

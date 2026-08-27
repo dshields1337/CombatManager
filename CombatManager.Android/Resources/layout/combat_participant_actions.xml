@@ -10,4 +10,5 @@
         <Button android:id="@+id/reset_hp_button" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/reset_hp" />
     </LinearLayout>
     <Button android:id="@+id/set_initiative_button" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/set_initiative" />
+    <Button android:id="@+id/notes_button" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/notes_conditions" />
 </LinearLayout>

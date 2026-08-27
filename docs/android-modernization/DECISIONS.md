@@ -181,3 +181,10 @@
 - Status: accepted
 - Decision: allow name, maximum HP, and direct current-HP editing only for manual participants, while providing a safe Full HP reset for every participant.
 - Reason: bestiary identity and base HP should continue reflecting the bundled source record; unrestricted editing would blur source data and encounter state. Manual entries are user-owned and need full correction, while monster health remains adjustable through damage, healing, and reset.
+
+## D027: Add free-form combat notes before structured conditions
+
+- Date: 2026-08-27
+- Status: accepted
+- Decision: attach optional free-form notes to each lightweight combat participant, display them in the roster, and persist them with the active encounter before migrating the legacy condition catalogue.
+- Reason: common table states such as prone, poisoned, concentration, and reminders become usable immediately. This avoids importing global condition/spell registries until duration and turn-expiry behavior can be designed as a focused slice.

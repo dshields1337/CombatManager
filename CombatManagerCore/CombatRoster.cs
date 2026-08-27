@@ -17,6 +17,7 @@ namespace CombatManager
         public int MaximumHP { get; set; }
         public int CurrentHP { get; set; }
         public int? Initiative { get; set; }
+        public string Notes { get; set; }
         public bool IsDefeated => CurrentHP <= 0;
         public bool IsManual => CreatureId <= 0;
         public string DisplayName => InstanceNumber <= 1 ? Name : Name + " " + InstanceNumber;
@@ -125,6 +126,14 @@ namespace CombatManager
             return true;
         }
 
+        public bool SetNotes(int sequence, string notes)
+        {
+            CombatParticipant participant = _participants.FirstOrDefault(item => item.Sequence == sequence);
+            if (participant == null) return false;
+            participant.Notes = (notes ?? string.Empty).Trim();
+            return true;
+        }
+
         public CombatParticipant NextTurn()
         {
             if (_participants.Count == 0) return null;
@@ -194,6 +203,7 @@ namespace CombatManager
                     writer.WriteAttributeString("maximumHp", participant.MaximumHP.ToString(CultureInfo.InvariantCulture));
                     writer.WriteAttributeString("currentHp", participant.CurrentHP.ToString(CultureInfo.InvariantCulture));
                     if (participant.Initiative.HasValue) writer.WriteAttributeString("initiative", participant.Initiative.Value.ToString(CultureInfo.InvariantCulture));
+                    if (!string.IsNullOrEmpty(participant.Notes)) writer.WriteAttributeString("notes", participant.Notes);
                     writer.WriteEndElement();
                 }
                 writer.WriteEndElement();
@@ -219,7 +229,8 @@ namespace CombatManager
                         ChallengeRating = (string)element.Attribute("cr") ?? string.Empty,
                         MaximumHP = AttributeInt(element, "maximumHp"),
                         CurrentHP = AttributeInt(element, "currentHp"),
-                        Initiative = string.IsNullOrEmpty(initiativeText) ? (int?)null : int.Parse(initiativeText, CultureInfo.InvariantCulture)
+                        Initiative = string.IsNullOrEmpty(initiativeText) ? (int?)null : int.Parse(initiativeText, CultureInfo.InvariantCulture),
+                        Notes = (string)element.Attribute("notes") ?? string.Empty
                     });
                 }
                 roster.SortByInitiative();

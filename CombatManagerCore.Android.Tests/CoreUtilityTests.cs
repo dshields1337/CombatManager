@@ -515,4 +515,20 @@ public sealed class CoreUtilityTests
         CombatParticipant goblin = roster.Add(new CreatureSummary { Id = 7, Name = "Goblin", HP = 6 });
         Assert.IsFalse(roster.UpdateManual(goblin.Sequence, "Edited Goblin", 20, 20));
     }
+
+    [TestMethod]
+    public void CombatRosterPersistsParticipantNotes()
+    {
+        var roster = new CombatRoster();
+        CombatParticipant goblin = roster.Add(new CreatureSummary { Id = 7, Name = "Goblin", HP = 6 });
+        Assert.IsTrue(roster.SetNotes(goblin.Sequence, "  Prone; poisoned  "));
+        Assert.AreEqual("Prone; poisoned", goblin.Notes);
+        using var stream = new MemoryStream();
+        roster.Save(stream);
+        stream.Position = 0;
+        Assert.IsTrue(CombatRoster.TryLoad(stream, out CombatRoster restored));
+        Assert.AreEqual("Prone; poisoned", restored.Participants[0].Notes);
+        Assert.IsTrue(restored.SetNotes(goblin.Sequence, string.Empty));
+        Assert.AreEqual(string.Empty, restored.Participants[0].Notes);
+    }
 }

@@ -14,7 +14,8 @@ internal sealed class CombatParticipantListAdapter(Activity context, IReadOnlyLi
         View view = convertView ?? context.LayoutInflater.Inflate(Resource.Layout.combat_participant_item, parent, false)!;
         CombatParticipant participant = participants[position];
         view.FindViewById<TextView>(Resource.Id.combat_row_name)!.Text = (participant.Sequence == activeSequence ? "▶ " : "") + participant.DisplayName;
-        view.FindViewById<TextView>(Resource.Id.combat_row_cr)!.Text = "CR " + participant.ChallengeRating;
+        view.FindViewById<TextView>(Resource.Id.combat_row_cr)!.Text = "CR " + participant.ChallengeRating +
+            (string.IsNullOrWhiteSpace(participant.Notes) ? string.Empty : "\n" + participant.Notes);
         view.FindViewById<TextView>(Resource.Id.combat_row_initiative)!.Text = participant.Initiative.HasValue ? "Initiative " + participant.Initiative.Value : "Initiative —";
         view.FindViewById<TextView>(Resource.Id.combat_row_hp)!.Text = participant.IsDefeated
             ? $"DEFEATED  •  HP {participant.CurrentHP} / {participant.MaximumHP}"

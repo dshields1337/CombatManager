@@ -12,6 +12,7 @@ namespace CombatManager
     {
         public int Sequence { get; set; }
         public int CreatureId { get; set; }
+        public int SavedCharacterId { get; set; }
         public int InstanceNumber { get; set; }
         public string Name { get; set; }
         public string ChallengeRating { get; set; }
@@ -24,6 +25,7 @@ namespace CombatManager
         public List<CombatCondition> Conditions { get; set; } = new List<CombatCondition>();
         public bool IsDefeated => CurrentHP <= 0;
         public bool IsManual => CreatureId <= 0;
+        public bool IsSavedCharacter => SavedCharacterId > 0;
         public string DisplayName => InstanceNumber <= 1 ? Name : Name + " " + InstanceNumber;
     }
 
@@ -86,6 +88,15 @@ namespace CombatManager
             return participant;
         }
 
+        public CombatParticipant AddSavedCharacter(SavedCharacter character)
+        {
+            if (character == null) throw new System.ArgumentNullException("character");
+            CombatParticipant participant = AddManual(character.Name, character.MaximumHP, character.InitiativeModifier);
+            participant.SavedCharacterId = character.Id;
+            participant.Notes = character.Notes ?? string.Empty;
+            return participant;
+        }
+
         public CombatParticipant Duplicate(int sequence)
         {
             CombatParticipant source = _participants.FirstOrDefault(item => item.Sequence == sequence);
@@ -101,7 +112,7 @@ namespace CombatManager
             }
             var duplicate = new CombatParticipant
             {
-                Sequence = _nextSequence++, CreatureId = source.CreatureId, InstanceNumber = instanceNumber,
+                Sequence = _nextSequence++, CreatureId = source.CreatureId, SavedCharacterId = source.SavedCharacterId, InstanceNumber = instanceNumber,
                 Name = source.Name, ChallengeRating = source.ChallengeRating, MaximumHP = source.MaximumHP,
                 CurrentHP = source.MaximumHP, Notes = source.Notes ?? string.Empty, InitiativeModifier = source.InitiativeModifier,
                 Conditions = source.Conditions.Select(condition => new CombatCondition { Name = condition.Name, RemainingTurns = condition.RemainingTurns }).ToList()
@@ -341,6 +352,7 @@ namespace CombatManager
                     writer.WriteStartElement("Participant");
                     writer.WriteAttributeString("sequence", participant.Sequence.ToString(CultureInfo.InvariantCulture));
                     writer.WriteAttributeString("creatureId", participant.CreatureId.ToString(CultureInfo.InvariantCulture));
+                    if (participant.SavedCharacterId > 0) writer.WriteAttributeString("savedCharacterId", participant.SavedCharacterId.ToString(CultureInfo.InvariantCulture));
                     writer.WriteAttributeString("instance", participant.InstanceNumber.ToString(CultureInfo.InvariantCulture));
                     writer.WriteAttributeString("name", participant.Name ?? string.Empty);
                     writer.WriteAttributeString("cr", participant.ChallengeRating ?? string.Empty);
@@ -378,6 +390,7 @@ namespace CombatManager
                     {
                         Sequence = AttributeInt(element, "sequence"),
                         CreatureId = AttributeInt(element, "creatureId"),
+                        SavedCharacterId = AttributeIntOrDefault(element, "savedCharacterId"),
                         InstanceNumber = AttributeInt(element, "instance"),
                         Name = (string)element.Attribute("name") ?? string.Empty,
                         ChallengeRating = (string)element.Attribute("cr") ?? string.Empty,

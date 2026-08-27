@@ -211,6 +211,11 @@ Last updated: 2026-08-27
 
 ## In progress
 
+- Added a Characters tab between Monsters and Feats with a restart-safe, versioned custom-character library. Templates support Name, Maximum HP, Initiative modifier, optional Notes, creation, editing, details, confirmed deletion, and direct Add to combat.
+- Combat Add now chooses between a saved character and a temporary combatant. Saved encounter copies retain template identity and expose copied notes through Full details, while remaining independent from later template edits or deletion.
+- Latest core result: 47 passed, 0 failed, 0 skipped; Debug Android build succeeded with 0 warnings and 0 errors.
+- API 36 verification created `Amiri` with 42 HP, +6 initiative, and notes; restored it after force-stop, added it through Combat's saved-character picker, opened its notes through Full details, deleted the template with confirmation, retained the encounter copy, and kept the process alive.
+
 - Selected the red d20 `CM` concept as the application mark, generated legacy and adaptive launcher resources for all five Android density buckets, and explicitly configured the application icon.
 - Debug Android build succeeded with 0 warnings and 0 errors; the merged manifest resolves both standard and round icons to the new adaptive resource set, and the updated APK installed successfully on API 36.
 

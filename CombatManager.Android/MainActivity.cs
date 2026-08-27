@@ -8,6 +8,7 @@ public class MainActivity : Activity
 {
     private const string PreferenceName = "combat_manager_modern";
     private const string EncounterFileName = "active-encounter.xml";
+    private const string SavedCharactersFileName = "saved-characters.xml";
     private const string SelectedPageKey = "selected_page";
     private const string MonsterQueryKey = "monster_query";
     private const string MonsterTypeKey = "monster_type";
@@ -46,10 +47,12 @@ public class MainActivity : Activity
     private readonly Dictionary<int, MagicItemDetails> _magicItemDetailCache = [];
     private bool _initializingMagicItemFilters;
     private CombatRoster _combatRoster = new();
+    private SavedCharacterLibrary _savedCharacters = new();
     private List<ConditionReference>? _conditionReferences;
     private readonly Page[] _pages =
     [
         new(Resource.Id.combat_button, "Combat", "C"), new(Resource.Id.monsters_button, "Monsters", "M"),
+        new(Resource.Id.characters_button, "Characters", "C"),
         new(Resource.Id.feats_button, "Feats", "F"), new(Resource.Id.spells_button, "Spells", "S"),
         new(Resource.Id.rules_button, "Rules", "R"), new(Resource.Id.treasure_button, "Treasure", "T")
     ];
@@ -59,10 +62,13 @@ public class MainActivity : Activity
         base.OnCreate(savedInstanceState);
         SetContentView(Resource.Layout.activity_main);
         _combatRoster = LoadPersistedCombatRoster();
+        _savedCharacters = LoadSavedCharacters();
         foreach (Page page in _pages) FindViewById<Button>(page.ButtonId)!.Click += (_, _) => SelectPage(page);
         FindViewById<ListView>(Resource.Id.combat_list)!.ItemClick += (_, args) => ShowCombatParticipant(_combatRoster.Participants[args.Position]);
         FindViewById<Button>(Resource.Id.clear_combat_button)!.Click += (_, _) => ConfirmClearCombat();
-        FindViewById<Button>(Resource.Id.add_combatant_button)!.Click += (_, _) => ShowAddCombatantDialog();
+        FindViewById<Button>(Resource.Id.add_combatant_button)!.Click += (_, _) => ShowAddCombatantOptions();
+        FindViewById<Button>(Resource.Id.new_saved_character_button)!.Click += (_, _) => ShowSavedCharacterEditor();
+        FindViewById<ListView>(Resource.Id.saved_character_list)!.ItemClick += (_, args) => ShowSavedCharacter(_savedCharacters.Characters[args.Position]);
         FindViewById<Button>(Resource.Id.name_encounter_button)!.Click += (_, _) => ShowEncounterNamePrompt();
         FindViewById<Button>(Resource.Id.share_encounter_button)!.Click += (_, _) => ShareEncounter();
         FindViewById<Button>(Resource.Id.next_turn_button)!.Click += (_, _) =>
@@ -101,13 +107,15 @@ public class MainActivity : Activity
     {
         bool showCombat = selected.Title == "Combat";
         bool showMonsters = selected.Title == "Monsters";
+        bool showCharacters = selected.Title == "Characters";
         bool showFeats = selected.Title == "Feats";
         bool showSpells = selected.Title == "Spells";
         bool showRules = selected.Title == "Rules";
         bool showTreasure = selected.Title == "Treasure";
-        FindViewById<LinearLayout>(Resource.Id.placeholder_panel)!.Visibility = showCombat || showMonsters || showFeats || showSpells || showRules || showTreasure ? ViewStates.Gone : ViewStates.Visible;
+        FindViewById<LinearLayout>(Resource.Id.placeholder_panel)!.Visibility = showCombat || showMonsters || showCharacters || showFeats || showSpells || showRules || showTreasure ? ViewStates.Gone : ViewStates.Visible;
         FindViewById<LinearLayout>(Resource.Id.combat_panel)!.Visibility = showCombat ? ViewStates.Visible : ViewStates.Gone;
         FindViewById<LinearLayout>(Resource.Id.monsters_panel)!.Visibility = showMonsters ? ViewStates.Visible : ViewStates.Gone;
+        FindViewById<LinearLayout>(Resource.Id.characters_panel)!.Visibility = showCharacters ? ViewStates.Visible : ViewStates.Gone;
         FindViewById<LinearLayout>(Resource.Id.feats_panel)!.Visibility = showFeats ? ViewStates.Visible : ViewStates.Gone;
         FindViewById<LinearLayout>(Resource.Id.spells_panel)!.Visibility = showSpells ? ViewStates.Visible : ViewStates.Gone;
         FindViewById<LinearLayout>(Resource.Id.rules_panel)!.Visibility = showRules ? ViewStates.Visible : ViewStates.Gone;
@@ -125,6 +133,7 @@ public class MainActivity : Activity
 
         if (showCombat) RefreshCombatRoster();
         if (showMonsters) _ = EnsureCreaturesLoadedAsync();
+        if (showCharacters) RefreshSavedCharacters();
         if (showFeats) _ = EnsureFeatsLoadedAsync();
         if (showSpells) _ = EnsureSpellsLoadedAsync();
         if (showRules) _ = EnsureRulesLoadedAsync();
@@ -761,11 +770,12 @@ public class MainActivity : Activity
         builder.SetPositiveButton(global::Android.Resource.String.Ok, (_, _) => { });
         AlertDialog? dialog = builder.Show();
         Button fullDetails = actions.FindViewById<Button>(Resource.Id.combatant_full_details_button)!;
-        fullDetails.Visibility = participant.IsManual ? ViewStates.Gone : ViewStates.Visible;
+        fullDetails.Visibility = !participant.IsManual || participant.IsSavedCharacter ? ViewStates.Visible : ViewStates.Gone;
         fullDetails.Click += (_, _) =>
         {
             dialog?.Dismiss();
-            _ = ShowFullDetailsAsync(new CreatureSummary { Id = participant.CreatureId, Name = participant.DisplayName });
+            if (participant.IsSavedCharacter) ShowSavedCombatantDetails(participant);
+            else _ = ShowFullDetailsAsync(new CreatureSummary { Id = participant.CreatureId, Name = participant.DisplayName });
         };
         actions.FindViewById<Button>(Resource.Id.damage_button)!.Click += (_, _) =>
         {
@@ -816,6 +826,15 @@ public class MainActivity : Activity
             dialog?.Dismiss();
             ShowConditionManager(participant);
         };
+    }
+
+    private void ShowSavedCombatantDetails(CombatParticipant participant)
+    {
+        var builder = new AlertDialog.Builder(this);
+        builder.SetTitle(participant.DisplayName);
+        builder.SetMessage(string.IsNullOrWhiteSpace(participant.Notes) ? "No notes." : participant.Notes);
+        builder.SetPositiveButton(global::Android.Resource.String.Ok, (_, _) => { });
+        builder.Show();
     }
 
     private void ConfirmRemoveCombatant(CombatParticipant participant)
@@ -1042,14 +1061,121 @@ public class MainActivity : Activity
         builder.Show();
     }
 
-    private void ShowAddCombatantDialog()
+    private void RefreshSavedCharacters()
+    {
+        int count = _savedCharacters.Characters.Count;
+        FindViewById<TextView>(Resource.Id.saved_character_count)!.Text = count == 1 ? "1 saved character" : $"{count:N0} saved characters";
+        FindViewById<TextView>(Resource.Id.saved_character_empty)!.Visibility = count == 0 ? ViewStates.Visible : ViewStates.Gone;
+        ListView list = FindViewById<ListView>(Resource.Id.saved_character_list)!;
+        list.Visibility = count == 0 ? ViewStates.Gone : ViewStates.Visible;
+        list.Adapter = new SavedCharacterListAdapter(this, _savedCharacters.Characters);
+    }
+
+    private void ShowSavedCharacter(SavedCharacter character)
+    {
+        string modifier = character.InitiativeModifier >= 0 ? "+" + character.InitiativeModifier : character.InitiativeModifier.ToString();
+        var builder = new AlertDialog.Builder(this);
+        builder.SetTitle(character.Name);
+        builder.SetMessage($"Maximum HP: {character.MaximumHP}\nInitiative modifier: {modifier}\n\n" +
+            (string.IsNullOrWhiteSpace(character.Notes) ? "No notes." : character.Notes));
+        builder.SetNegativeButton(Resource.String.delete_character, (_, _) => ConfirmDeleteSavedCharacter(character));
+        builder.SetNeutralButton(Resource.String.add_to_combat, (_, _) => AddSavedCharacterToCombat(character));
+        builder.SetPositiveButton(Resource.String.edit_combatant, (_, _) => ShowSavedCharacterEditor(character));
+        builder.Show();
+    }
+
+    private void ShowSavedCharacterEditor(SavedCharacter? character = null)
+    {
+        View view = LayoutInflater.Inflate(Resource.Layout.saved_character_dialog, null)!;
+        EditText name = view.FindViewById<EditText>(Resource.Id.saved_character_name)!;
+        EditText hp = view.FindViewById<EditText>(Resource.Id.saved_character_hp)!;
+        EditText initiativeModifier = view.FindViewById<EditText>(Resource.Id.saved_character_initiative_modifier)!;
+        EditText notes = view.FindViewById<EditText>(Resource.Id.saved_character_notes)!;
+        if (character is not null)
+        {
+            name.Text = character.Name;
+            hp.Text = character.MaximumHP.ToString();
+            initiativeModifier.Text = character.InitiativeModifier.ToString();
+            notes.Text = character.Notes;
+        }
+        var builder = new AlertDialog.Builder(this);
+        builder.SetTitle(character is null ? Resource.String.new_character_title : Resource.String.edit_character_title);
+        builder.SetView(view);
+        builder.SetNegativeButton(global::Android.Resource.String.Cancel, (_, _) => { });
+        builder.SetPositiveButton(global::Android.Resource.String.Ok, (_, _) =>
+        {
+            if (!string.IsNullOrWhiteSpace(name.Text) && int.TryParse(hp.Text, out int maximumHp) && maximumHp >= 1 &&
+                int.TryParse(initiativeModifier.Text, out int modifier))
+            {
+                if (character is null) _savedCharacters.Add(name.Text, maximumHp, modifier, notes.Text ?? string.Empty);
+                else _savedCharacters.Update(character.Id, name.Text, maximumHp, modifier, notes.Text ?? string.Empty);
+                CommitSavedCharacters();
+            }
+            else Toast.MakeText(this, Resource.String.invalid_combatant, ToastLength.Short)?.Show();
+        });
+        builder.Show();
+        name.RequestFocus();
+        if (character is not null) name.SetSelectAllOnFocus(true);
+    }
+
+    private void ConfirmDeleteSavedCharacter(SavedCharacter character)
+    {
+        var builder = new AlertDialog.Builder(this);
+        builder.SetTitle(Resource.String.delete_character_title);
+        builder.SetMessage(Resource.String.delete_character_message);
+        builder.SetNegativeButton(global::Android.Resource.String.Cancel, (_, _) => { });
+        builder.SetPositiveButton(Resource.String.delete_character, (_, _) =>
+        {
+            _savedCharacters.Remove(character.Id);
+            CommitSavedCharacters();
+        });
+        builder.Show();
+    }
+
+    private void AddSavedCharacterToCombat(SavedCharacter character)
+    {
+        CombatParticipant participant = _combatRoster.AddSavedCharacter(character);
+        CommitCombatChange();
+        Toast.MakeText(this, participant.DisplayName + " added to combat.", ToastLength.Short)?.Show();
+    }
+
+    private void ShowAddCombatantOptions()
+    {
+        string[] choices = [GetString(Resource.String.saved_character), GetString(Resource.String.temporary_combatant)];
+        var builder = new AlertDialog.Builder(this);
+        builder.SetTitle(Resource.String.add_combatant_title);
+        builder.SetItems(choices, (_, args) =>
+        {
+            if (args.Which == 0) ShowSavedCharacterPicker();
+            else ShowTemporaryCombatantDialog();
+        });
+        builder.SetNegativeButton(global::Android.Resource.String.Cancel, (_, _) => { });
+        builder.Show();
+    }
+
+    private void ShowSavedCharacterPicker()
+    {
+        if (_savedCharacters.Characters.Count == 0)
+        {
+            Toast.MakeText(this, Resource.String.no_saved_characters, ToastLength.Long)?.Show();
+            return;
+        }
+        SavedCharacter[] characters = [.. _savedCharacters.Characters];
+        var builder = new AlertDialog.Builder(this);
+        builder.SetTitle(Resource.String.choose_saved_character);
+        builder.SetItems(characters.Select(character => character.Name).ToArray(), (_, args) => AddSavedCharacterToCombat(characters[args.Which]));
+        builder.SetNegativeButton(global::Android.Resource.String.Cancel, (_, _) => { });
+        builder.Show();
+    }
+
+    private void ShowTemporaryCombatantDialog()
     {
         View view = LayoutInflater.Inflate(Resource.Layout.manual_combatant_dialog, null)!;
         EditText name = view.FindViewById<EditText>(Resource.Id.manual_name)!;
         EditText hp = view.FindViewById<EditText>(Resource.Id.manual_hp)!;
         EditText initiativeModifier = view.FindViewById<EditText>(Resource.Id.manual_initiative_modifier)!;
         var builder = new AlertDialog.Builder(this);
-        builder.SetTitle(Resource.String.add_combatant_title);
+        builder.SetTitle(Resource.String.temporary_combatant);
         builder.SetView(view);
         builder.SetNegativeButton(global::Android.Resource.String.Cancel, (_, _) => { });
         builder.SetPositiveButton(global::Android.Resource.String.Ok, (_, _) =>
@@ -1229,6 +1355,36 @@ public class MainActivity : Activity
             global::Android.Util.Log.Error("CombatManager", "Unable to restore encounter: " + exception);
         }
         return new CombatRoster();
+    }
+
+    private SavedCharacterLibrary LoadSavedCharacters()
+    {
+        try
+        {
+            if (!(FileList()?.Contains(SavedCharactersFileName) ?? false)) return new SavedCharacterLibrary();
+            using Stream stream = OpenFileInput(SavedCharactersFileName)!;
+            if (SavedCharacterLibrary.TryLoad(stream, out SavedCharacterLibrary library)) return library;
+            DeleteFile(SavedCharactersFileName);
+        }
+        catch (Exception exception)
+        {
+            global::Android.Util.Log.Error("CombatManager", "Unable to restore saved characters: " + exception);
+        }
+        return new SavedCharacterLibrary();
+    }
+
+    private void CommitSavedCharacters()
+    {
+        try
+        {
+            using Stream stream = OpenFileOutput(SavedCharactersFileName, global::Android.Content.FileCreationMode.Private)!;
+            _savedCharacters.Save(stream);
+        }
+        catch (Exception exception)
+        {
+            global::Android.Util.Log.Error("CombatManager", "Unable to save characters: " + exception);
+        }
+        RefreshSavedCharacters();
     }
 
     private void CommitCombatChange()

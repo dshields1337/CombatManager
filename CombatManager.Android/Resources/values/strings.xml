@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Combat Manager</string>
-    <string name="combat">Combat</string><string name="monsters">Monsters</string><string name="feats">Feats</string>
+    <string name="combat">Combat</string><string name="monsters">Monsters</string><string name="characters">Characters</string><string name="feats">Feats</string>
     <string name="spells">Spells</string><string name="rules">Rules</string><string name="treasure">Treasure</string>
     <string name="encounter_empty">Add monsters from the Monsters tab to begin an encounter.</string>
     <string name="clear_encounter">Clear</string>
@@ -36,6 +36,18 @@
     <string name="name_encounter_title">Name encounter</string>
     <string name="encounter_name_prompt">Encounter name (leave blank for default)</string>
     <string name="add_combatant_title">Add combatant</string>
+    <string name="new_character">New character</string>
+    <string name="new_character_title">Create character</string>
+    <string name="edit_character_title">Edit character</string>
+    <string name="no_saved_characters">Create reusable players and NPCs here, then add them to any encounter.</string>
+    <string name="character_notes_optional">Notes (optional)</string>
+    <string name="saved_character">Saved character</string>
+    <string name="temporary_combatant">Temporary combatant</string>
+    <string name="choose_saved_character">Choose saved character</string>
+    <string name="delete_character">Delete</string>
+    <string name="delete_character_title">Delete character?</string>
+    <string name="delete_character_message">Delete this reusable character? Existing encounter copies will remain.</string>
+    <string name="character_full_details">Full details</string>
     <string name="combatant_name">Name</string>
     <string name="maximum_hp">Maximum HP</string>
     <string name="invalid_combatant">Enter a name, maximum HP of at least 1, and a whole-number initiative modifier.</string>

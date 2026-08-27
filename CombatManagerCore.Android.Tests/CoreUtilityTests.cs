@@ -538,6 +538,51 @@ public sealed class CoreUtilityTests
     }
 
     [TestMethod]
+    public void SavedCharacterLibraryCreatesEditsDeletesAndPersistsTemplates()
+    {
+        var library = new SavedCharacterLibrary();
+        SavedCharacter valeros = library.Add("  Valeros  ", 30, 5, "  Human fighter  ");
+        SavedCharacter kyra = library.Add("Kyra", 24, 2, string.Empty);
+        Assert.AreEqual("Kyra", library.Characters[0].Name);
+        Assert.AreEqual("Valeros", library.Characters[1].Name);
+        Assert.IsTrue(library.Update(valeros.Id, "Valeros the Brave", 34, 6, "Sword and shield"));
+        Assert.IsFalse(library.Update(999, "Missing", 1, 0, string.Empty));
+        Assert.IsTrue(library.Remove(kyra.Id));
+        Assert.IsFalse(library.Remove(kyra.Id));
+        using var stream = new MemoryStream();
+        library.Save(stream);
+        stream.Position = 0;
+        Assert.IsTrue(SavedCharacterLibrary.TryLoad(stream, out SavedCharacterLibrary restored));
+        Assert.HasCount(1, restored.Characters);
+        SavedCharacter saved = restored.Characters[0];
+        Assert.AreEqual("Valeros the Brave", saved.Name);
+        Assert.AreEqual(34, saved.MaximumHP);
+        Assert.AreEqual(6, saved.InitiativeModifier);
+        Assert.AreEqual("Sword and shield", saved.Notes);
+        Assert.IsGreaterThan(saved.Id, restored.Add("Merisiel", 26, 7, null).Id);
+    }
+
+    [TestMethod]
+    public void CombatRosterAddsAndPersistsIndependentSavedCharacterCopies()
+    {
+        var template = new SavedCharacter { Id = 12, Name = "Valeros", MaximumHP = 30, InitiativeModifier = 5, Notes = "Human fighter" };
+        var roster = new CombatRoster();
+        CombatParticipant participant = roster.AddSavedCharacter(template);
+        Assert.AreEqual(12, participant.SavedCharacterId);
+        Assert.IsTrue(participant.IsSavedCharacter);
+        Assert.AreEqual(5, participant.InitiativeModifier);
+        Assert.AreEqual("Human fighter", participant.Notes);
+        template.Name = "Changed template";
+        Assert.AreEqual("Valeros", participant.Name);
+        using var stream = new MemoryStream();
+        roster.Save(stream);
+        stream.Position = 0;
+        Assert.IsTrue(CombatRoster.TryLoad(stream, out CombatRoster restored));
+        Assert.AreEqual(12, restored.Participants[0].SavedCharacterId);
+        Assert.AreEqual("Valeros", restored.Participants[0].Name);
+    }
+
+    [TestMethod]
     public void CombatRosterPersistsFullEncounterAndRejectsCorruptData()
     {
         var roster = new CombatRoster();

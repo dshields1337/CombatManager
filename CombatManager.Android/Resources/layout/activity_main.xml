@@ -4,6 +4,7 @@
         <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="horizontal" android:paddingStart="8dp" android:paddingEnd="8dp">
             <Button android:id="@+id/combat_button" style="@style/HomeTab" android:text="@string/combat" />
             <Button android:id="@+id/monsters_button" style="@style/HomeTab" android:text="@string/monsters" />
+            <Button android:id="@+id/characters_button" style="@style/HomeTab" android:text="@string/characters" />
             <Button android:id="@+id/feats_button" style="@style/HomeTab" android:text="@string/feats" />
             <Button android:id="@+id/spells_button" style="@style/HomeTab" android:text="@string/spells" />
             <Button android:id="@+id/rules_button" style="@style/HomeTab" android:text="@string/rules" />
@@ -47,6 +48,14 @@
             <TextView android:id="@+id/monster_count" android:layout_width="match_parent" android:layout_height="wrap_content" android:paddingStart="18dp" android:paddingEnd="18dp" android:paddingBottom="8dp" android:textColor="@color/text_secondary" />
             <ProgressBar android:id="@+id/monster_progress" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="center" android:layout_margin="24dp" />
             <ListView android:id="@+id/monster_list" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:divider="@color/primary_light" android:dividerHeight="1dp" android:visibility="gone" />
+        </LinearLayout>
+        <LinearLayout android:id="@+id/characters_panel" android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="vertical" android:visibility="gone">
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:padding="12dp">
+                <TextView android:id="@+id/saved_character_count" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:textColor="@color/text_secondary" />
+                <Button android:id="@+id/new_saved_character_button" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/new_character" />
+            </LinearLayout>
+            <TextView android:id="@+id/saved_character_empty" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:gravity="center" android:padding="32dp" android:text="@string/no_saved_characters" android:textColor="@color/text_secondary" android:textSize="17sp" />
+            <ListView android:id="@+id/saved_character_list" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:divider="@color/primary_light" android:dividerHeight="1dp" android:visibility="gone" />
         </LinearLayout>
         <LinearLayout android:id="@+id/feats_panel" android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="vertical" android:visibility="gone">
             <SearchView android:id="@+id/feat_search" android:layout_width="match_parent" android:layout_height="wrap_content" android:queryHint="@string/search_feats" android:iconifiedByDefault="false" />

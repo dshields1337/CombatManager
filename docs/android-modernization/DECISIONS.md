@@ -258,3 +258,10 @@
 - Status: accepted
 - Decision: require a whole-number initiative modifier when creating or editing a manual player/NPC, persist it through the existing optional participant attribute, and have the one-tap d20 action atomically roll every participant.
 - Reason: players and NPCs use the same `d20 + modifier` initiative rule as bestiary creatures. A default of zero preserves old snapshots and existing callers, while a single encounter-wide roll eliminates unnecessary manual entry.
+
+## D038: Keep saved character templates independent from encounter copies
+
+- Date: 2026-08-27
+- Status: accepted
+- Decision: store reusable custom characters in a separate versioned private XML library. Adding one to combat copies its name, HP, initiative modifier, notes, and stable template ID into the encounter; later template edits or deletion do not mutate or remove that encounter copy.
+- Reason: an active encounter is a historical working state and must remain stable. Independent copies prevent library housekeeping from unexpectedly changing current HP, notes, initiative, or roster membership while retaining enough identity to expose character Full details in Combat.

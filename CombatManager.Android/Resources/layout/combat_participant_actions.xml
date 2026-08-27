@@ -11,4 +11,5 @@
     </LinearLayout>
     <Button android:id="@+id/set_initiative_button" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/set_initiative" />
     <Button android:id="@+id/notes_button" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/notes_conditions" />
+    <Button android:id="@+id/duplicate_combatant_button" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/duplicate_combatant" />
 </LinearLayout>

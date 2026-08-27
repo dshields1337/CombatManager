@@ -156,6 +156,9 @@ Last updated: 2026-08-26
 - Added free-form per-combatant notes/conditions, displayed directly in combat rows and included in the versioned encounter snapshot.
 - Latest core result: 33 passed, 0 failed, 0 skipped; Release Android build succeeded with 0 warnings and 0 errors.
 - API 36 verification added `Prone poisoned` to ValerosPrime and restored the row annotation after force-stop/relaunch.
+- Added participant duplication with full-health reset, unset initiative, copied notes, correct instance naming, and independent subsequent state.
+- Latest core result: 34 passed, 0 failed, 0 skipped; Release Android build succeeded with 0 warnings and 0 errors.
+- API 36 verification duplicated the configured manual participant as `ValerosPrime 2`, preserved notes and 30 / 30 HP, and restored both entries after force-stop/relaunch.
 
 ## In progress
 
@@ -178,9 +181,9 @@ Last updated: 2026-08-26
 
 ## Next actions
 
-1. Add a duplicate-participant action for quickly constructing groups and recurring NPCs.
-2. Ensure copied combatants receive independent HP, initiative, and notes state.
-3. Continue toward structured conditions only where timer/turn behavior requires them.
+1. Add simple timed conditions that decrement on the affected participant's completed turns.
+2. Preserve free-form notes alongside structured timed conditions.
+3. Add expiry behavior tests before exposing condition controls in Android.
 
 ## Tracking convention
 

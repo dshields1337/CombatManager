@@ -531,4 +531,22 @@ public sealed class CoreUtilityTests
         Assert.IsTrue(restored.SetNotes(goblin.Sequence, string.Empty));
         Assert.AreEqual(string.Empty, restored.Participants[0].Notes);
     }
+
+    [TestMethod]
+    public void CombatRosterDuplicatesParticipantsWithIndependentEncounterState()
+    {
+        var roster = new CombatRoster();
+        CombatParticipant goblin = roster.Add(new CreatureSummary { Id = 7, Name = "Goblin", CR = "1/3", HP = 6 });
+        roster.ApplyDamage(goblin.Sequence, 4);
+        roster.SetInitiative(goblin.Sequence, 18);
+        roster.SetNotes(goblin.Sequence, "Prone");
+        CombatParticipant copy = roster.Duplicate(goblin.Sequence);
+        Assert.AreEqual("Goblin 2", copy.DisplayName);
+        Assert.AreEqual(6, copy.CurrentHP);
+        Assert.IsNull(copy.Initiative);
+        Assert.AreEqual("Prone", copy.Notes);
+        roster.ApplyDamage(copy.Sequence, 2);
+        Assert.AreEqual(2, goblin.CurrentHP);
+        Assert.AreEqual(4, copy.CurrentHP);
+    }
 }

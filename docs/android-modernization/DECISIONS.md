@@ -188,3 +188,10 @@
 - Status: accepted
 - Decision: attach optional free-form notes to each lightweight combat participant, display them in the roster, and persist them with the active encounter before migrating the legacy condition catalogue.
 - Reason: common table states such as prone, poisoned, concentration, and reminders become usable immediately. This avoids importing global condition/spell registries until duration and turn-expiry behavior can be designed as a focused slice.
+
+## D028: Duplicate participants as fresh initiative entries
+
+- Date: 2026-08-27
+- Status: accepted
+- Decision: duplicate either manual or bestiary participants with a new sequence/instance name, full HP, unset initiative, and copied notes.
+- Reason: groups and recurring NPCs become quick to assemble while each copy remains independent. Clearing initiative prevents a copied roll from silently changing encounter order; retaining notes preserves configuration that commonly applies to the group.

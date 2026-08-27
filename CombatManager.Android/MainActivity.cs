@@ -764,6 +764,12 @@ public class MainActivity : Activity
             dialog?.Dismiss();
             ShowNotesPrompt(participant);
         };
+        actions.FindViewById<Button>(Resource.Id.duplicate_combatant_button)!.Click += (_, _) =>
+        {
+            dialog?.Dismiss();
+            _combatRoster.Duplicate(participant.Sequence);
+            CommitCombatChange();
+        };
     }
 
     private void ShowHpPrompt(CombatParticipant participant, bool damage)

@@ -67,6 +67,29 @@ namespace CombatManager
             return participant;
         }
 
+        public CombatParticipant Duplicate(int sequence)
+        {
+            CombatParticipant source = _participants.FirstOrDefault(item => item.Sequence == sequence);
+            if (source == null) return null;
+            int instanceNumber;
+            if (source.IsManual)
+                instanceNumber = _participants.Where(item => item.IsManual && string.Equals(item.Name, source.Name, System.StringComparison.OrdinalIgnoreCase))
+                    .Select(item => item.InstanceNumber).DefaultIfEmpty(0).Max() + 1;
+            else
+            {
+                if (!_nextInstanceByCreature.TryGetValue(source.CreatureId, out instanceNumber)) instanceNumber = source.InstanceNumber + 1;
+                _nextInstanceByCreature[source.CreatureId] = instanceNumber + 1;
+            }
+            var duplicate = new CombatParticipant
+            {
+                Sequence = _nextSequence++, CreatureId = source.CreatureId, InstanceNumber = instanceNumber,
+                Name = source.Name, ChallengeRating = source.ChallengeRating, MaximumHP = source.MaximumHP,
+                CurrentHP = source.MaximumHP, Notes = source.Notes ?? string.Empty
+            };
+            _participants.Add(duplicate);
+            return duplicate;
+        }
+
         public bool Remove(int sequence)
         {
             CombatParticipant participant = _participants.FirstOrDefault(item => item.Sequence == sequence);

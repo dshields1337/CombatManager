@@ -63,6 +63,7 @@ public class MainActivity : Activity
         FindViewById<ListView>(Resource.Id.combat_list)!.ItemClick += (_, args) => ShowCombatParticipant(_combatRoster.Participants[args.Position]);
         FindViewById<Button>(Resource.Id.clear_combat_button)!.Click += (_, _) => ConfirmClearCombat();
         FindViewById<Button>(Resource.Id.add_combatant_button)!.Click += (_, _) => ShowAddCombatantDialog();
+        FindViewById<Button>(Resource.Id.name_encounter_button)!.Click += (_, _) => ShowEncounterNamePrompt();
         FindViewById<Button>(Resource.Id.share_encounter_button)!.Click += (_, _) => ShareEncounter();
         FindViewById<Button>(Resource.Id.next_turn_button)!.Click += (_, _) =>
         {
@@ -705,7 +706,9 @@ public class MainActivity : Activity
     private void RefreshCombatRoster()
     {
         int count = _combatRoster.Participants.Count;
-        FindViewById<TextView>(Resource.Id.combat_count)!.Text = count == 1 ? "1 combatant" : $"{count:N0} combatants";
+        string countText = count == 1 ? "1 combatant" : $"{count:N0} combatants";
+        FindViewById<TextView>(Resource.Id.combat_count)!.Text = string.IsNullOrEmpty(_combatRoster.EncounterName)
+            ? countText : $"{_combatRoster.EncounterName}  •  {countText}";
         FindViewById<Button>(Resource.Id.clear_combat_button)!.Enabled = count > 0;
         FindViewById<Button>(Resource.Id.share_encounter_button)!.Enabled = count > 0;
         FindViewById<TextView>(Resource.Id.combat_empty)!.Visibility = count == 0 ? ViewStates.Visible : ViewStates.Gone;
@@ -721,6 +724,32 @@ public class MainActivity : Activity
         FindViewById<TextView>(Resource.Id.round_status)!.Text = !initiativeReady
             ? "Set initiative for all combatants"
             : _combatRoster.Round == 0 ? "Ready to start" : $"Round {_combatRoster.Round}";
+    }
+
+    private void ShowEncounterNamePrompt()
+    {
+        var input = new EditText(this)
+        {
+            Hint = GetString(Resource.String.encounter_name_prompt),
+            Text = _combatRoster.EncounterName
+        };
+        input.SetSingleLine(true);
+        int padding = (int)(20 * Resources!.DisplayMetrics!.Density);
+        var container = new FrameLayout(this);
+        container.SetPadding(padding, 0, padding, 0);
+        container.AddView(input);
+        var builder = new AlertDialog.Builder(this);
+        builder.SetTitle(Resource.String.name_encounter_title);
+        builder.SetView(container);
+        builder.SetNegativeButton(global::Android.Resource.String.Cancel, (_, _) => { });
+        builder.SetPositiveButton(global::Android.Resource.String.Ok, (_, _) =>
+        {
+            _combatRoster.SetEncounterName(input.Text ?? string.Empty);
+            CommitCombatChange();
+        });
+        AlertDialog? dialog = builder.Show();
+        dialog?.Window?.SetSoftInputMode(SoftInput.StateAlwaysVisible);
+        input.RequestFocus();
     }
 
     private void ShowCombatParticipant(CombatParticipant participant)

@@ -44,9 +44,15 @@ namespace CombatManager
         private int _round;
 
         public IReadOnlyList<CombatParticipant> Participants => _participants;
+        public string EncounterName { get; private set; } = string.Empty;
         public CombatParticipant ActiveParticipant => _activeSequence.HasValue
             ? _participants.FirstOrDefault(item => item.Sequence == _activeSequence.Value) : null;
         public int Round => _round;
+
+        public void SetEncounterName(string name)
+        {
+            EncounterName = (name ?? string.Empty).Trim();
+        }
 
         public CombatParticipant Add(CreatureSummary creature)
         {
@@ -247,7 +253,7 @@ namespace CombatManager
 
         public string ToSummaryText()
         {
-            var text = new StringBuilder("Combat Manager Encounter");
+            var text = new StringBuilder(string.IsNullOrEmpty(EncounterName) ? "Combat Manager Encounter" : EncounterName);
             if (_round > 0) text.Append(" — Round ").Append(_round);
             foreach (CombatParticipant participant in _participants)
             {
@@ -326,6 +332,7 @@ namespace CombatManager
                 writer.WriteStartElement("CombatRoster");
                 writer.WriteAttributeString("version", "1");
                 writer.WriteAttributeString("round", _round.ToString(CultureInfo.InvariantCulture));
+                if (!string.IsNullOrEmpty(EncounterName)) writer.WriteAttributeString("name", EncounterName);
                 if (_activeSequence.HasValue) writer.WriteAttributeString("activeSequence", _activeSequence.Value.ToString(CultureInfo.InvariantCulture));
                 foreach (CombatParticipant participant in _participants)
                 {
@@ -361,6 +368,7 @@ namespace CombatManager
             {
                 XElement root = XDocument.Load(stream).Root;
                 if (root == null || root.Name != "CombatRoster" || AttributeInt(root, "version") != 1) return false;
+                roster.EncounterName = ((string)root.Attribute("name") ?? string.Empty).Trim();
                 foreach (XElement element in root.Elements("Participant"))
                 {
                     string initiativeText = (string)element.Attribute("initiative");
@@ -427,6 +435,7 @@ namespace CombatManager
             _participants.Clear();
             _nextInstanceByCreature.Clear();
             _nextSequence = 1;
+            EncounterName = string.Empty;
             ResetTurn();
         }
     }

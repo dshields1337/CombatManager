@@ -244,3 +244,10 @@
 - Status: accepted
 - Decision: store non-negative temporary HP independently per participant, consume it before current HP when applying damage, and leave it unchanged by healing or Full HP.
 - Reason: temporary HP is not healing and does not increase maximum HP. A separate persisted value preserves Pathfinder damage semantics and prevents temporary protection from being accidentally restored by ordinary healing operations.
+
+## D036: Store an optional encounter name in the existing snapshot
+
+- Date: 2026-08-27
+- Status: accepted
+- Decision: allow a trimmed, optional encounter name, persist it as an optional version-1 root attribute, use it as the shared-summary heading, and clear it when the encounter is cleared.
+- Reason: names make saved and shared combat summaries identifiable without requiring a snapshot-version migration. An absent name remains fully backward-compatible and retains the existing generic heading.

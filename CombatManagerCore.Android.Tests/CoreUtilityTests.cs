@@ -520,6 +520,23 @@ public sealed class CoreUtilityTests
     }
 
     [TestMethod]
+    public void CombatRosterNamesPersistAppearInSummariesAndClearWithEncounter()
+    {
+        var roster = new CombatRoster();
+        roster.SetEncounterName("  Vault ambush  ");
+        roster.AddManual("Valeros", 30);
+        StringAssert.StartsWith(roster.ToSummaryText(), "Vault ambush");
+        using var stream = new MemoryStream();
+        roster.Save(stream);
+        stream.Position = 0;
+        Assert.IsTrue(CombatRoster.TryLoad(stream, out CombatRoster restored));
+        Assert.AreEqual("Vault ambush", restored.EncounterName);
+        restored.Clear();
+        Assert.AreEqual(string.Empty, restored.EncounterName);
+        StringAssert.StartsWith(restored.ToSummaryText(), "Combat Manager Encounter");
+    }
+
+    [TestMethod]
     public void CombatRosterPersistsFullEncounterAndRejectsCorruptData()
     {
         var roster = new CombatRoster();

@@ -211,6 +211,10 @@ Last updated: 2026-08-27
 
 ## In progress
 
+- Added optional encounter naming to the combat header, private version-1 snapshot, and shared summary while retaining backward compatibility for unnamed snapshots.
+- Latest core result: 45 passed, 0 failed, 0 skipped; Debug Android build succeeded with 0 warnings and 0 errors.
+- API 36 verification named the existing encounter `VaultAmbush`, displayed the name beside its combatant count, and restored it after a forced process stop; the process remained alive.
+
 - All five planned read-only reference destinations are complete. Combat supports encounter assembly, damage/healing, defeated feedback, initiative/turn/round tracking, and restart-safe private persistence.
 
 ## Blockers and required actions

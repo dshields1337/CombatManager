@@ -21,6 +21,7 @@
         <Button android:id="@+id/timed_conditions_button" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/timed_conditions" />
     </LinearLayout>
     <TextView style="@style/ActionGroupHeading" android:text="@string/participant_actions" />
+    <Button android:id="@+id/assign_mini_button" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/assign_mini" />
     <Button android:id="@+id/toggle_party_active_button" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/set_inactive" />
     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
         <Button android:id="@+id/edit_combatant_button" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/edit_combatant" />

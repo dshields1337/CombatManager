@@ -1,5 +1,12 @@
 # Android modernization decision log
 
+## D009: Preserve explicit combat order independently of initiative totals
+
+- Date: 2026-08-28
+- Status: accepted
+- Decision: initiative initially sorts participants, after which long-press drag ordering becomes authoritative and is serialized in list order. Loading no longer re-sorts a saved active roster by initiative.
+- Reason: delayed and held turns must be movable without falsifying the rolled initiative values shown to the user.
+
 ## D008: Separate persistent party membership from saved encounter monsters
 
 - Date: 2026-08-27

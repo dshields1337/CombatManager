@@ -59,6 +59,12 @@
     <string name="encounter_monsters_empty">No monsters are in this encounter.</string>
     <string name="set_inactive">Set inactive</string>
     <string name="set_active">Set active</string>
+    <string name="assign_mini">Assign mini</string>
+    <string name="mini_description">Mini description</string>
+    <string name="in_combat">IN COMBAT</string>
+    <string name="end_combat_title">Is combat over?</string>
+    <string name="end_combat_message">End combat and clear the current initiative order?</string>
+    <string name="end_combat">Yes, end combat</string>
     <string name="delete_character">Delete</string>
     <string name="delete_character_title">Delete character?</string>
     <string name="delete_character_message">Delete this reusable character? Existing encounter copies will remain.</string>

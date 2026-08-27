@@ -55,6 +55,7 @@ public class MainActivity : Activity
     private List<CombatParticipant> _partyParticipants = [];
     private List<CombatParticipant> _encounterParticipants = [];
     private int _combatSubTab;
+    private int? _draggedCombatantSequence;
     private SavedCharacterLibrary _savedCharacters = new();
     private SavedEncounterLibrary _savedEncounters = new();
     private int _activeSavedEncounterId;
@@ -79,6 +80,11 @@ public class MainActivity : Activity
         if (_savedEncounters.Find(_activeSavedEncounterId) is null) _activeSavedEncounterId = 0;
         foreach (Page page in _pages) FindViewById<Button>(page.ButtonId)!.Click += (_, _) => SelectPage(page);
         FindViewById<ListView>(Resource.Id.combat_list)!.ItemClick += (_, args) => ShowCombatParticipant(_sequenceParticipants[args.Position]);
+        FindViewById<ListView>(Resource.Id.combat_list)!.ItemLongClick += (_, args) =>
+        {
+            if (args.View is not null) BeginCombatantDrag(args.Position, args.View);
+        };
+        FindViewById<ListView>(Resource.Id.combat_list)!.Drag += (_, args) => HandleCombatantDrag(args);
         FindViewById<ListView>(Resource.Id.combat_party_list)!.ItemClick += (_, args) => ShowCombatParticipant(_partyParticipants[args.Position]);
         FindViewById<ListView>(Resource.Id.combat_monsters_list)!.ItemClick += (_, args) => ShowCombatParticipant(_encounterParticipants[args.Position]);
         FindViewById<Button>(Resource.Id.combat_sequence_tab)!.Click += (_, _) => SelectCombatSubTab(0);
@@ -815,6 +821,11 @@ public class MainActivity : Activity
         FindViewById<Button>(Resource.Id.next_turn_button)!.Enabled = initiativeReady && _combatRoster.Round > 0;
         FindViewById<Button>(Resource.Id.previous_turn_button)!.Enabled = initiativeReady && _combatRoster.Round > 0;
         FindViewById<Button>(Resource.Id.set_all_initiative_button)!.Enabled = count > 0;
+        Button combatButton = FindViewById<Button>(Resource.Id.set_all_initiative_button)!;
+        bool inCombat = _combatRoster.Round > 0;
+        combatButton.SetText(inCombat ? Resource.String.in_combat : Resource.String.start_initiative);
+        combatButton.BackgroundTintList = global::Android.Content.Res.ColorStateList.ValueOf(
+            new global::Android.Graphics.Color(GetColor(inCombat ? Resource.Color.combat_red : Resource.Color.combat_green)));
         FindViewById<TextView>(Resource.Id.round_status)!.Text = !initiativeReady
             ? "Not started"
             : _combatRoster.Round == 0 ? "Ready to start" : $"Round {_combatRoster.Round}";
@@ -836,11 +847,50 @@ public class MainActivity : Activity
         }
     }
 
+    private void BeginCombatantDrag(int position, View row)
+    {
+        if (_combatRoster.Round <= 0 || position < 0 || position >= _sequenceParticipants.Count) return;
+        _draggedCombatantSequence = _sequenceParticipants[position].Sequence;
+        var data = global::Android.Content.ClipData.NewPlainText("combatant", _draggedCombatantSequence.Value.ToString());
+        row.StartDragAndDrop(data, new View.DragShadowBuilder(row), null, 0);
+    }
+
+    private void HandleCombatantDrag(View.DragEventArgs args)
+    {
+        args.Handled = true;
+        if (args.Event?.Action != DragAction.Drop || !_draggedCombatantSequence.HasValue) return;
+        ListView list = FindViewById<ListView>(Resource.Id.combat_list)!;
+        int position = list.PointToPosition((int)args.Event.GetX(), (int)args.Event.GetY());
+        if (position >= 0 && position < _sequenceParticipants.Count &&
+            _combatRoster.MoveInCombatOrder(_draggedCombatantSequence.Value, _sequenceParticipants[position].Sequence))
+            CommitCombatChange();
+        _draggedCombatantSequence = null;
+    }
+
     private void StartCombat()
     {
+        if (_combatRoster.Round > 0)
+        {
+            ConfirmEndCombat();
+            return;
+        }
         int rolled = _combatRoster.StartCombat(() => Random.Shared.Next(1, 21));
         CommitCombatChange();
         Toast.MakeText(this, $"Rolled initiative for {rolled} combatant{(rolled == 1 ? string.Empty : "s")}. Combat started.", ToastLength.Short)?.Show();
+    }
+
+    private void ConfirmEndCombat()
+    {
+        var builder = new AlertDialog.Builder(this);
+        builder.SetTitle(Resource.String.end_combat_title);
+        builder.SetMessage(Resource.String.end_combat_message);
+        builder.SetNegativeButton("No", (_, _) => { });
+        builder.SetPositiveButton(Resource.String.end_combat, (_, _) =>
+        {
+            _combatRoster.ResetTurns();
+            CommitCombatChange();
+        });
+        builder.Show();
     }
 
     private void ShowEncounterNamePrompt()
@@ -913,6 +963,13 @@ public class MainActivity : Activity
             dialog?.Dismiss();
             ShowInitiativePrompt(participant);
         };
+        Button assignMini = actions.FindViewById<Button>(Resource.Id.assign_mini_button)!;
+        assignMini.Visibility = participant.IsManual ? ViewStates.Gone : ViewStates.Visible;
+        assignMini.Click += (_, _) =>
+        {
+            dialog?.Dismiss();
+            ShowMiniDescriptionPrompt(participant);
+        };
         Button togglePartyActive = actions.FindViewById<Button>(Resource.Id.toggle_party_active_button)!;
         togglePartyActive.Visibility = participant.IsManual ? ViewStates.Visible : ViewStates.Gone;
         togglePartyActive.SetText(participant.IsPartyActive ? Resource.String.set_inactive : Resource.String.set_active);
@@ -952,6 +1009,32 @@ public class MainActivity : Activity
             dialog?.Dismiss();
             ShowConditionManager(participant);
         };
+    }
+
+    private void ShowMiniDescriptionPrompt(CombatParticipant participant)
+    {
+        var input = new EditText(this)
+        {
+            Hint = GetString(Resource.String.mini_description),
+            Text = participant.MiniDescription ?? string.Empty
+        };
+        input.SetSingleLine(true);
+        input.SetSelectAllOnFocus(true);
+        int padding = (int)(24 * Resources!.DisplayMetrics!.Density);
+        var container = new FrameLayout(this);
+        container.SetPadding(padding, 0, padding, 0);
+        container.AddView(input);
+        var builder = new AlertDialog.Builder(this);
+        builder.SetTitle(Resource.String.assign_mini);
+        builder.SetView(container);
+        builder.SetNegativeButton(global::Android.Resource.String.Cancel, (_, _) => { });
+        builder.SetPositiveButton(global::Android.Resource.String.Ok, (_, _) =>
+        {
+            _combatRoster.SetMiniDescription(participant.Sequence, input.Text ?? string.Empty);
+            CommitCombatChange();
+        });
+        builder.Show();
+        input.RequestFocus();
     }
 
     private void ShowSavedCombatantDetails(CombatParticipant participant)

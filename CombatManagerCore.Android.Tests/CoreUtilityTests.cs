@@ -524,6 +524,31 @@ public sealed class CoreUtilityTests
     }
 
     [TestMethod]
+    public void MonsterMiniLabelsAndManualCombatOrderPersist()
+    {
+        var roster = new CombatRoster();
+        CombatParticipant goblin = roster.Add(new CreatureSummary { Id = 7, Name = "Goblin", HP = 6 });
+        CombatParticipant ogre = roster.Add(new CreatureSummary { Id = 8, Name = "Ogre", HP = 30 });
+        CombatParticipant player = roster.AddManual("Valeros", 25, 3);
+        Assert.IsTrue(roster.SetMiniDescription(goblin.Sequence, "swords"));
+        Assert.IsFalse(roster.SetMiniDescription(player.Sequence, "blue mini"));
+        Assert.AreEqual("Goblin (swords)", goblin.DisplayName);
+
+        int[] rolls = [12, 8, 16];
+        int index = 0;
+        roster.StartCombat(() => rolls[index++]);
+        Assert.IsTrue(roster.MoveInCombatOrder(ogre.Sequence, player.Sequence));
+        Assert.AreEqual("Ogre", roster.Participants[0].Name);
+
+        using var stream = new MemoryStream();
+        roster.Save(stream);
+        stream.Position = 0;
+        Assert.IsTrue(CombatRoster.TryLoad(stream, out CombatRoster restored));
+        Assert.AreEqual("Ogre", restored.Participants[0].Name);
+        Assert.AreEqual("swords", restored.Participants.Single(item => item.Name == "Goblin").MiniDescription);
+    }
+
+    [TestMethod]
     public void EncounterSnapshotsExcludeAndPreservePersistentPartyMembers()
     {
         var roster = new CombatRoster();

@@ -39,8 +39,8 @@ internal sealed class CombatParticipantListAdapter(Activity context, IReadOnlyLi
             view.FindViewById<TextView>(Resource.Id.combat_row_cr)!.Visibility = ViewStates.Visible;
             view.FindViewById<TextView>(Resource.Id.combat_row_hp)!.Visibility = ViewStates.Visible;
         }
-        view.FindViewById<TextView>(Resource.Id.combat_row_name)!.Text =
-            (active ? "▶ " : string.Empty) + inactivePrefix + participant.DisplayName;
+        SetParticipantName(view.FindViewById<TextView>(Resource.Id.combat_row_name)!, participant,
+            (active ? "▶ " : string.Empty) + inactivePrefix);
         int background = active ? Resource.Color.primary_light : participant.IsManual && !participant.IsPartyActive
             ? Resource.Color.inactive_background : compact && !participant.IsManual ? MonsterHealthColor(participant)
             : participant.IsDefeated ? Resource.Color.defeated_background : Resource.Color.page_background;
@@ -66,5 +66,23 @@ internal sealed class CombatParticipantListAdapter(Activity context, IReadOnlyLi
         if (percentage < 20) return Resource.Color.health_critical;
         if (percentage < 51) return Resource.Color.health_wounded;
         return Resource.Color.health_good;
+    }
+
+    private void SetParticipantName(TextView view, CombatParticipant participant, string prefix)
+    {
+        string baseText = prefix + participant.BaseDisplayName;
+        if (participant.IsManual || string.IsNullOrWhiteSpace(participant.MiniDescription))
+        {
+            view.Text = baseText;
+            return;
+        }
+        string suffix = " (" + participant.MiniDescription + ")";
+        var text = new global::Android.Text.SpannableString(baseText + suffix);
+        text.SetSpan(new global::Android.Text.Style.RelativeSizeSpan(0.75f), baseText.Length, text.Length(),
+            global::Android.Text.SpanTypes.ExclusiveExclusive);
+        text.SetSpan(new global::Android.Text.Style.ForegroundColorSpan(
+            new global::Android.Graphics.Color(context.GetColor(Resource.Color.text_secondary))), baseText.Length, text.Length(),
+            global::Android.Text.SpanTypes.ExclusiveExclusive);
+        view.SetText(text, TextView.BufferType.Spannable);
     }
 }

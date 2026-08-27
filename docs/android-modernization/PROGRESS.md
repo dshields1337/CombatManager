@@ -1,6 +1,6 @@
 # Android modernization progress
 
-Last updated: 2026-08-27
+Last updated: 2026-08-28
 
 ## Current status
 
@@ -210,6 +210,11 @@ Last updated: 2026-08-27
 - API 36 visual/accessibility verification confirmed the pale-red defeated treatment, readable mixed roster layout, and descriptive accessibility nodes for both combatants.
 
 ## In progress
+
+- Added optional Assign Mini descriptions to encounter monsters. Labels persist and appear after the numbered monster name across Combat views in smaller, lighter parenthesized text, while remaining absent from Party members.
+- Changed the bottom Sequence action to green before combat and red `IN COMBAT` after one-tap initiative starts round one. A second tap asks whether combat is over; No preserves state and Yes resets initiative/round tracking without changing participants, HP, notes, or conditions.
+- Added long-press Android drag-and-drop reordering after combat starts. Explicit roster order persists independently of initiative totals so held/delayed turns survive process restart without falsifying their rolls.
+- Latest core result: 53 passed, 0 failed, 0 skipped; Debug Android build succeeded with 0 warnings and 0 errors. API 36 verification assigned and restored `Goblin (swords)`, confirmed both combat-end choices and ready/in-combat button states, dragged the active participant from first to third, restored that order after force-stop, and kept the process alive.
 
 - Added subdued monster health bands to compact Sequence rows: green at 51% or higher, yellow from 20% through 50%, orange below 20%, and red at 0 HP or lower. The active-turn teal remains visually distinct.
 - One-tap combat start now stores each natural d20 result and displays it in grey brackets to the left of total initiative; optional persistence attributes keep existing roster files compatible.

@@ -24,12 +24,14 @@ namespace CombatManager
         public int InitiativeModifier { get; set; }
         public bool IsPartyActive { get; set; } = true;
         public string Notes { get; set; }
+        public string MiniDescription { get; set; }
         public List<CombatCondition> Conditions { get; set; } = new List<CombatCondition>();
         public bool IsDefeated => CurrentHP <= 0;
         public bool IsManual => CreatureId <= 0;
         public bool IsSavedCharacter => SavedCharacterId > 0;
         public bool IsInCombat => !IsManual || IsPartyActive;
-        public string DisplayName => InstanceNumber <= 1 ? Name : Name + " " + InstanceNumber;
+        public string BaseDisplayName => InstanceNumber <= 1 ? Name : Name + " " + InstanceNumber;
+        public string DisplayName => BaseDisplayName + (string.IsNullOrWhiteSpace(MiniDescription) ? string.Empty : " (" + MiniDescription + ")");
     }
 
     public class CombatCondition
@@ -117,7 +119,8 @@ namespace CombatManager
             {
                 Sequence = _nextSequence++, CreatureId = source.CreatureId, SavedCharacterId = source.SavedCharacterId, InstanceNumber = instanceNumber,
                 Name = source.Name, ChallengeRating = source.ChallengeRating, MaximumHP = source.MaximumHP,
-                CurrentHP = source.MaximumHP, Notes = source.Notes ?? string.Empty, InitiativeModifier = source.InitiativeModifier,
+                CurrentHP = source.MaximumHP, Notes = source.Notes ?? string.Empty, MiniDescription = source.MiniDescription ?? string.Empty,
+                InitiativeModifier = source.InitiativeModifier,
                 Conditions = source.Conditions.Select(condition => new CombatCondition { Name = condition.Name, RemainingTurns = condition.RemainingTurns }).ToList()
             };
             _participants.Add(duplicate);
@@ -230,6 +233,26 @@ namespace CombatManager
             return true;
         }
 
+        public bool SetMiniDescription(int sequence, string description)
+        {
+            CombatParticipant participant = _participants.FirstOrDefault(item => item.Sequence == sequence && !item.IsManual);
+            if (participant == null) return false;
+            participant.MiniDescription = (description ?? string.Empty).Trim();
+            return true;
+        }
+
+        public bool MoveInCombatOrder(int sequence, int targetSequence)
+        {
+            int sourceIndex = _participants.FindIndex(item => item.Sequence == sequence && item.IsInCombat);
+            int targetIndex = _participants.FindIndex(item => item.Sequence == targetSequence && item.IsInCombat);
+            if (sourceIndex < 0 || targetIndex < 0 || sourceIndex == targetIndex) return false;
+            CombatParticipant participant = _participants[sourceIndex];
+            _participants.RemoveAt(sourceIndex);
+            targetIndex = _participants.FindIndex(item => item.Sequence == targetSequence);
+            _participants.Insert(targetIndex, participant);
+            return true;
+        }
+
         private CombatParticipant AddCopy(CombatParticipant source)
         {
             var copy = new CombatParticipant
@@ -239,6 +262,7 @@ namespace CombatManager
                 MaximumHP = source.MaximumHP, CurrentHP = source.CurrentHP, TemporaryHP = source.TemporaryHP,
                 InitiativeModifier = source.InitiativeModifier, InitiativeRoll = source.InitiativeRoll,
                 IsPartyActive = source.IsPartyActive, Notes = source.Notes ?? string.Empty,
+                MiniDescription = source.MiniDescription ?? string.Empty,
                 Conditions = source.Conditions.Select(condition => new CombatCondition
                     { Name = condition.Name, RemainingTurns = condition.RemainingTurns }).ToList()
             };
@@ -460,6 +484,7 @@ namespace CombatManager
                     if (participant.InitiativeModifier != 0) writer.WriteAttributeString("initiativeModifier", participant.InitiativeModifier.ToString(CultureInfo.InvariantCulture));
                     if (!participant.IsPartyActive) writer.WriteAttributeString("partyActive", "false");
                     if (!string.IsNullOrEmpty(participant.Notes)) writer.WriteAttributeString("notes", participant.Notes);
+                    if (!string.IsNullOrEmpty(participant.MiniDescription)) writer.WriteAttributeString("mini", participant.MiniDescription);
                     foreach (CombatCondition condition in participant.Conditions)
                     {
                         writer.WriteStartElement("Condition");
@@ -501,7 +526,8 @@ namespace CombatManager
                         InitiativeRoll = string.IsNullOrEmpty(initiativeRollText) ? (int?)null : int.Parse(initiativeRollText, CultureInfo.InvariantCulture),
                         InitiativeModifier = AttributeIntOrDefault(element, "initiativeModifier"),
                         IsPartyActive = !string.Equals(partyActiveText, "false", System.StringComparison.OrdinalIgnoreCase),
-                        Notes = (string)element.Attribute("notes") ?? string.Empty
+                        Notes = (string)element.Attribute("notes") ?? string.Empty,
+                        MiniDescription = (string)element.Attribute("mini") ?? string.Empty
                     };
                     foreach (XElement conditionElement in element.Elements("Condition"))
                     {
@@ -512,7 +538,6 @@ namespace CombatManager
                     }
                     roster._participants.Add(participant);
                 }
-                roster.SortByInitiative();
                 roster._nextSequence = roster._participants.Count == 0 ? 1 : roster._participants.Max(item => item.Sequence) + 1;
                 foreach (CombatParticipant participant in roster._participants)
                 {

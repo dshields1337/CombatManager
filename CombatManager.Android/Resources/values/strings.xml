@@ -21,7 +21,8 @@
     <string name="set_all_initiative_title">Set encounter initiative</string>
     <string name="set_all_initiative_prompt">Enter a whole number for every combatant.</string>
     <string name="invalid_initiatives">Enter a whole number for every combatant.</string>
-    <string name="roll_monster_initiative">Roll monster initiative</string>
+    <string name="roll_all_initiative">Roll all initiative</string>
+    <string name="initiative_modifier">Initiative modifier</string>
     <string name="initiative_prompt">Initiative result</string>
     <string name="previous_turn">Previous</string>
     <string name="next_turn">Next</string>
@@ -39,7 +40,7 @@
     <string name="add_combatant_title">Add combatant</string>
     <string name="combatant_name">Name</string>
     <string name="maximum_hp">Maximum HP</string>
-    <string name="invalid_combatant">Enter a name and maximum HP of at least 1.</string>
+    <string name="invalid_combatant">Enter a name, maximum HP of at least 1, and a whole-number initiative modifier.</string>
     <string name="edit_combatant">Edit</string>
     <string name="edit_combatant_title">Edit combatant</string>
     <string name="reset_hp">Full HP</string>

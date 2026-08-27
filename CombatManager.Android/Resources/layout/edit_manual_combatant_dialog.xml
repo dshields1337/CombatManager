@@ -3,4 +3,5 @@
     <EditText android:id="@+id/edit_manual_name" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="@string/combatant_name" android:inputType="textCapWords" android:singleLine="true" />
     <EditText android:id="@+id/edit_manual_max_hp" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="@string/maximum_hp" android:inputType="number" android:singleLine="true" />
     <EditText android:id="@+id/edit_manual_current_hp" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="@string/current_hp" android:inputType="numberSigned" android:singleLine="true" />
+    <EditText android:id="@+id/edit_manual_initiative_modifier" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="@string/initiative_modifier" android:inputType="numberSigned" android:singleLine="true" />
 </LinearLayout>

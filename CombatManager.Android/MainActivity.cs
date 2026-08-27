@@ -756,11 +756,12 @@ public class MainActivity : Activity
     {
         View actions = LayoutInflater.Inflate(Resource.Layout.combat_participant_actions, null)!;
         string initiative = participant.Initiative.HasValue ? participant.Initiative.Value.ToString() : "Not set";
+        string initiativeModifier = participant.InitiativeModifier >= 0 ? "+" + participant.InitiativeModifier : participant.InitiativeModifier.ToString();
         string conditionCount = participant.Conditions.Count == 0 ? "None" : participant.Conditions.Count.ToString();
         actions.FindViewById<TextView>(Resource.Id.combatant_details)!.Text =
             $"CR {participant.ChallengeRating}  •  HP {participant.CurrentHP} / {participant.MaximumHP}" +
             (participant.TemporaryHP > 0 ? $"  +  {participant.TemporaryHP} temporary" : string.Empty) +
-            $"\nInitiative: {initiative}  •  Conditions: {conditionCount}";
+            $"\nInitiative: {initiative} ({initiativeModifier} modifier)  •  Conditions: {conditionCount}";
         var builder = new AlertDialog.Builder(this);
         builder.SetTitle(participant.DisplayName);
         builder.SetView(actions);
@@ -1047,15 +1048,17 @@ public class MainActivity : Activity
         View view = LayoutInflater.Inflate(Resource.Layout.manual_combatant_dialog, null)!;
         EditText name = view.FindViewById<EditText>(Resource.Id.manual_name)!;
         EditText hp = view.FindViewById<EditText>(Resource.Id.manual_hp)!;
+        EditText initiativeModifier = view.FindViewById<EditText>(Resource.Id.manual_initiative_modifier)!;
         var builder = new AlertDialog.Builder(this);
         builder.SetTitle(Resource.String.add_combatant_title);
         builder.SetView(view);
         builder.SetNegativeButton(global::Android.Resource.String.Cancel, (_, _) => { });
         builder.SetPositiveButton(global::Android.Resource.String.Ok, (_, _) =>
         {
-            if (!string.IsNullOrWhiteSpace(name.Text) && int.TryParse(hp.Text, out int maximumHp) && maximumHp >= 1)
+            if (!string.IsNullOrWhiteSpace(name.Text) && int.TryParse(hp.Text, out int maximumHp) && maximumHp >= 1 &&
+                int.TryParse(initiativeModifier.Text, out int modifier))
             {
-                _combatRoster.AddManual(name.Text, maximumHp);
+                _combatRoster.AddManual(name.Text, maximumHp, modifier);
                 CommitCombatChange();
             }
             else Toast.MakeText(this, Resource.String.invalid_combatant, ToastLength.Short)?.Show();
@@ -1070,9 +1073,11 @@ public class MainActivity : Activity
         EditText name = view.FindViewById<EditText>(Resource.Id.edit_manual_name)!;
         EditText maximumHp = view.FindViewById<EditText>(Resource.Id.edit_manual_max_hp)!;
         EditText currentHp = view.FindViewById<EditText>(Resource.Id.edit_manual_current_hp)!;
+        EditText initiativeModifier = view.FindViewById<EditText>(Resource.Id.edit_manual_initiative_modifier)!;
         name.Text = participant.Name;
         maximumHp.Text = participant.MaximumHP.ToString();
         currentHp.Text = participant.CurrentHP.ToString();
+        initiativeModifier.Text = participant.InitiativeModifier.ToString();
         var builder = new AlertDialog.Builder(this);
         builder.SetTitle(Resource.String.edit_combatant_title);
         builder.SetView(view);
@@ -1080,7 +1085,8 @@ public class MainActivity : Activity
         builder.SetPositiveButton(global::Android.Resource.String.Ok, (_, _) =>
         {
             if (int.TryParse(maximumHp.Text, out int maximum) && int.TryParse(currentHp.Text, out int current) &&
-                _combatRoster.UpdateManual(participant.Sequence, name.Text ?? string.Empty, maximum, current))
+                int.TryParse(initiativeModifier.Text, out int modifier) &&
+                _combatRoster.UpdateManual(participant.Sequence, name.Text ?? string.Empty, maximum, current, modifier))
                 CommitCombatChange();
             else Toast.MakeText(this, Resource.String.invalid_combatant, ToastLength.Short)?.Show();
         });
@@ -1126,18 +1132,14 @@ public class MainActivity : Activity
         var fields = new Dictionary<int, EditText>();
         var rows = new LinearLayout(this) { Orientation = global::Android.Widget.Orientation.Vertical };
         rows.SetPadding(padding, 0, padding, 0);
-        Button? rollMonsters = null;
-        if (_combatRoster.Participants.Any(item => !item.IsManual))
-        {
-            rollMonsters = new Button(this) { Text = GetString(Resource.String.roll_monster_initiative) };
-            rows.AddView(rollMonsters, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MatchParent, LinearLayout.LayoutParams.WrapContent));
-        }
+        var rollAll = new Button(this) { Text = GetString(Resource.String.roll_all_initiative) };
+        rows.AddView(rollAll, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MatchParent, LinearLayout.LayoutParams.WrapContent));
         foreach (CombatParticipant participant in _combatRoster.Participants.OrderBy(item => item.Sequence))
         {
             var row = new LinearLayout(this) { Orientation = global::Android.Widget.Orientation.Horizontal };
             row.SetGravity(GravityFlags.CenterVertical);
             string modifier = participant.InitiativeModifier >= 0 ? "+" + participant.InitiativeModifier : participant.InitiativeModifier.ToString();
-            var label = new TextView(this) { Text = participant.DisplayName + (participant.IsManual ? string.Empty : "  (" + modifier + ")") };
+            var label = new TextView(this) { Text = participant.DisplayName + "  (" + modifier + ")" };
             row.AddView(label, new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WrapContent, 1));
             var input = new EditText(this)
             {
@@ -1150,17 +1152,14 @@ public class MainActivity : Activity
             rows.AddView(row);
             fields[participant.Sequence] = input;
         }
-        if (rollMonsters is not null)
+        rollAll.Click += (_, _) =>
         {
-            rollMonsters.Click += (_, _) =>
-            {
-                int rolled = _combatRoster.RollMonsterInitiatives(() => Random.Shared.Next(1, 21));
-                foreach (CombatParticipant participant in _combatRoster.Participants.Where(item => !item.IsManual))
-                    fields[participant.Sequence].Text = participant.Initiative?.ToString() ?? string.Empty;
-                CommitCombatChange();
-                Toast.MakeText(this, $"Rolled initiative for {rolled} monster{(rolled == 1 ? string.Empty : "s")}.", ToastLength.Short)?.Show();
-            };
-        }
+            int rolled = _combatRoster.RollInitiatives(() => Random.Shared.Next(1, 21));
+            foreach (CombatParticipant participant in _combatRoster.Participants)
+                fields[participant.Sequence].Text = participant.Initiative?.ToString() ?? string.Empty;
+            CommitCombatChange();
+            Toast.MakeText(this, $"Rolled initiative for {rolled} combatant{(rolled == 1 ? string.Empty : "s")}.", ToastLength.Short)?.Show();
+        };
         var scroll = new ScrollView(this);
         scroll.AddView(rows);
         var builder = new AlertDialog.Builder(this);

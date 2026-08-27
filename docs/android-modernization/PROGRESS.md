@@ -37,7 +37,7 @@ Last updated: 2026-08-27
 - Latest core result: 42 passed, 0 failed, 0 skipped; Debug Android build succeeded with 0 warnings and 0 errors.
 - API 36 verification showed the new clear-all action for `Prone`, required confirmation naming the participant, removed the condition while retaining the participant, and left the process alive.
 - Projected bestiary initiative modifiers into encounter participants and version-1 persistence, including negative modifiers and duplicate participants.
-- Added one-tap d20 initiative rolling for every bestiary combatant from the bulk initiative dialog; manual players remain user-entered and monster modifier labels are visible beside their fields.
+- Added one-tap d20 initiative rolling for every bestiary combatant from the bulk initiative dialog; this was subsequently expanded to all combatants after manual initiative modifiers were introduced.
 - Latest core result: 43 passed, 0 failed, 0 skipped.
 - API 36 verification added a bundled Goblin, displayed its `+6` modifier in bulk initiative, rolled it to 22, left the manual participant blank, persisted the roll, and kept the process alive.
 - Added persistent temporary HP, explicit row/action-sheet display, and a setter that accepts `0` to clear it. Damage consumes temporary HP before current HP; healing does not restore temporary HP.
@@ -210,6 +210,10 @@ Last updated: 2026-08-27
 - API 36 visual/accessibility verification confirmed the pale-red defeated treatment, readable mixed roster layout, and descriptive accessibility nodes for both combatants.
 
 ## In progress
+
+- Added a whole-number initiative modifier to manual player/NPC creation and editing, displayed modifiers for every combatant, and expanded the atomic one-tap d20 roll to the entire encounter.
+- Core remains 45 passed, 0 failed, 0 skipped; Debug Android build succeeded with 0 warnings and 0 errors.
+- API 36 verification edited `UntimedTest` to a +5 initiative modifier, displayed it alongside Goblin's +6, and used Roll All Initiative to populate both results; the application remained alive.
 
 - Added optional encounter naming to the combat header, private version-1 snapshot, and shared summary while retaining backward compatibility for unnamed snapshots.
 - Latest core result: 45 passed, 0 failed, 0 skipped; Debug Android build succeeded with 0 warnings and 0 errors.

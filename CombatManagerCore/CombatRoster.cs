@@ -69,7 +69,7 @@ namespace CombatManager
             return participant;
         }
 
-        public CombatParticipant AddManual(string name, int maximumHp)
+        public CombatParticipant AddManual(string name, int maximumHp, int initiativeModifier = 0)
         {
             if (string.IsNullOrWhiteSpace(name)) throw new System.ArgumentException("A name is required.", "name");
             if (maximumHp < 1) throw new System.ArgumentOutOfRangeException("maximumHp");
@@ -79,7 +79,8 @@ namespace CombatManager
             var participant = new CombatParticipant
             {
                 Sequence = _nextSequence++, CreatureId = 0, InstanceNumber = instanceNumber,
-                Name = cleanName, ChallengeRating = "—", MaximumHP = maximumHp, CurrentHP = maximumHp
+                Name = cleanName, ChallengeRating = "—", MaximumHP = maximumHp, CurrentHP = maximumHp,
+                InitiativeModifier = initiativeModifier
             };
             _participants.Add(participant);
             return participant;
@@ -139,19 +140,19 @@ namespace CombatManager
             return true;
         }
 
-        public int RollMonsterInitiatives(System.Func<int> rollD20)
+        public int RollInitiatives(System.Func<int> rollD20)
         {
             if (rollD20 == null) throw new System.ArgumentNullException("rollD20");
-            int count = 0;
-            foreach (CombatParticipant participant in _participants.Where(item => !item.IsManual))
+            var results = new List<int>(_participants.Count);
+            foreach (CombatParticipant participant in _participants)
             {
                 int roll = rollD20();
                 if (roll < 1 || roll > 20) throw new System.ArgumentOutOfRangeException("rollD20", "A d20 roll must be between 1 and 20.");
-                participant.Initiative = roll + participant.InitiativeModifier;
-                count++;
+                results.Add(roll + participant.InitiativeModifier);
             }
+            for (int index = 0; index < _participants.Count; index++) _participants[index].Initiative = results[index];
             SortByInitiative();
-            return count;
+            return results.Count;
         }
 
         public bool ApplyDamage(int sequence, int amount)
@@ -182,7 +183,7 @@ namespace CombatManager
             return true;
         }
 
-        public bool UpdateManual(int sequence, string name, int maximumHp, int currentHp)
+        public bool UpdateManual(int sequence, string name, int maximumHp, int currentHp, int initiativeModifier = 0)
         {
             CombatParticipant participant = _participants.FirstOrDefault(item => item.Sequence == sequence && item.IsManual);
             if (participant == null || string.IsNullOrWhiteSpace(name) || maximumHp < 1) return false;
@@ -192,6 +193,7 @@ namespace CombatManager
                 .Select(item => item.InstanceNumber).DefaultIfEmpty(0).Max() + 1;
             participant.MaximumHP = maximumHp;
             participant.CurrentHP = currentHp;
+            participant.InitiativeModifier = initiativeModifier;
             return true;
         }
 

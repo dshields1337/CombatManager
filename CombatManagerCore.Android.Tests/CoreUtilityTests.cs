@@ -457,25 +457,26 @@ public sealed class CoreUtilityTests
     }
 
     [TestMethod]
-    public void CombatRosterRollsOnlyBestiaryInitiativeWithModifiers()
+    public void CombatRosterRollsAllInitiativeWithModifiers()
     {
         var roster = new CombatRoster();
         CombatParticipant goblin = roster.Add(new CreatureSummary { Id = 7, Name = "Goblin", InitiativeModifier = 6 });
         CombatParticipant zombie = roster.Add(new CreatureSummary { Id = 8, Name = "Zombie", InitiativeModifier = -1 });
-        CombatParticipant player = roster.AddManual("Valeros", 30);
-        int[] rolls = [12, 8];
+        CombatParticipant player = roster.AddManual("Valeros", 30, 4);
+        int[] rolls = [12, 8, 15];
         int rollIndex = 0;
-        Assert.AreEqual(2, roster.RollMonsterInitiatives(() => rolls[rollIndex++]));
+        Assert.AreEqual(3, roster.RollInitiatives(() => rolls[rollIndex++]));
         Assert.AreEqual(18, goblin.Initiative);
         Assert.AreEqual(7, zombie.Initiative);
-        Assert.IsNull(player.Initiative);
-        Assert.ThrowsExactly<ArgumentOutOfRangeException>(() => roster.RollMonsterInitiatives(() => 21));
+        Assert.AreEqual(19, player.Initiative);
+        Assert.ThrowsExactly<ArgumentOutOfRangeException>(() => roster.RollInitiatives(() => 21));
         using var stream = new MemoryStream();
         roster.Save(stream);
         stream.Position = 0;
         Assert.IsTrue(CombatRoster.TryLoad(stream, out CombatRoster restored));
         Assert.AreEqual(6, restored.Participants.Single(item => item.Name == "Goblin").InitiativeModifier);
         Assert.AreEqual(-1, restored.Participants.Single(item => item.Name == "Zombie").InitiativeModifier);
+        Assert.AreEqual(4, restored.Participants.Single(item => item.Name == "Valeros").InitiativeModifier);
     }
 
     [TestMethod]
@@ -564,12 +565,13 @@ public sealed class CoreUtilityTests
     public void CombatRosterAddsAndPersistsManualCombatants()
     {
         var roster = new CombatRoster();
-        CombatParticipant first = roster.AddManual("  Valeros  ", 24);
+        CombatParticipant first = roster.AddManual("  Valeros  ", 24, 3);
         CombatParticipant second = roster.AddManual("valeros", 30);
         Assert.AreEqual("Valeros", first.DisplayName);
         Assert.AreEqual("valeros 2", second.DisplayName);
         Assert.AreEqual(24, first.CurrentHP);
         Assert.IsTrue(first.IsManual);
+        Assert.AreEqual(3, first.InitiativeModifier);
 
         using var stream = new MemoryStream();
         roster.Save(stream);
@@ -577,6 +579,7 @@ public sealed class CoreUtilityTests
         Assert.IsTrue(CombatRoster.TryLoad(stream, out CombatRoster restored));
         Assert.HasCount(2, restored.Participants);
         Assert.IsTrue(restored.Participants[0].IsManual);
+        Assert.AreEqual(3, restored.Participants[0].InitiativeModifier);
     }
 
     [TestMethod]
@@ -584,10 +587,11 @@ public sealed class CoreUtilityTests
     {
         var roster = new CombatRoster();
         CombatParticipant valeros = roster.AddManual("Valeros", 24);
-        Assert.IsTrue(roster.UpdateManual(valeros.Sequence, "Valeros the Brave", 30, -4));
+        Assert.IsTrue(roster.UpdateManual(valeros.Sequence, "Valeros the Brave", 30, -4, 7));
         Assert.AreEqual("Valeros the Brave", valeros.DisplayName);
         Assert.AreEqual(30, valeros.MaximumHP);
         Assert.AreEqual(-4, valeros.CurrentHP);
+        Assert.AreEqual(7, valeros.InitiativeModifier);
         Assert.IsTrue(valeros.IsDefeated);
         Assert.IsTrue(roster.ResetHp(valeros.Sequence));
         Assert.AreEqual(30, valeros.CurrentHP);

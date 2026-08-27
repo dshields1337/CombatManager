@@ -251,3 +251,10 @@
 - Status: accepted
 - Decision: allow a trimmed, optional encounter name, persist it as an optional version-1 root attribute, use it as the shared-summary heading, and clear it when the encounter is cleared.
 - Reason: names make saved and shared combat summaries identifiable without requiring a snapshot-version migration. An absent name remains fully backward-compatible and retains the existing generic heading.
+
+## D037: Roll initiative for all combatants from stored modifiers
+
+- Date: 2026-08-27
+- Status: accepted
+- Decision: require a whole-number initiative modifier when creating or editing a manual player/NPC, persist it through the existing optional participant attribute, and have the one-tap d20 action atomically roll every participant.
+- Reason: players and NPCs use the same `d20 + modifier` initiative rule as bestiary creatures. A default of zero preserves old snapshots and existing callers, while a single encounter-wide roll eliminates unnecessary manual entry.

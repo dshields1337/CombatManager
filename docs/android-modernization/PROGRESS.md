@@ -1,6 +1,6 @@
 # Android modernization progress
 
-Last updated: 2026-08-26
+Last updated: 2026-08-27
 
 ## Current status
 
@@ -10,6 +10,13 @@ Last updated: 2026-08-26
 - Legacy source changes: none
 
 ## Completed
+
+### 2026-08-27 (continued)
+
+- Reorganized the growing participant action dialog into a scrollable, grouped action sheet covering health, turn/status, and participant operations.
+- Added initiative and timed-condition status to the action-sheet summary and confirmation before removing an individual combatant.
+- Latest core result remains 37 passed, 0 failed, 0 skipped; a clean Debug Android build succeeded with 0 warnings and 0 errors.
+- API 36 verification confirmed all three action groups, correct Android resource mapping after a clean package rebuild, and a live application process.
 
 ### 2026-08-26
 
@@ -197,8 +204,8 @@ Last updated: 2026-08-26
 
 ## Next actions
 
-1. Improve combat action discoverability as the action set grows.
-2. Add a focused participant action sheet with grouped destructive/non-destructive operations.
+1. Correct remaining user-visible character-encoding artifacts in modern screens and summaries.
+2. Add a focused combat convenience operation to reduce repetitive initiative setup.
 3. Continue vertical slices toward parity with legacy combat controls.
 
 ## Tracking convention

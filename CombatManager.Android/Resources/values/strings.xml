@@ -11,6 +11,11 @@
     <string name="clear_encounter_message">Remove every combatant from this encounter?</string>
     <string name="add_to_combat">Add to combat</string>
     <string name="remove_from_combat">Remove</string>
+    <string name="remove_combatant_title">Remove combatant?</string>
+    <string name="health_actions">HEALTH</string>
+    <string name="turn_status_actions">TURN &amp; STATUS</string>
+    <string name="participant_actions">PARTICIPANT</string>
+    <string name="notes">Notes</string>
     <string name="set_initiative">Set initiative</string>
     <string name="initiative_prompt">Initiative result</string>
     <string name="previous_turn">Previous</string>

@@ -723,16 +723,14 @@ public class MainActivity : Activity
     private void ShowCombatParticipant(CombatParticipant participant)
     {
         View actions = LayoutInflater.Inflate(Resource.Layout.combat_participant_actions, null)!;
+        string initiative = participant.Initiative.HasValue ? participant.Initiative.Value.ToString() : "Not set";
+        string conditionCount = participant.Conditions.Count == 0 ? "None" : participant.Conditions.Count.ToString();
         actions.FindViewById<TextView>(Resource.Id.combatant_details)!.Text =
-            $"CR {participant.ChallengeRating}\nHP {participant.CurrentHP} / {participant.MaximumHP}";
+            $"CR {participant.ChallengeRating}  •  HP {participant.CurrentHP} / {participant.MaximumHP}\nInitiative: {initiative}  •  Timed conditions: {conditionCount}";
         var builder = new AlertDialog.Builder(this);
         builder.SetTitle(participant.DisplayName);
         builder.SetView(actions);
-        builder.SetNegativeButton(Resource.String.remove_from_combat, (_, _) =>
-        {
-            _combatRoster.Remove(participant.Sequence);
-            CommitCombatChange();
-        });
+        builder.SetNegativeButton(Resource.String.remove_from_combat, (_, _) => ConfirmRemoveCombatant(participant));
         builder.SetPositiveButton(global::Android.Resource.String.Ok, (_, _) => { });
         AlertDialog? dialog = builder.Show();
         actions.FindViewById<Button>(Resource.Id.damage_button)!.Click += (_, _) =>
@@ -779,6 +777,20 @@ public class MainActivity : Activity
             dialog?.Dismiss();
             ShowConditionManager(participant);
         };
+    }
+
+    private void ConfirmRemoveCombatant(CombatParticipant participant)
+    {
+        var builder = new AlertDialog.Builder(this);
+        builder.SetTitle(Resource.String.remove_combatant_title);
+        builder.SetMessage($"Remove {participant.DisplayName} from this encounter?");
+        builder.SetNegativeButton(global::Android.Resource.String.Cancel, (_, _) => { });
+        builder.SetPositiveButton(Resource.String.remove_from_combat, (_, _) =>
+        {
+            _combatRoster.Remove(participant.Sequence);
+            CommitCombatChange();
+        });
+        builder.Show();
     }
 
     private void ShowHpPrompt(CombatParticipant participant, bool damage)

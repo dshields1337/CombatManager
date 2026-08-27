@@ -114,7 +114,7 @@ internal sealed class CombatParticipantListAdapter(Activity context, IReadOnlyLi
             view.Text = baseText;
             return;
         }
-        string suffix = " (" + participant.MiniDescription + ")";
+        string suffix = "\n(" + participant.MiniDescription + ")";
         var text = new global::Android.Text.SpannableString(baseText + suffix);
         text.SetSpan(new global::Android.Text.Style.RelativeSizeSpan(0.75f), baseText.Length, text.Length(),
             global::Android.Text.SpanTypes.ExclusiveExclusive);

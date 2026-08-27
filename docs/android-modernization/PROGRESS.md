@@ -307,3 +307,4 @@ Last updated: 2026-08-28
 - Temporary smoke project: `C:\Users\dave8\AppData\Local\Temp\CombatManager.Android.Smoke`
 - Smoke build command used explicit `AndroidSdkDirectory` and `JavaSdkDirectory` MSBuild properties.
 - Centered the editable current-HP value between its minus and plus buttons while retaining fixed-width columns, so controls remain aligned across combat rows.
+- Moved assigned mini descriptions onto a smaller secondary line beneath monster names throughout the combat tabs.

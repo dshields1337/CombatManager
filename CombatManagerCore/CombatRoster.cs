@@ -20,12 +20,15 @@ namespace CombatManager
         public int CurrentHP { get; set; }
         public int TemporaryHP { get; set; }
         public int? Initiative { get; set; }
+        public int? InitiativeRoll { get; set; }
         public int InitiativeModifier { get; set; }
+        public bool IsPartyActive { get; set; } = true;
         public string Notes { get; set; }
         public List<CombatCondition> Conditions { get; set; } = new List<CombatCondition>();
         public bool IsDefeated => CurrentHP <= 0;
         public bool IsManual => CreatureId <= 0;
         public bool IsSavedCharacter => SavedCharacterId > 0;
+        public bool IsInCombat => !IsManual || IsPartyActive;
         public string DisplayName => InstanceNumber <= 1 ? Name : Name + " " + InstanceNumber;
     }
 
@@ -137,6 +140,7 @@ namespace CombatManager
             CombatParticipant participant = _participants.FirstOrDefault(item => item.Sequence == sequence);
             if (participant == null) return false;
             participant.Initiative = initiative;
+            participant.InitiativeRoll = null;
             SortByInitiative();
             return true;
         }
@@ -146,7 +150,11 @@ namespace CombatManager
             if (initiatives == null || initiatives.Count == 0 ||
                 initiatives.Keys.Any(sequence => !_participants.Any(item => item.Sequence == sequence))) return false;
             foreach (CombatParticipant participant in _participants)
-                if (initiatives.TryGetValue(participant.Sequence, out int initiative)) participant.Initiative = initiative;
+                if (initiatives.TryGetValue(participant.Sequence, out int initiative))
+                {
+                    participant.Initiative = initiative;
+                    participant.InitiativeRoll = null;
+                }
             SortByInitiative();
             return true;
         }
@@ -154,14 +162,21 @@ namespace CombatManager
         public int RollInitiatives(System.Func<int> rollD20)
         {
             if (rollD20 == null) throw new System.ArgumentNullException("rollD20");
-            var results = new List<int>(_participants.Count);
-            foreach (CombatParticipant participant in _participants)
+            CombatParticipant[] participants = _participants.Where(item => item.IsInCombat).ToArray();
+            var results = new List<int>(participants.Length);
+            foreach (CombatParticipant participant in participants)
             {
                 int roll = rollD20();
                 if (roll < 1 || roll > 20) throw new System.ArgumentOutOfRangeException("rollD20", "A d20 roll must be between 1 and 20.");
+                participant.InitiativeRoll = roll;
                 results.Add(roll + participant.InitiativeModifier);
             }
-            for (int index = 0; index < _participants.Count; index++) _participants[index].Initiative = results[index];
+            foreach (CombatParticipant participant in _participants.Where(item => !item.IsInCombat))
+            {
+                participant.Initiative = null;
+                participant.InitiativeRoll = null;
+            }
+            for (int index = 0; index < participants.Length; index++) participants[index].Initiative = results[index];
             SortByInitiative();
             return results.Count;
         }
@@ -206,6 +221,15 @@ namespace CombatManager
             RebuildCreatureInstances();
         }
 
+        public bool SetPartyActive(int sequence, bool active)
+        {
+            CombatParticipant participant = _participants.FirstOrDefault(item => item.Sequence == sequence && item.IsManual);
+            if (participant == null || participant.IsPartyActive == active) return false;
+            participant.IsPartyActive = active;
+            ResetTurns();
+            return true;
+        }
+
         private CombatParticipant AddCopy(CombatParticipant source)
         {
             var copy = new CombatParticipant
@@ -213,7 +237,8 @@ namespace CombatManager
                 Sequence = _nextSequence++, CreatureId = source.CreatureId, SavedCharacterId = source.SavedCharacterId,
                 InstanceNumber = source.InstanceNumber, Name = source.Name, ChallengeRating = source.ChallengeRating,
                 MaximumHP = source.MaximumHP, CurrentHP = source.CurrentHP, TemporaryHP = source.TemporaryHP,
-                InitiativeModifier = source.InitiativeModifier, Notes = source.Notes ?? string.Empty,
+                InitiativeModifier = source.InitiativeModifier, InitiativeRoll = source.InitiativeRoll,
+                IsPartyActive = source.IsPartyActive, Notes = source.Notes ?? string.Empty,
                 Conditions = source.Conditions.Select(condition => new CombatCondition
                     { Name = condition.Name, RemainingTurns = condition.RemainingTurns }).ToList()
             };
@@ -324,7 +349,11 @@ namespace CombatManager
 
         public void ResetTurns()
         {
-            foreach (CombatParticipant participant in _participants) participant.Initiative = null;
+            foreach (CombatParticipant participant in _participants)
+            {
+                participant.Initiative = null;
+                participant.InitiativeRoll = null;
+            }
             _participants.Sort((left, right) => left.Sequence.CompareTo(right.Sequence));
             ResetTurn();
         }
@@ -347,15 +376,16 @@ namespace CombatManager
 
         public CombatParticipant NextTurn()
         {
-            if (_participants.Count == 0) return null;
-            int index = ActiveIndex();
-            if (index < 0) { _round = 1; _activeSequence = _participants[0].Sequence; }
+            List<CombatParticipant> active = _participants.Where(item => item.IsInCombat).ToList();
+            if (active.Count == 0) return null;
+            int index = active.FindIndex(item => item.Sequence == _activeSequence);
+            if (index < 0) { _round = 1; _activeSequence = active[0].Sequence; }
             else
             {
-                TickConditions(_participants[index]);
-                index = (index + 1) % _participants.Count;
+                TickConditions(active[index]);
+                index = (index + 1) % active.Count;
                 if (index == 0) _round++;
-                _activeSequence = _participants[index].Sequence;
+                _activeSequence = active[index].Sequence;
             }
             return ActiveParticipant;
         }
@@ -369,14 +399,15 @@ namespace CombatManager
 
         public CombatParticipant PreviousTurn()
         {
-            if (_participants.Count == 0) return null;
-            int index = ActiveIndex();
-            if (index < 0) { _round = 1; _activeSequence = _participants[0].Sequence; }
+            List<CombatParticipant> active = _participants.Where(item => item.IsInCombat).ToList();
+            if (active.Count == 0) return null;
+            int index = active.FindIndex(item => item.Sequence == _activeSequence);
+            if (index < 0) { _round = 1; _activeSequence = active[0].Sequence; }
             else
             {
                 if (index == 0 && _round > 1) _round--;
-                index = (index - 1 + _participants.Count) % _participants.Count;
-                _activeSequence = _participants[index].Sequence;
+                index = (index - 1 + active.Count) % active.Count;
+                _activeSequence = active[index].Sequence;
             }
             return ActiveParticipant;
         }
@@ -425,7 +456,9 @@ namespace CombatManager
                     writer.WriteAttributeString("currentHp", participant.CurrentHP.ToString(CultureInfo.InvariantCulture));
                     if (participant.TemporaryHP > 0) writer.WriteAttributeString("temporaryHp", participant.TemporaryHP.ToString(CultureInfo.InvariantCulture));
                     if (participant.Initiative.HasValue) writer.WriteAttributeString("initiative", participant.Initiative.Value.ToString(CultureInfo.InvariantCulture));
+                    if (participant.InitiativeRoll.HasValue) writer.WriteAttributeString("initiativeRoll", participant.InitiativeRoll.Value.ToString(CultureInfo.InvariantCulture));
                     if (participant.InitiativeModifier != 0) writer.WriteAttributeString("initiativeModifier", participant.InitiativeModifier.ToString(CultureInfo.InvariantCulture));
+                    if (!participant.IsPartyActive) writer.WriteAttributeString("partyActive", "false");
                     if (!string.IsNullOrEmpty(participant.Notes)) writer.WriteAttributeString("notes", participant.Notes);
                     foreach (CombatCondition condition in participant.Conditions)
                     {
@@ -451,6 +484,8 @@ namespace CombatManager
                 foreach (XElement element in root.Elements("Participant"))
                 {
                     string initiativeText = (string)element.Attribute("initiative");
+                    string initiativeRollText = (string)element.Attribute("initiativeRoll");
+                    string partyActiveText = (string)element.Attribute("partyActive");
                     var participant = new CombatParticipant
                     {
                         Sequence = AttributeInt(element, "sequence"),
@@ -463,7 +498,9 @@ namespace CombatManager
                         CurrentHP = AttributeInt(element, "currentHp"),
                         TemporaryHP = AttributeIntOrDefault(element, "temporaryHp"),
                         Initiative = string.IsNullOrEmpty(initiativeText) ? (int?)null : int.Parse(initiativeText, CultureInfo.InvariantCulture),
+                        InitiativeRoll = string.IsNullOrEmpty(initiativeRollText) ? (int?)null : int.Parse(initiativeRollText, CultureInfo.InvariantCulture),
                         InitiativeModifier = AttributeIntOrDefault(element, "initiativeModifier"),
+                        IsPartyActive = !string.Equals(partyActiveText, "false", System.StringComparison.OrdinalIgnoreCase),
                         Notes = (string)element.Attribute("notes") ?? string.Empty
                     };
                     foreach (XElement conditionElement in element.Elements("Condition"))

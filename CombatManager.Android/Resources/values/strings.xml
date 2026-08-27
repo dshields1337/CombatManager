@@ -57,6 +57,8 @@
     <string name="party_empty">Your persistent party is empty. Add saved or temporary characters here.</string>
     <string name="browse_monsters">Add monsters</string>
     <string name="encounter_monsters_empty">No monsters are in this encounter.</string>
+    <string name="set_inactive">Set inactive</string>
+    <string name="set_active">Set active</string>
     <string name="delete_character">Delete</string>
     <string name="delete_character_title">Delete character?</string>
     <string name="delete_character_message">Delete this reusable character? Existing encounter copies will remain.</string>

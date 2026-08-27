@@ -492,6 +492,35 @@ public sealed class CoreUtilityTests
         Assert.AreEqual(1, roster.Round);
         Assert.AreEqual("Valeros", roster.ActiveParticipant.Name);
         Assert.AreEqual(21, roster.Participants[0].Initiative);
+        Assert.AreEqual(16, roster.Participants[0].InitiativeRoll);
+    }
+
+    [TestMethod]
+    public void InactivePartyMembersPersistAndStayOutOfCombatSequence()
+    {
+        var roster = new CombatRoster();
+        CombatParticipant goblin = roster.Add(new CreatureSummary { Id = 7, Name = "Goblin", InitiativeModifier = 2 });
+        CombatParticipant activeParty = roster.AddManual("Valeros", 30, 5);
+        CombatParticipant sleepingParty = roster.AddManual("Merisiel", 24, 7);
+        Assert.IsTrue(roster.SetPartyActive(sleepingParty.Sequence, false));
+        int[] rolls = [10, 12];
+        int index = 0;
+
+        Assert.AreEqual(2, roster.StartCombat(() => rolls[index++]));
+        Assert.IsNull(sleepingParty.Initiative);
+        Assert.IsNull(sleepingParty.InitiativeRoll);
+        Assert.AreEqual(activeParty.Sequence, roster.ActiveParticipant.Sequence);
+        Assert.AreEqual(goblin.Sequence, roster.NextTurn().Sequence);
+        Assert.AreEqual(activeParty.Sequence, roster.NextTurn().Sequence);
+
+        using var stream = new MemoryStream();
+        roster.Save(stream);
+        stream.Position = 0;
+        Assert.IsTrue(CombatRoster.TryLoad(stream, out CombatRoster restored));
+        CombatParticipant restoredSleeping = restored.Participants.Single(item => item.Name == "Merisiel");
+        Assert.IsFalse(restoredSleeping.IsPartyActive);
+        Assert.IsNull(restoredSleeping.Initiative);
+        Assert.AreEqual(10, restored.Participants.Single(item => item.Name == "Goblin").InitiativeRoll);
     }
 
     [TestMethod]

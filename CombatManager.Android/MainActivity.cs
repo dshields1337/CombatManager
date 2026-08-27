@@ -786,7 +786,7 @@ public class MainActivity : Activity
 
     private void RefreshCombatRoster()
     {
-        _sequenceParticipants = [.. _combatRoster.Participants];
+        _sequenceParticipants = [.. _combatRoster.Participants.Where(participant => participant.IsInCombat)];
         _partyParticipants = [.. _combatRoster.Participants.Where(participant => participant.IsManual)];
         _encounterParticipants = [.. _combatRoster.Participants.Where(participant => !participant.IsManual)];
         int count = _sequenceParticipants.Count;
@@ -811,7 +811,7 @@ public class MainActivity : Activity
         ListView monsterList = FindViewById<ListView>(Resource.Id.combat_monsters_list)!;
         monsterList.Visibility = monsterCount == 0 ? ViewStates.Gone : ViewStates.Visible;
         monsterList.Adapter = new CombatParticipantListAdapter(this, _encounterParticipants, _combatRoster.ActiveParticipant?.Sequence);
-        bool initiativeReady = count > 0 && _combatRoster.Participants.All(participant => participant.Initiative.HasValue);
+        bool initiativeReady = count > 0 && _sequenceParticipants.All(participant => participant.Initiative.HasValue);
         FindViewById<Button>(Resource.Id.next_turn_button)!.Enabled = initiativeReady && _combatRoster.Round > 0;
         FindViewById<Button>(Resource.Id.previous_turn_button)!.Enabled = initiativeReady && _combatRoster.Round > 0;
         FindViewById<Button>(Resource.Id.set_all_initiative_button)!.Enabled = count > 0;
@@ -912,6 +912,16 @@ public class MainActivity : Activity
         {
             dialog?.Dismiss();
             ShowInitiativePrompt(participant);
+        };
+        Button togglePartyActive = actions.FindViewById<Button>(Resource.Id.toggle_party_active_button)!;
+        togglePartyActive.Visibility = participant.IsManual ? ViewStates.Visible : ViewStates.Gone;
+        togglePartyActive.SetText(participant.IsPartyActive ? Resource.String.set_inactive : Resource.String.set_active);
+        togglePartyActive.Click += (_, _) =>
+        {
+            dialog?.Dismiss();
+            _combatRoster.SetPartyActive(participant.Sequence, !participant.IsPartyActive);
+            _combatSubTab = 1;
+            CommitCombatChange();
         };
         Button edit = actions.FindViewById<Button>(Resource.Id.edit_combatant_button)!;
         edit.Visibility = participant.IsManual ? ViewStates.Visible : ViewStates.Gone;

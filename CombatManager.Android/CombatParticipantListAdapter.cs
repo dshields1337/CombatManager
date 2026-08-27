@@ -15,6 +15,7 @@ internal sealed class CombatParticipantListAdapter(Activity context, IReadOnlyLi
         View view = convertView ?? context.LayoutInflater.Inflate(Resource.Layout.combat_participant_item, parent, false)!;
         CombatParticipant participant = participants[position];
         bool active = participant.Sequence == activeSequence;
+        string inactivePrefix = participant.IsManual && !participant.IsPartyActive ? "Zzz…  " : string.Empty;
         view.FindViewById<TextView>(Resource.Id.combat_row_name)!.Text = (active ? "▶ " : "") + participant.DisplayName;
         view.FindViewById<TextView>(Resource.Id.combat_row_cr)!.Text = "CR " + participant.ChallengeRating +
             (string.IsNullOrWhiteSpace(participant.Notes) ? string.Empty : "\n" + participant.Notes) +
@@ -28,15 +29,23 @@ internal sealed class CombatParticipantListAdapter(Activity context, IReadOnlyLi
         {
             view.FindViewById<TextView>(Resource.Id.combat_row_cr)!.Visibility = ViewStates.Gone;
             view.FindViewById<TextView>(Resource.Id.combat_row_hp)!.Visibility = ViewStates.Gone;
-            view.FindViewById<TextView>(Resource.Id.combat_row_initiative)!.Text = participant.Initiative?.ToString() ?? "—";
+            TextView initiative = view.FindViewById<TextView>(Resource.Id.combat_row_initiative)!;
+            initiative.Text = participant.Initiative.HasValue
+                ? (participant.InitiativeRoll.HasValue ? $"({participant.InitiativeRoll})  {participant.Initiative}" : participant.Initiative.ToString())
+                : "—";
         }
         else
         {
             view.FindViewById<TextView>(Resource.Id.combat_row_cr)!.Visibility = ViewStates.Visible;
             view.FindViewById<TextView>(Resource.Id.combat_row_hp)!.Visibility = ViewStates.Visible;
         }
-        view.SetBackgroundColor(new global::Android.Graphics.Color(context.GetColor(active ? Resource.Color.primary_light : participant.IsDefeated
-            ? Resource.Color.defeated_background : Resource.Color.page_background)));
+        view.FindViewById<TextView>(Resource.Id.combat_row_name)!.Text =
+            (active ? "▶ " : string.Empty) + inactivePrefix + participant.DisplayName;
+        int background = active ? Resource.Color.primary_light : participant.IsManual && !participant.IsPartyActive
+            ? Resource.Color.inactive_background : compact && !participant.IsManual ? MonsterHealthColor(participant)
+            : participant.IsDefeated ? Resource.Color.defeated_background : Resource.Color.page_background;
+        view.SetBackgroundColor(new global::Android.Graphics.Color(context.GetColor(background)));
+        view.Alpha = participant.IsManual && !participant.IsPartyActive ? 0.55f : 1f;
         view.ContentDescription = string.Join(", ", new[]
         {
             active ? "Active combatant" : string.Empty, participant.DisplayName,
@@ -48,5 +57,14 @@ internal sealed class CombatParticipantListAdapter(Activity context, IReadOnlyLi
             string.Join(", ", participant.Conditions.Select(condition => condition.DisplayText))
         }.Where(value => !string.IsNullOrWhiteSpace(value)));
         return view;
+    }
+
+    private static int MonsterHealthColor(CombatParticipant participant)
+    {
+        if (participant.CurrentHP <= 0) return Resource.Color.health_defeated;
+        double percentage = participant.MaximumHP <= 0 ? 0 : participant.CurrentHP * 100d / participant.MaximumHP;
+        if (percentage < 20) return Resource.Color.health_critical;
+        if (percentage < 51) return Resource.Color.health_wounded;
+        return Resource.Color.health_good;
     }
 }

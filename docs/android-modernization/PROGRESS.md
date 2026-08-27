@@ -211,6 +211,11 @@ Last updated: 2026-08-27
 
 ## In progress
 
+- Added subdued monster health bands to compact Sequence rows: green at 51% or higher, yellow from 20% through 50%, orange below 20%, and red at 0 HP or lower. The active-turn teal remains visually distinct.
+- One-tap combat start now stores each natural d20 result and displays it in grey brackets to the left of total initiative; optional persistence attributes keep existing roster files compatible.
+- Party members can be toggled inactive from their action sheet. Inactive members persist, display a faded `Zzz…` marker on Party, and are excluded from Sequence, initiative rolling, and Previous/Next turn traversal until reactivated.
+- Latest core result: 52 passed, 0 failed, 0 skipped. API 36 verification confirmed natural/total initiative display, the muted green and 50%-HP yellow bands, inactive Party presentation and persistence, Sequence exclusion, and a live application process.
+
 - Split Combat into Sequence, Party, and Monsters sub-tabs. Sequence provides compact initiative-first rows, Previous/Next controls above the list, and a large red one-tap Initiative action below it that rolls, sorts, starts round one, and activates the highest result.
 - Party now contains all manual/saved-character participants and persists when encounters are cleared or switched. Monsters owns encounter composition, naming, clearing, saving, loading, sharing, and navigation to the searchable bestiary.
 - New saved encounters contain monsters only; legacy snapshots remain readable and their embedded character copies are ignored in favour of the current party. Added regression coverage for one-tap combat start and monster-only snapshot replacement.

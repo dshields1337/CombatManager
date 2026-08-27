@@ -159,6 +159,10 @@ Last updated: 2026-08-26
 - Added participant duplication with full-health reset, unset initiative, copied notes, correct instance naming, and independent subsequent state.
 - Latest core result: 34 passed, 0 failed, 0 skipped; Release Android build succeeded with 0 warnings and 0 errors.
 - API 36 verification duplicated the configured manual participant as `ValerosPrime 2`, preserved notes and 30 / 30 HP, and restored both entries after force-stop/relaunch.
+- Added structured timed conditions with per-participant turn durations. Conditions decrement when their participant completes a turn and automatically expire at zero.
+- Timed conditions are displayed in roster rows, copied independently during duplication, and stored in the existing versioned encounter snapshot.
+- Latest core result: 35 passed, 0 failed, 0 skipped; Release Android build succeeded with 0 warnings and 0 errors.
+- API 36 verification added `Stunned (2)` and restored it after force-stop/relaunch; turn decrement/expiry behavior is covered by regression tests.
 
 ## In progress
 
@@ -181,9 +185,9 @@ Last updated: 2026-08-26
 
 ## Next actions
 
-1. Add simple timed conditions that decrement on the affected participant's completed turns.
-2. Preserve free-form notes alongside structured timed conditions.
-3. Add expiry behavior tests before exposing condition controls in Android.
+1. Add condition management so active conditions can be removed before expiry.
+2. Add a compact encounter summary/export view suitable for sharing or session notes.
+3. Continue migrating structured condition behavior incrementally.
 
 ## Tracking convention
 

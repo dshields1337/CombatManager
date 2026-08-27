@@ -18,9 +18,17 @@ namespace CombatManager
         public int CurrentHP { get; set; }
         public int? Initiative { get; set; }
         public string Notes { get; set; }
+        public List<CombatCondition> Conditions { get; set; } = new List<CombatCondition>();
         public bool IsDefeated => CurrentHP <= 0;
         public bool IsManual => CreatureId <= 0;
         public string DisplayName => InstanceNumber <= 1 ? Name : Name + " " + InstanceNumber;
+    }
+
+    public class CombatCondition
+    {
+        public string Name { get; set; }
+        public int RemainingTurns { get; set; }
+        public string DisplayText => Name + " (" + RemainingTurns + ")";
     }
 
     public class CombatRoster
@@ -84,7 +92,8 @@ namespace CombatManager
             {
                 Sequence = _nextSequence++, CreatureId = source.CreatureId, InstanceNumber = instanceNumber,
                 Name = source.Name, ChallengeRating = source.ChallengeRating, MaximumHP = source.MaximumHP,
-                CurrentHP = source.MaximumHP, Notes = source.Notes ?? string.Empty
+                CurrentHP = source.MaximumHP, Notes = source.Notes ?? string.Empty,
+                Conditions = source.Conditions.Select(condition => new CombatCondition { Name = condition.Name, RemainingTurns = condition.RemainingTurns }).ToList()
             };
             _participants.Add(duplicate);
             return duplicate;
@@ -157,6 +166,22 @@ namespace CombatManager
             return true;
         }
 
+        public bool AddCondition(int sequence, string name, int turns)
+        {
+            CombatParticipant participant = _participants.FirstOrDefault(item => item.Sequence == sequence);
+            if (participant == null || string.IsNullOrWhiteSpace(name) || turns < 1) return false;
+            participant.Conditions.Add(new CombatCondition { Name = name.Trim(), RemainingTurns = turns });
+            return true;
+        }
+
+        public bool RemoveCondition(int sequence, int index)
+        {
+            CombatParticipant participant = _participants.FirstOrDefault(item => item.Sequence == sequence);
+            if (participant == null || index < 0 || index >= participant.Conditions.Count) return false;
+            participant.Conditions.RemoveAt(index);
+            return true;
+        }
+
         public CombatParticipant NextTurn()
         {
             if (_participants.Count == 0) return null;
@@ -164,11 +189,18 @@ namespace CombatManager
             if (index < 0) { _round = 1; _activeSequence = _participants[0].Sequence; }
             else
             {
+                TickConditions(_participants[index]);
                 index = (index + 1) % _participants.Count;
                 if (index == 0) _round++;
                 _activeSequence = _participants[index].Sequence;
             }
             return ActiveParticipant;
+        }
+
+        private static void TickConditions(CombatParticipant participant)
+        {
+            foreach (CombatCondition condition in participant.Conditions) condition.RemainingTurns--;
+            participant.Conditions.RemoveAll(condition => condition.RemainingTurns <= 0);
         }
 
         public CombatParticipant PreviousTurn()
@@ -227,6 +259,13 @@ namespace CombatManager
                     writer.WriteAttributeString("currentHp", participant.CurrentHP.ToString(CultureInfo.InvariantCulture));
                     if (participant.Initiative.HasValue) writer.WriteAttributeString("initiative", participant.Initiative.Value.ToString(CultureInfo.InvariantCulture));
                     if (!string.IsNullOrEmpty(participant.Notes)) writer.WriteAttributeString("notes", participant.Notes);
+                    foreach (CombatCondition condition in participant.Conditions)
+                    {
+                        writer.WriteStartElement("Condition");
+                        writer.WriteAttributeString("name", condition.Name ?? string.Empty);
+                        writer.WriteAttributeString("turns", condition.RemainingTurns.ToString(CultureInfo.InvariantCulture));
+                        writer.WriteEndElement();
+                    }
                     writer.WriteEndElement();
                 }
                 writer.WriteEndElement();
@@ -243,7 +282,7 @@ namespace CombatManager
                 foreach (XElement element in root.Elements("Participant"))
                 {
                     string initiativeText = (string)element.Attribute("initiative");
-                    roster._participants.Add(new CombatParticipant
+                    var participant = new CombatParticipant
                     {
                         Sequence = AttributeInt(element, "sequence"),
                         CreatureId = AttributeInt(element, "creatureId"),
@@ -254,7 +293,15 @@ namespace CombatManager
                         CurrentHP = AttributeInt(element, "currentHp"),
                         Initiative = string.IsNullOrEmpty(initiativeText) ? (int?)null : int.Parse(initiativeText, CultureInfo.InvariantCulture),
                         Notes = (string)element.Attribute("notes") ?? string.Empty
-                    });
+                    };
+                    foreach (XElement conditionElement in element.Elements("Condition"))
+                    {
+                        string name = (string)conditionElement.Attribute("name") ?? string.Empty;
+                        int turns = AttributeInt(conditionElement, "turns");
+                        if (!string.IsNullOrWhiteSpace(name) && turns > 0)
+                            participant.Conditions.Add(new CombatCondition { Name = name, RemainingTurns = turns });
+                    }
+                    roster._participants.Add(participant);
                 }
                 roster.SortByInitiative();
                 roster._nextSequence = roster._participants.Count == 0 ? 1 : roster._participants.Max(item => item.Sequence) + 1;

@@ -770,6 +770,11 @@ public class MainActivity : Activity
             _combatRoster.Duplicate(participant.Sequence);
             CommitCombatChange();
         };
+        actions.FindViewById<Button>(Resource.Id.timed_conditions_button)!.Click += (_, _) =>
+        {
+            dialog?.Dismiss();
+            ShowTimedConditionDialog(participant);
+        };
     }
 
     private void ShowHpPrompt(CombatParticipant participant, bool damage)
@@ -824,6 +829,25 @@ public class MainActivity : Activity
         });
         builder.Show();
         input.RequestFocus();
+    }
+
+    private void ShowTimedConditionDialog(CombatParticipant participant)
+    {
+        View view = LayoutInflater.Inflate(Resource.Layout.timed_condition_dialog, null)!;
+        EditText name = view.FindViewById<EditText>(Resource.Id.condition_name)!;
+        EditText turns = view.FindViewById<EditText>(Resource.Id.condition_turns)!;
+        var builder = new AlertDialog.Builder(this);
+        builder.SetTitle(participant.DisplayName);
+        builder.SetView(view);
+        builder.SetNegativeButton(global::Android.Resource.String.Cancel, (_, _) => { });
+        builder.SetPositiveButton(global::Android.Resource.String.Ok, (_, _) =>
+        {
+            if (int.TryParse(turns.Text, out int duration) && _combatRoster.AddCondition(participant.Sequence, name.Text ?? string.Empty, duration))
+                CommitCombatChange();
+            else Toast.MakeText(this, Resource.String.invalid_condition, ToastLength.Short)?.Show();
+        });
+        builder.Show();
+        name.RequestFocus();
     }
 
     private void ShowAddCombatantDialog()

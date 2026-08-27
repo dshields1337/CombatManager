@@ -549,4 +549,31 @@ public sealed class CoreUtilityTests
         Assert.AreEqual(2, goblin.CurrentHP);
         Assert.AreEqual(4, copy.CurrentHP);
     }
+
+    [TestMethod]
+    public void CombatRosterTicksExpiresAndPersistsTimedConditions()
+    {
+        var roster = new CombatRoster();
+        CombatParticipant goblin = roster.Add(new CreatureSummary { Id = 7, Name = "Goblin", HP = 6 });
+        CombatParticipant ogre = roster.Add(new CreatureSummary { Id = 8, Name = "Ogre", HP = 30 });
+        roster.SetInitiative(goblin.Sequence, 20);
+        roster.SetInitiative(ogre.Sequence, 10);
+        Assert.IsTrue(roster.AddCondition(goblin.Sequence, "  Stunned  ", 2));
+        Assert.IsFalse(roster.AddCondition(goblin.Sequence, "Invalid", 0));
+        roster.NextTurn();
+        roster.NextTurn();
+        Assert.AreEqual(1, goblin.Conditions[0].RemainingTurns);
+        roster.NextTurn();
+        Assert.HasCount(1, goblin.Conditions);
+        roster.NextTurn();
+        Assert.IsEmpty(goblin.Conditions);
+
+        roster.AddCondition(ogre.Sequence, "Slowed", 3);
+        using var stream = new MemoryStream();
+        roster.Save(stream);
+        stream.Position = 0;
+        Assert.IsTrue(CombatRoster.TryLoad(stream, out CombatRoster restored));
+        Assert.AreEqual("Slowed", restored.Participants.Single(item => item.Name == "Ogre").Conditions[0].Name);
+        Assert.AreEqual(3, restored.Participants.Single(item => item.Name == "Ogre").Conditions[0].RemainingTurns);
+    }
 }

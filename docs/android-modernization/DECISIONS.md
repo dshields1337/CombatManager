@@ -195,3 +195,10 @@
 - Status: accepted
 - Decision: duplicate either manual or bestiary participants with a new sequence/instance name, full HP, unset initiative, and copied notes.
 - Reason: groups and recurring NPCs become quick to assemble while each copy remains independent. Clearing initiative prevents a copied roll from silently changing encounter order; retaining notes preserves configuration that commonly applies to the group.
+
+## D029: Expire timed conditions on completed participant turns
+
+- Date: 2026-08-27
+- Status: accepted
+- Decision: model a timed condition as a name plus remaining participant turns, decrementing it when Next moves away from that participant and removing it at zero. Previous navigation does not rewind durations.
+- Reason: tying duration to completed turns makes expiry deterministic and avoids double-decrementing before a combatant first acts. Previous is a navigation correction, not time travel, so reversing condition state would require a broader undo system.

@@ -715,16 +715,9 @@ public class MainActivity : Activity
 
     private void ShowCreature(CreatureSummary creature)
     {
-        string type = string.Join(" ", new[] { creature.Size, creature.Type, creature.SubType }
-            .Where(value => !string.IsNullOrWhiteSpace(value)));
-        string details = $"CR {creature.CR}  •  XP {creature.XP}\n{creature.Alignment} {type}\n\n" +
-            $"HP {creature.HP} {creature.HD}\nAC {creature.AC}\nSaves {creature.Saves}\nSpeed {creature.Speed}\n\n" +
-            $"Melee: {ValueOrDash(creature.Melee)}\nRanged: {ValueOrDash(creature.Ranged)}\n\n" +
-            $"Senses: {ValueOrDash(creature.Senses)}\nSource: {ValueOrDash(creature.Source)}";
-
         var dialog = new AlertDialog.Builder(this);
         dialog.SetTitle(creature.Name);
-        dialog.SetMessage(details);
+        dialog.SetMessage(FormatCombatDetails(creature));
         dialog.SetNeutralButton(Resource.String.full_details, (_, _) => _ = ShowFullDetailsAsync(creature));
         dialog.SetNegativeButton(Resource.String.add_to_combat, (_, _) => AddCreatureToCombat(creature));
         dialog.SetPositiveButton(global::Android.Resource.String.Ok, (_, _) => { });
@@ -956,6 +949,13 @@ public class MainActivity : Activity
             dialog?.Dismiss();
             if (participant.IsSavedCharacter) ShowSavedCombatantDetails(participant);
             else _ = ShowFullDetailsAsync(new CreatureSummary { Id = participant.CreatureId, Name = participant.DisplayName });
+        };
+        Button combatDetails = actions.FindViewById<Button>(Resource.Id.combatant_combat_details_button)!;
+        combatDetails.Visibility = participant.IsManual ? ViewStates.Gone : ViewStates.Visible;
+        combatDetails.Click += (_, _) =>
+        {
+            dialog?.Dismiss();
+            _ = ShowCombatDetailsAsync(participant);
         };
         actions.FindViewById<Button>(Resource.Id.damage_button)!.Click += (_, _) =>
         {
@@ -1896,6 +1896,33 @@ public class MainActivity : Activity
             global::Android.Util.Log.Error("CombatManager", exception.ToString());
             Toast.MakeText(this, Resource.String.details_not_found, ToastLength.Long)?.Show();
         }
+    }
+
+    private async Task ShowCombatDetailsAsync(CombatParticipant participant)
+    {
+        await EnsureCreaturesLoadedAsync();
+        CreatureSummary? creature = _creatures?.FirstOrDefault(item => item.Id == participant.CreatureId);
+        if (creature is null)
+        {
+            Toast.MakeText(this, Resource.String.details_not_found, ToastLength.Long)?.Show();
+            return;
+        }
+
+        var dialog = new AlertDialog.Builder(this);
+        dialog.SetTitle(participant.DisplayName);
+        dialog.SetMessage(FormatCombatDetails(creature));
+        dialog.SetPositiveButton(global::Android.Resource.String.Ok, (_, _) => { });
+        dialog.Show();
+    }
+
+    private static string FormatCombatDetails(CreatureSummary creature)
+    {
+        string type = string.Join(" ", new[] { creature.Size, creature.Type, creature.SubType }
+            .Where(value => !string.IsNullOrWhiteSpace(value)));
+        return $"CR {creature.CR}  •  XP {creature.XP}\n{creature.Alignment} {type}\n\n" +
+            $"HP {creature.HP} {creature.HD}\nAC {creature.AC}\nSaves {creature.Saves}\nSpeed {creature.Speed}\n\n" +
+            $"Melee: {ValueOrDash(creature.Melee)}\nRanged: {ValueOrDash(creature.Ranged)}\n\n" +
+            $"Senses: {ValueOrDash(creature.Senses)}\nSource: {ValueOrDash(creature.Source)}";
     }
 
     private static string FormatFullDetails(CreatureDetails details)

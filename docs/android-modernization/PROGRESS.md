@@ -17,6 +17,7 @@ Last updated: 2026-08-27
 - Added initiative and timed-condition status to the action-sheet summary and confirmation before removing an individual combatant.
 - Latest core result remains 37 passed, 0 failed, 0 skipped; a clean Debug Android build succeeded with 0 warnings and 0 errors.
 - API 36 verification confirmed all three action groups, correct Android resource mapping after a clean package rebuild, and a live application process.
+- Corrected the remaining modern UI encoding artifacts in Rules/Treasure row separators and Spell/Rule/Treasure loading messages; valid Unicode bullets and ellipses now render consistently.
 
 ### 2026-08-26
 
@@ -204,9 +205,8 @@ Last updated: 2026-08-27
 
 ## Next actions
 
-1. Correct remaining user-visible character-encoding artifacts in modern screens and summaries.
-2. Add a focused combat convenience operation to reduce repetitive initiative setup.
-3. Continue vertical slices toward parity with legacy combat controls.
+1. Add a focused combat convenience operation to reduce repetitive initiative setup.
+2. Continue vertical slices toward parity with legacy combat controls.
 
 ## Tracking convention
 

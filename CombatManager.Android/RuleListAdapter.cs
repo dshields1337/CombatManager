@@ -13,7 +13,7 @@ internal sealed class RuleListAdapter(Activity context, IReadOnlyList<RuleSummar
         RuleSummary rule = rules[position];
         view.FindViewById<TextView>(Resource.Id.rule_row_name)!.Text = rule.Name;
         view.FindViewById<TextView>(Resource.Id.rule_row_meta)!.Text = string.IsNullOrWhiteSpace(rule.Subtype)
-            ? rule.Type : rule.Type + "  â€¢  " + rule.Subtype;
+            ? rule.Type : rule.Type + "  •  " + rule.Subtype;
         view.FindViewById<TextView>(Resource.Id.rule_row_format)!.Text = string.IsNullOrWhiteSpace(rule.Format)
             ? rule.Source : rule.Format;
         return view;

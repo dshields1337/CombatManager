@@ -211,6 +211,9 @@ Last updated: 2026-08-27
 
 ## In progress
 
+- Replaced single-tap saved-character selection in Combat with a checkbox picker that adds any number of selected reusable characters in one committed roster update; Add selected remains disabled until at least one character is checked.
+- Debug Android build succeeded with 0 warnings and 0 errors; API 36 verification checked both `Kyra` and `Merisiel`, enabled Add selected, added both in one tap, increased the roster from four to six combatants, and kept the process alive.
+
 - Added an Encounters tab between Characters and Feats plus bottom-of-Combat Save encounter and Load encounter controls. Named snapshots persist separately from the active recovery autosave and can be opened, renamed, or deleted with confirmation.
 - Saving prefills the current encounter name and updates a previously loaded snapshot by stable ID. Switching from current work requires an explicit Save, Don't save, or Cancel choice; clearing or deleting the linked snapshot safely detaches the active encounter.
 - Latest core result: 49 passed, 0 failed, 0 skipped; Debug Android build succeeded with 0 warnings and 0 errors.

@@ -1337,11 +1337,30 @@ public class MainActivity : Activity
             return;
         }
         SavedCharacter[] characters = [.. _savedCharacters.Characters];
+        bool[] selected = new bool[characters.Length];
+        AlertDialog? dialog = null;
         var builder = new AlertDialog.Builder(this);
         builder.SetTitle(Resource.String.choose_saved_character);
-        builder.SetItems(characters.Select(character => character.Name).ToArray(), (_, args) => AddSavedCharacterToCombat(characters[args.Which]));
+        builder.SetMultiChoiceItems(characters.Select(character => character.Name).ToArray(), selected, (_, args) =>
+        {
+            selected[args.Which] = args.IsChecked;
+            if (dialog is not null) dialog.GetButton((int)global::Android.Content.DialogButtonType.Positive)!.Enabled = selected.Any(value => value);
+        });
         builder.SetNegativeButton(global::Android.Resource.String.Cancel, (_, _) => { });
-        builder.Show();
+        builder.SetPositiveButton(Resource.String.add_selected_characters, (_, _) =>
+        {
+            int added = 0;
+            for (int index = 0; index < characters.Length; index++)
+            {
+                if (!selected[index]) continue;
+                _combatRoster.AddSavedCharacter(characters[index]);
+                added++;
+            }
+            CommitCombatChange();
+            Toast.MakeText(this, $"Added {added} character{(added == 1 ? string.Empty : "s")} to combat.", ToastLength.Short)?.Show();
+        });
+        dialog = builder.Show();
+        dialog?.GetButton((int)global::Android.Content.DialogButtonType.Positive)!.Enabled = false;
     }
 
     private void ShowTemporaryCombatantDialog()

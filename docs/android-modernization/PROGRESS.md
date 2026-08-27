@@ -211,6 +211,9 @@ Last updated: 2026-08-27
 
 ## In progress
 
+- Replaced hint-only manual combatant fields with permanent, accessible labels for Name, Maximum HP, Current HP, and Initiative modifier in both create and edit dialogs.
+- Debug Android build succeeded with 0 warnings and 0 errors; API 36 verification confirmed all labels are visible without clipping in both dialogs and the process remained alive.
+
 - Added a whole-number initiative modifier to manual player/NPC creation and editing, displayed modifiers for every combatant, and expanded the atomic one-tap d20 roll to the entire encounter.
 - Core remains 45 passed, 0 failed, 0 skipped; Debug Android build succeeded with 0 warnings and 0 errors.
 - API 36 verification edited `UntimedTest` to a +5 initiative modifier, displayed it alongside Goblin's +6, and used Roll All Initiative to populate both results; the application remained alive.

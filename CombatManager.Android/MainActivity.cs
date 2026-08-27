@@ -93,14 +93,6 @@ public class MainActivity : Activity
         FindViewById<SearchView>(Resource.Id.magic_item_search)!.QueryTextChange += (_, args) => OnMagicItemQueryChanged(args.NewText);
         FindViewById<Spinner>(Resource.Id.magic_item_group_filter)!.ItemSelected += (_, _) => OnMagicItemFilterChanged();
         FindViewById<ListView>(Resource.Id.magic_item_list)!.ItemClick += (_, args) => _ = ShowMagicItemAsync(_visibleMagicItems[args.Position]);
-        FindViewById<ImageButton>(Resource.Id.about_button)!.Click += (_, _) =>
-        {
-            var dialog = new AlertDialog.Builder(this);
-            dialog.SetTitle(Resource.String.about);
-            dialog.SetMessage(Resource.String.about_message);
-            dialog.SetPositiveButton(global::Android.Resource.String.Ok, (_, _) => { });
-            dialog.Show();
-        };
         int savedIndex = GetSharedPreferences(PreferenceName, global::Android.Content.FileCreationMode.Private)!.GetInt(SelectedPageKey, 0);
         SelectPage(_pages[Math.Clamp(savedIndex, 0, _pages.Length - 1)]);
     }

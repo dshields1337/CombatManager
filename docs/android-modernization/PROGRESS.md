@@ -211,6 +211,9 @@ Last updated: 2026-08-27
 
 ## In progress
 
+- Removed the development-preview title/About banner and regression-test footer from the production UI, leaving navigation and feature content to use the full screen while retaining the regression suite in the development workflow.
+- Debug Android build succeeded with 0 warnings and 0 errors; API 36 verification confirmed tabs begin at the top inset, both preview messages are absent, the persisted encounter remains visible, and the process stayed alive.
+
 - Added direct Full details access beside CR/HP in bestiary combatant action dialogs, reusing the Monsters-tab detail loader and cache; the action remains hidden for custom players/NPCs.
 - Debug Android build succeeded with 0 warnings and 0 errors; API 36 verification opened Goblin's ability scores and description directly from Combat, confirmed the action is absent for `UntimedTest`, and left the process alive.
 

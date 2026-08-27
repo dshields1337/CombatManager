@@ -52,7 +52,7 @@ Deliverable: empty modern projects that build successfully.
 - [ ] Remove obsolete compatibility packages supplied by modern .NET.
 - [ ] Update Newtonsoft.Json, EmbedIO, Swan.Lite, SQLite, ZIP, and Xamarin.Essentials functionality.
 - [ ] Resolve incompatibilities involving Mono.Data.Sqlite, serialization, System.Web.Services, System.ServiceModel, and platform-specific paths.
-- [ ] Add focused tests for calculations, serialization, database queries, and import/export parsing. (36 utility/value/dice/attack/affliction/initiative/read-only-data/combat-roster tests added; broader database/import tests remain.)
+- [ ] Add focused tests for calculations, serialization, database queries, and import/export parsing. (37 utility/value/dice/attack/affliction/initiative/read-only-data/combat-roster tests added; broader database/import tests remain.)
 
 Deliverable: the shared core project builds independently.
 

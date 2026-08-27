@@ -73,6 +73,7 @@ public class MainActivity : Activity
             _combatRoster.PreviousTurn();
             CommitCombatChange();
         };
+        FindViewById<Button>(Resource.Id.reset_turns_button)!.Click += (_, _) => ConfirmResetTurns();
         FindViewById<SearchView>(Resource.Id.monster_search)!.QueryTextChange += (_, args) => OnQueryChanged(args.NewText);
         FindViewById<Spinner>(Resource.Id.monster_type_filter)!.ItemSelected += (_, _) => OnFilterChanged();
         FindViewById<Spinner>(Resource.Id.monster_cr_filter)!.ItemSelected += (_, _) => OnFilterChanged();
@@ -713,6 +714,7 @@ public class MainActivity : Activity
         FindViewById<LinearLayout>(Resource.Id.turn_controls)!.Visibility = count == 0 ? ViewStates.Gone : ViewStates.Visible;
         FindViewById<Button>(Resource.Id.next_turn_button)!.Enabled = initiativeReady;
         FindViewById<Button>(Resource.Id.previous_turn_button)!.Enabled = initiativeReady;
+        FindViewById<Button>(Resource.Id.reset_turns_button)!.Enabled = _combatRoster.Participants.Any(participant => participant.Initiative.HasValue);
         FindViewById<TextView>(Resource.Id.round_status)!.Text = !initiativeReady
             ? "Set initiative for all combatants"
             : _combatRoster.Round == 0 ? "Ready to start" : $"Round {_combatRoster.Round}";
@@ -968,6 +970,20 @@ public class MainActivity : Activity
             CommitCombatChange();
         });
         dialog.Show();
+    }
+
+    private void ConfirmResetTurns()
+    {
+        var builder = new AlertDialog.Builder(this);
+        builder.SetTitle(Resource.String.reset_turns_title);
+        builder.SetMessage(Resource.String.reset_turns_message);
+        builder.SetNegativeButton(global::Android.Resource.String.Cancel, (_, _) => { });
+        builder.SetPositiveButton(Resource.String.reset_turns, (_, _) =>
+        {
+            _combatRoster.ResetTurns();
+            CommitCombatChange();
+        });
+        builder.Show();
     }
 
     private CombatRoster LoadPersistedCombatRoster()

@@ -37,6 +37,9 @@
     <string name="remove_condition_title">Remove condition?</string>
     <string name="share">Share</string>
     <string name="share_encounter">Share encounter</string>
+    <string name="reset_turns">Reset</string>
+    <string name="reset_turns_title">Reset turns?</string>
+    <string name="reset_turns_message">Clear all initiative values and restart round tracking? Combatants and encounter state will remain.</string>
     <string name="condition_name">Condition name</string>
     <string name="duration_turns">Duration in turns</string>
     <string name="invalid_condition">Enter a condition name and duration of at least 1 turn.</string>
@@ -68,6 +71,6 @@
     <string name="magic_item_details_not_found">Details are not available for this magic item.</string>
     <string name="unable_to_load_bestiary">Unable to load the bundled bestiary.</string>
     <string name="migration_status">This section is connected to the new navigation shell. Its data and controls will arrive in the next vertical slices.</string>
-    <string name="core_status">Modern core: 36 regression tests passing</string>
+    <string name="core_status">Modern core: 37 regression tests passing</string>
     <string name="about_message">Combat Manager 1.27\n\nNative .NET for Android modernization build. The navigation shell is live; feature screens are being migrated incrementally.</string>
 </resources>

@@ -594,4 +594,23 @@ public sealed class CoreUtilityTests
         StringAssert.Contains(summary, "Combat Manager Encounter — Round 1");
         StringAssert.Contains(summary, "▶ Valeros — HP 25/30 — Initiative 18 — Blessed — Hasted (3)");
     }
+
+    [TestMethod]
+    public void CombatRosterResetsTurnsWithoutClearingEncounterState()
+    {
+        var roster = new CombatRoster();
+        CombatParticipant goblin = roster.Add(new CreatureSummary { Id = 7, Name = "Goblin", HP = 6 });
+        roster.SetInitiative(goblin.Sequence, 20);
+        roster.ApplyDamage(goblin.Sequence, 2);
+        roster.SetNotes(goblin.Sequence, "Marked");
+        roster.AddCondition(goblin.Sequence, "Slowed", 2);
+        roster.NextTurn();
+        roster.ResetTurns();
+        Assert.IsNull(goblin.Initiative);
+        Assert.IsNull(roster.ActiveParticipant);
+        Assert.AreEqual(0, roster.Round);
+        Assert.AreEqual(4, goblin.CurrentHP);
+        Assert.AreEqual("Marked", goblin.Notes);
+        Assert.HasCount(1, goblin.Conditions);
+    }
 }

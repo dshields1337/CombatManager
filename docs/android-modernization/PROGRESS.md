@@ -169,6 +169,9 @@ Last updated: 2026-08-26
 - Added a stable human-readable encounter summary containing round, active combatant, HP, initiative, notes, and timed conditions, plus Android text sharing through the system chooser.
 - Latest core result: 36 passed, 0 failed, 0 skipped; Release Android build succeeded with 0 warnings and 0 errors.
 - API 36 verification confirmed Add/Share/Clear fit the combat header and Share opens the installed system chooser targets.
+- Added confirmed Reset Turns behavior that clears initiative, active participant, and round while preserving the roster, HP, notes, and timed conditions.
+- Latest core result: 37 passed, 0 failed, 0 skipped; Release Android build succeeded with 0 warnings and 0 errors.
+- API 36 verification reset a persisted initiative value and confirmed encounter notes/HP remained after force-stop/relaunch.
 
 ## In progress
 
@@ -191,8 +194,8 @@ Last updated: 2026-08-26
 
 ## Next actions
 
-1. Add explicit encounter reset/start-over choices without conflating clear roster and reset initiative.
-2. Improve combat action discoverability as the action set grows.
+1. Improve combat action discoverability as the action set grows.
+2. Add accessibility/content descriptions and clearer active/defeated row styling.
 3. Continue vertical slices toward parity with legacy combat controls.
 
 ## Tracking convention

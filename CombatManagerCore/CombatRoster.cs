@@ -183,6 +183,13 @@ namespace CombatManager
             return true;
         }
 
+        public void ResetTurns()
+        {
+            foreach (CombatParticipant participant in _participants) participant.Initiative = null;
+            _participants.Sort((left, right) => left.Sequence.CompareTo(right.Sequence));
+            ResetTurn();
+        }
+
         public string ToSummaryText()
         {
             var text = new StringBuilder("Combat Manager Encounter");

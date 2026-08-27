@@ -255,8 +255,8 @@ public sealed class CoreUtilityTests
     {
         const string xml = """
             <ArrayOfMonster>
-              <Monster><Name>Zombie</Name><CR>1/2</CR><HP>12</HP><Type>undead</Type><id>2</id></Monster>
-              <Monster><Name>Aboleth</Name><CR>7</CR><HP>84</HP><Type>aberration</Type><id>1</id></Monster>
+              <Monster><Name>Zombie</Name><CR>1/2</CR><HP>12</HP><Type>undead</Type><Init>-1</Init><id>2</id></Monster>
+              <Monster><Name>Aboleth</Name><CR>7</CR><HP>84</HP><Type>aberration</Type><Init>5</Init><id>1</id></Monster>
             </ArrayOfMonster>
             """;
         using var stream = new MemoryStream(Encoding.UTF8.GetBytes(xml));
@@ -267,6 +267,7 @@ public sealed class CoreUtilityTests
         Assert.AreEqual("Aboleth", creatures[0].Name);
         Assert.AreEqual("Aboleth  •  CR 7", creatures[0].ListText);
         Assert.AreEqual(84, creatures[0].HP);
+        Assert.AreEqual(5, creatures[0].InitiativeModifier);
         Assert.AreEqual("undead", creatures[1].Type);
     }
 
@@ -453,6 +454,28 @@ public sealed class CoreUtilityTests
         Assert.AreEqual("Dragon", roster.Participants[0].DisplayName);
         Assert.AreEqual(12, goblin.Initiative);
         Assert.AreEqual(21, dragon.Initiative);
+    }
+
+    [TestMethod]
+    public void CombatRosterRollsOnlyBestiaryInitiativeWithModifiers()
+    {
+        var roster = new CombatRoster();
+        CombatParticipant goblin = roster.Add(new CreatureSummary { Id = 7, Name = "Goblin", InitiativeModifier = 6 });
+        CombatParticipant zombie = roster.Add(new CreatureSummary { Id = 8, Name = "Zombie", InitiativeModifier = -1 });
+        CombatParticipant player = roster.AddManual("Valeros", 30);
+        int[] rolls = [12, 8];
+        int rollIndex = 0;
+        Assert.AreEqual(2, roster.RollMonsterInitiatives(() => rolls[rollIndex++]));
+        Assert.AreEqual(18, goblin.Initiative);
+        Assert.AreEqual(7, zombie.Initiative);
+        Assert.IsNull(player.Initiative);
+        Assert.ThrowsExactly<ArgumentOutOfRangeException>(() => roster.RollMonsterInitiatives(() => 21));
+        using var stream = new MemoryStream();
+        roster.Save(stream);
+        stream.Position = 0;
+        Assert.IsTrue(CombatRoster.TryLoad(stream, out CombatRoster restored));
+        Assert.AreEqual(6, restored.Participants.Single(item => item.Name == "Goblin").InitiativeModifier);
+        Assert.AreEqual(-1, restored.Participants.Single(item => item.Name == "Zombie").InitiativeModifier);
     }
 
     [TestMethod]

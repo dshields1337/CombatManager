@@ -230,3 +230,10 @@
 - Status: accepted
 - Decision: treat condition duration `0` as untimed: display no remaining-turn suffix, do not decrement it during turn advancement, and retain it until the user removes or edits it.
 - Reason: common states such as Prone and Grappled do not have a predetermined duration. Zero is backward-compatible with the version-1 encounter XML and keeps the lightweight condition model simple while positive values retain existing expiry semantics.
+
+## D034: Roll bestiary initiative from bundled modifiers
+
+- Date: 2026-08-27
+- Status: accepted
+- Decision: project each bestiary summary's existing initiative modifier into combat participants and allow the bulk initiative dialog to roll `d20 + modifier` for all bestiary combatants. Manual participants are never automatically rolled.
+- Reason: the source data already supplies the required modifier, making monster initiative substantially faster without importing full monster statistics. Players commonly roll their own initiative, so preserving manual entry avoids making assumptions about character data the lightweight roster does not own.

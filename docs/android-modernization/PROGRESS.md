@@ -36,6 +36,10 @@ Last updated: 2026-08-27
 - Added confirmed participant-level clearing of all structured conditions without changing notes or other encounter state.
 - Latest core result: 42 passed, 0 failed, 0 skipped; Debug Android build succeeded with 0 warnings and 0 errors.
 - API 36 verification showed the new clear-all action for `Prone`, required confirmation naming the participant, removed the condition while retaining the participant, and left the process alive.
+- Projected bestiary initiative modifiers into encounter participants and version-1 persistence, including negative modifiers and duplicate participants.
+- Added one-tap d20 initiative rolling for every bestiary combatant from the bulk initiative dialog; manual players remain user-entered and monster modifier labels are visible beside their fields.
+- Latest core result: 43 passed, 0 failed, 0 skipped.
+- API 36 verification added a bundled Goblin, displayed its `+6` modifier in bulk initiative, rolled it to 22, left the manual participant blank, persisted the roll, and kept the process alive.
 
 ### 2026-08-26
 

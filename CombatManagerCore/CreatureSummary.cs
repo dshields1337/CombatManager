@@ -20,6 +20,7 @@ namespace CombatManager
         public string Type { get; set; }
         public string SubType { get; set; }
         public string Senses { get; set; }
+        public int InitiativeModifier { get; set; }
         public string AC { get; set; }
         public int HP { get; set; }
         public string HD { get; set; }
@@ -90,6 +91,7 @@ namespace CombatManager
                 Type = Text(element, "Type"),
                 SubType = Text(element, "SubType"),
                 Senses = Text(element, "Senses"),
+                InitiativeModifier = IntValue(element, "Init"),
                 AC = Text(element, "AC"),
                 HP = IntValue(element, "HP"),
                 HD = Text(element, "HD"),

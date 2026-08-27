@@ -18,6 +18,7 @@ namespace CombatManager
         public int MaximumHP { get; set; }
         public int CurrentHP { get; set; }
         public int? Initiative { get; set; }
+        public int InitiativeModifier { get; set; }
         public string Notes { get; set; }
         public List<CombatCondition> Conditions { get; set; } = new List<CombatCondition>();
         public bool IsDefeated => CurrentHP <= 0;
@@ -55,7 +56,7 @@ namespace CombatManager
             {
                 Sequence = _nextSequence++, CreatureId = creature.Id, InstanceNumber = instanceNumber,
                 Name = creature.Name, ChallengeRating = creature.CR,
-                MaximumHP = creature.HP, CurrentHP = creature.HP
+                MaximumHP = creature.HP, CurrentHP = creature.HP, InitiativeModifier = creature.InitiativeModifier
             };
             _participants.Add(participant);
             return participant;
@@ -94,7 +95,7 @@ namespace CombatManager
             {
                 Sequence = _nextSequence++, CreatureId = source.CreatureId, InstanceNumber = instanceNumber,
                 Name = source.Name, ChallengeRating = source.ChallengeRating, MaximumHP = source.MaximumHP,
-                CurrentHP = source.MaximumHP, Notes = source.Notes ?? string.Empty,
+                CurrentHP = source.MaximumHP, Notes = source.Notes ?? string.Empty, InitiativeModifier = source.InitiativeModifier,
                 Conditions = source.Conditions.Select(condition => new CombatCondition { Name = condition.Name, RemainingTurns = condition.RemainingTurns }).ToList()
             };
             _participants.Add(duplicate);
@@ -129,6 +130,21 @@ namespace CombatManager
                 if (initiatives.TryGetValue(participant.Sequence, out int initiative)) participant.Initiative = initiative;
             SortByInitiative();
             return true;
+        }
+
+        public int RollMonsterInitiatives(System.Func<int> rollD20)
+        {
+            if (rollD20 == null) throw new System.ArgumentNullException("rollD20");
+            int count = 0;
+            foreach (CombatParticipant participant in _participants.Where(item => !item.IsManual))
+            {
+                int roll = rollD20();
+                if (roll < 1 || roll > 20) throw new System.ArgumentOutOfRangeException("rollD20", "A d20 roll must be between 1 and 20.");
+                participant.Initiative = roll + participant.InitiativeModifier;
+                count++;
+            }
+            SortByInitiative();
+            return count;
         }
 
         public bool ApplyDamage(int sequence, int amount)
@@ -310,6 +326,7 @@ namespace CombatManager
                     writer.WriteAttributeString("maximumHp", participant.MaximumHP.ToString(CultureInfo.InvariantCulture));
                     writer.WriteAttributeString("currentHp", participant.CurrentHP.ToString(CultureInfo.InvariantCulture));
                     if (participant.Initiative.HasValue) writer.WriteAttributeString("initiative", participant.Initiative.Value.ToString(CultureInfo.InvariantCulture));
+                    if (participant.InitiativeModifier != 0) writer.WriteAttributeString("initiativeModifier", participant.InitiativeModifier.ToString(CultureInfo.InvariantCulture));
                     if (!string.IsNullOrEmpty(participant.Notes)) writer.WriteAttributeString("notes", participant.Notes);
                     foreach (CombatCondition condition in participant.Conditions)
                     {
@@ -344,6 +361,7 @@ namespace CombatManager
                         MaximumHP = AttributeInt(element, "maximumHp"),
                         CurrentHP = AttributeInt(element, "currentHp"),
                         Initiative = string.IsNullOrEmpty(initiativeText) ? (int?)null : int.Parse(initiativeText, CultureInfo.InvariantCulture),
+                        InitiativeModifier = AttributeIntOrDefault(element, "initiativeModifier"),
                         Notes = (string)element.Attribute("notes") ?? string.Empty
                     };
                     foreach (XElement conditionElement in element.Elements("Condition"))
@@ -382,6 +400,12 @@ namespace CombatManager
         private static int AttributeInt(XElement element, string name)
         {
             return int.Parse((string)element.Attribute(name), CultureInfo.InvariantCulture);
+        }
+
+        private static int AttributeIntOrDefault(XElement element, string name)
+        {
+            XAttribute attribute = element.Attribute(name);
+            return attribute == null ? 0 : int.Parse(attribute.Value, CultureInfo.InvariantCulture);
         }
 
         public void Clear()

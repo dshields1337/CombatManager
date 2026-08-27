@@ -1063,11 +1063,18 @@ public class MainActivity : Activity
         var fields = new Dictionary<int, EditText>();
         var rows = new LinearLayout(this) { Orientation = global::Android.Widget.Orientation.Vertical };
         rows.SetPadding(padding, 0, padding, 0);
+        Button? rollMonsters = null;
+        if (_combatRoster.Participants.Any(item => !item.IsManual))
+        {
+            rollMonsters = new Button(this) { Text = GetString(Resource.String.roll_monster_initiative) };
+            rows.AddView(rollMonsters, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MatchParent, LinearLayout.LayoutParams.WrapContent));
+        }
         foreach (CombatParticipant participant in _combatRoster.Participants.OrderBy(item => item.Sequence))
         {
             var row = new LinearLayout(this) { Orientation = global::Android.Widget.Orientation.Horizontal };
             row.SetGravity(GravityFlags.CenterVertical);
-            var label = new TextView(this) { Text = participant.DisplayName };
+            string modifier = participant.InitiativeModifier >= 0 ? "+" + participant.InitiativeModifier : participant.InitiativeModifier.ToString();
+            var label = new TextView(this) { Text = participant.DisplayName + (participant.IsManual ? string.Empty : "  (" + modifier + ")") };
             row.AddView(label, new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WrapContent, 1));
             var input = new EditText(this)
             {
@@ -1079,6 +1086,17 @@ public class MainActivity : Activity
             row.AddView(input, new LinearLayout.LayoutParams((int)(88 * Resources.DisplayMetrics.Density), LinearLayout.LayoutParams.WrapContent));
             rows.AddView(row);
             fields[participant.Sequence] = input;
+        }
+        if (rollMonsters is not null)
+        {
+            rollMonsters.Click += (_, _) =>
+            {
+                int rolled = _combatRoster.RollMonsterInitiatives(() => Random.Shared.Next(1, 21));
+                foreach (CombatParticipant participant in _combatRoster.Participants.Where(item => !item.IsManual))
+                    fields[participant.Sequence].Text = participant.Initiative?.ToString() ?? string.Empty;
+                CommitCombatChange();
+                Toast.MakeText(this, $"Rolled initiative for {rolled} monster{(rolled == 1 ? string.Empty : "s")}.", ToastLength.Short)?.Show();
+            };
         }
         var scroll = new ScrollView(this);
         scroll.AddView(rows);

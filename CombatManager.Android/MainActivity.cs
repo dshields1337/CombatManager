@@ -768,6 +768,13 @@ public class MainActivity : Activity
         builder.SetNegativeButton(Resource.String.remove_from_combat, (_, _) => ConfirmRemoveCombatant(participant));
         builder.SetPositiveButton(global::Android.Resource.String.Ok, (_, _) => { });
         AlertDialog? dialog = builder.Show();
+        Button fullDetails = actions.FindViewById<Button>(Resource.Id.combatant_full_details_button)!;
+        fullDetails.Visibility = participant.IsManual ? ViewStates.Gone : ViewStates.Visible;
+        fullDetails.Click += (_, _) =>
+        {
+            dialog?.Dismiss();
+            _ = ShowFullDetailsAsync(new CreatureSummary { Id = participant.CreatureId, Name = participant.DisplayName });
+        };
         actions.FindViewById<Button>(Resource.Id.damage_button)!.Click += (_, _) =>
         {
             dialog?.Dismiss();

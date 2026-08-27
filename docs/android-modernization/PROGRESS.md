@@ -211,6 +211,9 @@ Last updated: 2026-08-27
 
 ## In progress
 
+- Added direct Full details access beside CR/HP in bestiary combatant action dialogs, reusing the Monsters-tab detail loader and cache; the action remains hidden for custom players/NPCs.
+- Debug Android build succeeded with 0 warnings and 0 errors; API 36 verification opened Goblin's ability scores and description directly from Combat, confirmed the action is absent for `UntimedTest`, and left the process alive.
+
 - Replaced hint-only manual combatant fields with permanent, accessible labels for Name, Maximum HP, Current HP, and Initiative modifier in both create and edit dialogs.
 - Debug Android build succeeded with 0 warnings and 0 errors; API 36 verification confirmed all labels are visible without clipping in both dialogs and the process remained alive.
 

@@ -46,6 +46,7 @@ public class MainActivity : Activity
     private readonly Dictionary<int, MagicItemDetails> _magicItemDetailCache = [];
     private bool _initializingMagicItemFilters;
     private CombatRoster _combatRoster = new();
+    private List<ConditionReference>? _conditionReferences;
     private readonly Page[] _pages =
     [
         new(Resource.Id.combat_button, "Combat", "C"), new(Resource.Id.monsters_button, "Monsters", "M"),
@@ -854,6 +855,14 @@ public class MainActivity : Activity
         View view = LayoutInflater.Inflate(Resource.Layout.timed_condition_dialog, null)!;
         EditText name = view.FindViewById<EditText>(Resource.Id.condition_name)!;
         EditText turns = view.FindViewById<EditText>(Resource.Id.condition_turns)!;
+        Spinner preset = view.FindViewById<Spinner>(Resource.Id.condition_preset)!;
+        _conditionReferences ??= LoadConditionReferences();
+        string[] choices = [GetString(Resource.String.custom_condition), .. _conditionReferences.Select(item => item.Name)];
+        preset.Adapter = new ArrayAdapter<string>(this, global::Android.Resource.Layout.SimpleSpinnerDropDownItem, choices);
+        preset.ItemSelected += (_, args) =>
+        {
+            if (args.Position > 0) name.Text = choices[args.Position];
+        };
         var builder = new AlertDialog.Builder(this);
         builder.SetTitle(participant.DisplayName);
         builder.SetView(view);
@@ -866,6 +875,20 @@ public class MainActivity : Activity
         });
         builder.Show();
         name.RequestFocus();
+    }
+
+    private List<ConditionReference> LoadConditionReferences()
+    {
+        try
+        {
+            using Stream stream = Assets!.Open("Condition.xml");
+            return ConditionReference.Load(stream);
+        }
+        catch (Exception exception)
+        {
+            global::Android.Util.Log.Error("CombatManager", "Unable to load conditions: " + exception);
+            return [];
+        }
     }
 
     private void ShowConditionManager(CombatParticipant participant)

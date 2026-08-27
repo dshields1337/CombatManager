@@ -216,3 +216,10 @@
 - Status: accepted
 - Decision: collect initiative for every encounter participant in one scrollable dialog and apply the values through a single roster operation only after all entries are valid.
 - Reason: setting initiative participant by participant becomes tedious in a real encounter. Atomic application avoids leaving a partially reordered roster when one value is missing or invalid, while retaining deterministic initiative tie ordering.
+
+## D032: Project the legacy condition catalogue without its runtime graph
+
+- Date: 2026-08-27
+- Status: accepted
+- Decision: load the 34 standard names and rules descriptions directly from the existing `Condition.xml` into lightweight `ConditionReference` records and offer them as timed-condition presets while preserving custom entry.
+- Reason: the source catalogue is useful and authoritative for this application, but the legacy `Condition` class also loads spells, monster afflictions, custom files, favourites, recents, and computed bonuses. A narrow projection makes the reference content immediately usable without taking on those unrelated persistence and model dependencies.

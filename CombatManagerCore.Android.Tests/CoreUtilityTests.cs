@@ -596,6 +596,18 @@ public sealed class CoreUtilityTests
     }
 
     [TestMethod]
+    public void ConditionReferencesLoadSortAndFindByName()
+    {
+        const string xml = "<ArrayOfCondition><Condition><Name>Prone</Name><Text>On the ground.</Text></Condition><Condition><Name>Blinded</Name><Text>Cannot see.</Text></Condition></ArrayOfCondition>";
+        using var stream = new MemoryStream(Encoding.UTF8.GetBytes(xml));
+        List<ConditionReference> conditions = ConditionReference.Load(stream);
+        Assert.HasCount(2, conditions);
+        Assert.AreEqual("Blinded", conditions[0].Name);
+        Assert.AreEqual("On the ground.", ConditionReference.Find(conditions, "prone").Description);
+        Assert.IsNull(ConditionReference.Find(conditions, "missing"));
+    }
+
+    [TestMethod]
     public void CombatRosterBuildsReadableEncounterSummary()
     {
         var roster = new CombatRoster();

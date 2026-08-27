@@ -11,6 +11,7 @@
     <AndroidAsset Include="..\CombatManagerCore\RuleDetails.xml" Link="RuleDetails.xml" />
     <AndroidAsset Include="..\CombatManagerCore\MagicItemsShort.xml" Link="MagicItemsShort.xml" />
     <AndroidAsset Include="..\CombatManagerCore\MagicItemDetails.xml" Link="MagicItemDetails.xml" />
+    <AndroidAsset Include="..\CombatManagerCore\Condition.xml" Link="Condition.xml" />
   </ItemGroup>
   <PropertyGroup>
     <TargetFramework>net10.0-android</TargetFramework>

@@ -22,6 +22,10 @@ Last updated: 2026-08-27
 - Reworked the turn controls into a two-row layout so Previous, Initiative, Reset, and Next retain equal, usable touch targets.
 - Latest core result: 38 passed, 0 failed, 0 skipped; Debug Android build succeeded with 0 warnings and 0 errors.
 - API 36 verification entered initiative 18 through the bulk dialog, updated the participant row and Ready to start state, and confirmed the process remained alive.
+- Added a platform-neutral projection of all 34 legacy Pathfinder conditions with their complete rules descriptions, without importing the legacy spell/favourites condition graph.
+- Bundled the existing condition catalogue and added an alphabetical preset picker to timed-condition entry while retaining custom names.
+- Latest core result: 39 passed, 0 failed, 0 skipped; Debug Android build succeeded with 0 warnings and 0 errors.
+- API 36 verification confirmed the condition dialog, Custom condition option, and legacy presets including Bleed, Blinded, Broken, and Confused.
 
 ### 2026-08-26
 
@@ -209,8 +213,9 @@ Last updated: 2026-08-27
 
 ## Next actions
 
-1. Add a reusable structured condition catalogue for common combat states.
-2. Continue vertical slices toward parity with legacy combat controls.
+1. Expose condition rules text from the new catalogue during combat.
+2. Allow existing timed conditions to be edited without removing and recreating them.
+3. Continue vertical slices toward parity with legacy combat controls.
 
 ## Tracking convention
 

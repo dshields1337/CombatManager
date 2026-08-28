@@ -137,6 +137,7 @@ public class MainActivity : Activity
         FindViewById<SearchView>(Resource.Id.magic_item_search)!.QueryTextChange += (_, args) => OnMagicItemQueryChanged(args.NewText);
         FindViewById<Spinner>(Resource.Id.magic_item_group_filter)!.ItemSelected += (_, _) => OnMagicItemFilterChanged();
         FindViewById<ListView>(Resource.Id.magic_item_list)!.ItemClick += (_, args) => _ = ShowMagicItemAsync(_visibleMagicItems[args.Position]);
+        RollMissingCustomMonsterInitiatives();
         int savedIndex = GetSharedPreferences(PreferenceName, global::Android.Content.FileCreationMode.Private)!.GetInt(SelectedPageKey, 0);
         SelectPage(_pages[Math.Clamp(savedIndex, 0, _pages.Length - 1)]);
     }
@@ -914,6 +915,16 @@ public class MainActivity : Activity
         Toast.MakeText(this, $"Rolled initiative for {rolled} combatant{(rolled == 1 ? string.Empty : "s")}. Combat started.", ToastLength.Short)?.Show();
     }
 
+    private void RollMissingCustomMonsterInitiatives()
+    {
+        if (_combatRoster.Round <= 0) return;
+        bool changed = false;
+        foreach (CombatParticipant participant in _combatRoster.Participants
+            .Where(item => item.IsSavedMonster && !item.Initiative.HasValue).ToArray())
+            changed |= _combatRoster.RollInitiative(participant.Sequence, () => Random.Shared.Next(1, 21));
+        if (changed) CommitCombatChange();
+    }
+
     private void ConfirmEndCombat()
     {
         var builder = new AlertDialog.Builder(this);
@@ -1434,6 +1445,8 @@ public class MainActivity : Activity
     private void AddSavedMonsterToCombat(SavedMonster monster)
     {
         CombatParticipant participant = _combatRoster.AddSavedMonster(monster);
+        if (_combatRoster.Round > 0)
+            _combatRoster.RollInitiative(participant.Sequence, () => Random.Shared.Next(1, 21));
         CommitCombatChange();
         Toast.MakeText(this, participant.DisplayName + " added to encounter.", ToastLength.Short)?.Show();
     }

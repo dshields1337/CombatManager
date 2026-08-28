@@ -743,6 +743,25 @@ public sealed class CoreUtilityTests
     }
 
     [TestMethod]
+    public void SavedMonsterAddedDuringCombatImmediatelyRollsIntoSequence()
+    {
+        var roster = new CombatRoster();
+        CombatParticipant goblin = roster.Add(new CreatureSummary { Id = 7, Name = "Goblin", InitiativeModifier = 2 });
+        roster.StartCombat(() => 10);
+        var monster = new SavedMonster
+        {
+            Id = 9, Name = "Clockwork Brute", MaximumHP = 88, InitiativeModifier = 4
+        };
+        CombatParticipant newcomer = roster.AddSavedMonster(monster);
+
+        Assert.IsTrue(roster.RollInitiative(newcomer.Sequence, () => 12));
+        Assert.AreEqual(12, newcomer.InitiativeRoll);
+        Assert.AreEqual(16, newcomer.Initiative);
+        Assert.AreEqual(newcomer.Sequence, roster.Participants[0].Sequence);
+        Assert.AreEqual(goblin.Sequence, roster.ActiveParticipant.Sequence);
+    }
+
+    [TestMethod]
     public void CombatRosterAddsAndPersistsIndependentSavedCharacterCopies()
     {
         var template = new SavedCharacter { Id = 12, Name = "Valeros", MaximumHP = 30, InitiativeModifier = 5, Notes = "Human fighter" };

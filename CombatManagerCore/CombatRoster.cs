@@ -178,6 +178,19 @@ namespace CombatManager
             return true;
         }
 
+        public bool RollInitiative(int sequence, System.Func<int> rollD20)
+        {
+            if (rollD20 == null) throw new System.ArgumentNullException("rollD20");
+            CombatParticipant participant = _participants.FirstOrDefault(item => item.Sequence == sequence && item.IsInCombat);
+            if (participant == null) return false;
+            int roll = rollD20();
+            if (roll < 1 || roll > 20) throw new System.ArgumentOutOfRangeException("rollD20", "A d20 roll must be between 1 and 20.");
+            participant.InitiativeRoll = roll;
+            participant.Initiative = roll + participant.InitiativeModifier;
+            SortByInitiative();
+            return true;
+        }
+
         public bool SetInitiatives(IReadOnlyDictionary<int, int> initiatives)
         {
             if (initiatives == null || initiatives.Count == 0 ||

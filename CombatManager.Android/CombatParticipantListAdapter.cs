@@ -76,7 +76,7 @@ internal sealed class CombatParticipantListAdapter(Activity context, IReadOnlyLi
             view.FindViewById<TextView>(Resource.Id.combat_row_condition)!.Visibility = ViewStates.Gone;
         }
         SetParticipantName(view.FindViewById<TextView>(Resource.Id.combat_row_name)!, participant,
-            inactivePrefix);
+            (active ? "▶ " : string.Empty) + inactivePrefix);
         if (compact)
         {
             LinearLayout identity = view.FindViewById<LinearLayout>(Resource.Id.combat_row_identity)!;
@@ -88,7 +88,7 @@ internal sealed class CombatParticipantListAdapter(Activity context, IReadOnlyLi
             };
         }
         int background = participant.IsManual && !participant.IsPartyActive
-            ? Resource.Color.inactive_background : compact && !participant.IsManual ? MonsterHealthColor(participant)
+            ? Resource.Color.inactive_background : compact ? HealthColor(participant)
             : participant.IsDefeated ? Resource.Color.defeated_background : Resource.Color.page_background;
         var rowBackground = new global::Android.Graphics.Drawables.GradientDrawable();
         rowBackground.SetColor(new global::Android.Graphics.Color(context.GetColor(background)));
@@ -121,7 +121,7 @@ internal sealed class CombatParticipantListAdapter(Activity context, IReadOnlyLi
             ? $"({condition.Name}: {condition.RemainingTurns} Round{(condition.RemainingTurns == 1 ? string.Empty : "s")})" : condition.Name));
     }
 
-    private static int MonsterHealthColor(CombatParticipant participant)
+    private static int HealthColor(CombatParticipant participant)
     {
         if (participant.CurrentHP <= 0) return Resource.Color.health_defeated;
         double percentage = participant.MaximumHP <= 0 ? 0 : participant.CurrentHP * 100d / participant.MaximumHP;

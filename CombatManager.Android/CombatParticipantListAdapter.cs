@@ -22,7 +22,11 @@ internal sealed class CombatParticipantListAdapter(Activity context, IReadOnlyLi
         view.FindViewById<TextView>(Resource.Id.combat_row_cr)!.Text = "CR " + participant.ChallengeRating +
             (string.IsNullOrWhiteSpace(participant.Notes) ? string.Empty : "\n" + participant.Notes) +
             (participant.Conditions.Count == 0 ? string.Empty : "\n" + string.Join(" • ", participant.Conditions.Select(condition => condition.DisplayText)));
-        view.FindViewById<TextView>(Resource.Id.combat_row_initiative)!.Text = participant.Initiative.HasValue ? "Initiative " + participant.Initiative.Value : "Initiative —";
+        string initiativeModifier = participant.InitiativeModifier >= 0
+            ? "+" + participant.InitiativeModifier : participant.InitiativeModifier.ToString();
+        view.FindViewById<TextView>(Resource.Id.combat_row_initiative)!.Text = participant.Initiative.HasValue
+            ? $"Initiative {participant.Initiative.Value} ({initiativeModifier} modifier)"
+            : $"Initiative modifier {initiativeModifier}";
         string temporaryHp = participant.TemporaryHP > 0 ? $"  +  {participant.TemporaryHP} temp" : string.Empty;
         view.FindViewById<TextView>(Resource.Id.combat_row_hp)!.Text = participant.IsDefeated
             ? $"DEFEATED  •  HP {participant.CurrentHP} / {participant.MaximumHP}"
@@ -90,6 +94,7 @@ internal sealed class CombatParticipantListAdapter(Activity context, IReadOnlyLi
             $"HP {participant.CurrentHP} of {participant.MaximumHP}",
             participant.TemporaryHP > 0 ? $"Temporary HP {participant.TemporaryHP}" : string.Empty,
             participant.Initiative.HasValue ? "Initiative " + participant.Initiative.Value : "Initiative not set",
+            "Initiative modifier " + initiativeModifier,
             participant.IsDefeated ? "Defeated" : string.Empty,
             participant.Notes ?? string.Empty,
             string.Join(", ", participant.Conditions.Select(condition => condition.DisplayText))

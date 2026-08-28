@@ -727,6 +727,22 @@ public sealed class CoreUtilityTests
     }
 
     [TestMethod]
+    public void SavedMonsterInitiativeUsesItsTemplateModifierWhenCombatStarts()
+    {
+        var monster = new SavedMonster
+        {
+            Id = 9, Name = "Clockwork Brute", MaximumHP = 88, InitiativeModifier = 4
+        };
+        var roster = new CombatRoster();
+        CombatParticipant participant = roster.AddSavedMonster(monster);
+
+        Assert.AreEqual(4, participant.InitiativeModifier);
+        Assert.AreEqual(1, roster.StartCombat(() => 12));
+        Assert.AreEqual(12, participant.InitiativeRoll);
+        Assert.AreEqual(16, participant.Initiative);
+    }
+
+    [TestMethod]
     public void CombatRosterAddsAndPersistsIndependentSavedCharacterCopies()
     {
         var template = new SavedCharacter { Id = 12, Name = "Valeros", MaximumHP = 30, InitiativeModifier = 5, Notes = "Human fighter" };

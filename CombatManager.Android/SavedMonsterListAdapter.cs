@@ -3,7 +3,8 @@ namespace CombatManager.Android;
 using global::CombatManager;
 using global::Android.Views;
 
-internal sealed class SavedMonsterListAdapter(Activity context, IReadOnlyList<SavedMonster> monsters) : BaseAdapter<SavedMonster>
+internal sealed class SavedMonsterListAdapter(Activity context, IReadOnlyList<SavedMonster> monsters,
+    bool selectionMode = false, IReadOnlySet<int>? selectedIds = null) : BaseAdapter<SavedMonster>
 {
     public override int Count => monsters.Count;
     public override SavedMonster this[int position] => monsters[position];
@@ -19,6 +20,9 @@ internal sealed class SavedMonsterListAdapter(Activity context, IReadOnlyList<Sa
         string modifier = monster.InitiativeModifier >= 0 ? "+" + monster.InitiativeModifier : monster.InitiativeModifier.ToString();
         view.FindViewById<TextView>(Resource.Id.saved_monster_row_stats)!.Text =
             $"HP {monster.MaximumHP}  •  AC {monster.ArmorClass}\nInit {modifier}";
+        CheckBox selected = view.FindViewById<CheckBox>(Resource.Id.saved_monster_row_selected)!;
+        selected.Visibility = selectionMode ? ViewStates.Visible : ViewStates.Gone;
+        selected.Checked = selectionMode && selectedIds?.Contains(monster.Id) == true;
         view.ContentDescription = $"{monster.Name}, {monster.MaximumHP} maximum HP, armor class {monster.ArmorClass}, initiative modifier {modifier}";
         return view;
     }

@@ -60,6 +60,8 @@ public class MainActivity : Activity
     private int? _draggedCombatantSequence;
     private SavedCharacterLibrary _savedCharacters = new();
     private SavedMonsterLibrary _savedMonsters = new();
+    private readonly HashSet<int> _selectedSavedMonsterIds = [];
+    private bool _selectingSavedMonsters;
     private SavedEncounterLibrary _savedEncounters = new();
     private int _activeSavedEncounterId;
     private List<ConditionReference>? _conditionReferences;
@@ -124,7 +126,9 @@ public class MainActivity : Activity
         FindViewById<Button>(Resource.Id.monster_bestiary_tab)!.Click += (_, _) => SelectMonsterSubTab(0);
         FindViewById<Button>(Resource.Id.monster_custom_tab)!.Click += (_, _) => SelectMonsterSubTab(1);
         FindViewById<Button>(Resource.Id.new_saved_monster_button)!.Click += (_, _) => ShowSavedMonsterEditor();
-        FindViewById<ListView>(Resource.Id.saved_monster_list)!.ItemClick += (_, args) => ShowSavedMonster(_savedMonsters.Monsters[args.Position]);
+        FindViewById<ListView>(Resource.Id.saved_monster_list)!.ItemClick += (_, args) => OnSavedMonsterClicked(_savedMonsters.Monsters[args.Position]);
+        FindViewById<Button>(Resource.Id.select_saved_monsters_button)!.Click += (_, _) => OnSavedMonsterSelectionAction();
+        FindViewById<Button>(Resource.Id.cancel_saved_monster_selection_button)!.Click += (_, _) => ExitSavedMonsterSelection();
         FindViewById<SearchView>(Resource.Id.feat_search)!.QueryTextChange += (_, args) => OnFeatQueryChanged(args.NewText);
         FindViewById<Spinner>(Resource.Id.feat_type_filter)!.ItemSelected += (_, _) => OnFeatFilterChanged();
         FindViewById<ListView>(Resource.Id.feat_list)!.ItemClick += (_, args) => ShowFeat(_visibleFeats[args.Position]);
@@ -1354,7 +1358,57 @@ public class MainActivity : Activity
         FindViewById<TextView>(Resource.Id.saved_monster_empty)!.Visibility = count == 0 ? ViewStates.Visible : ViewStates.Gone;
         ListView list = FindViewById<ListView>(Resource.Id.saved_monster_list)!;
         list.Visibility = count == 0 ? ViewStates.Gone : ViewStates.Visible;
-        list.Adapter = new SavedMonsterListAdapter(this, _savedMonsters.Monsters);
+        list.Adapter = new SavedMonsterListAdapter(this, _savedMonsters.Monsters, _selectingSavedMonsters, _selectedSavedMonsterIds);
+        RefreshSavedMonsterSelectionControls();
+    }
+
+    private void OnSavedMonsterClicked(SavedMonster monster)
+    {
+        if (!_selectingSavedMonsters)
+        {
+            ShowSavedMonster(monster);
+            return;
+        }
+
+        if (!_selectedSavedMonsterIds.Add(monster.Id)) _selectedSavedMonsterIds.Remove(monster.Id);
+        RefreshSavedMonsters();
+    }
+
+    private void OnSavedMonsterSelectionAction()
+    {
+        if (!_selectingSavedMonsters)
+        {
+            _selectingSavedMonsters = true;
+            _selectedSavedMonsterIds.Clear();
+            RefreshSavedMonsters();
+            return;
+        }
+
+        SavedMonster[] selected = _savedMonsters.Monsters
+            .Where(monster => _selectedSavedMonsterIds.Contains(monster.Id)).ToArray();
+        if (selected.Length == 0) return;
+        foreach (SavedMonster monster in selected) AddSavedMonsterParticipant(monster);
+        CommitCombatChange();
+        Toast.MakeText(this, $"Added {selected.Length} custom monster{(selected.Length == 1 ? string.Empty : "s")} to the encounter.", ToastLength.Short)?.Show();
+        ExitSavedMonsterSelection();
+    }
+
+    private void ExitSavedMonsterSelection()
+    {
+        _selectingSavedMonsters = false;
+        _selectedSavedMonsterIds.Clear();
+        RefreshSavedMonsters();
+    }
+
+    private void RefreshSavedMonsterSelectionControls()
+    {
+        Button action = FindViewById<Button>(Resource.Id.select_saved_monsters_button)!;
+        action.Text = _selectingSavedMonsters
+            ? GetString(Resource.String.add_selected_monsters, _selectedSavedMonsterIds.Count)
+            : GetString(Resource.String.select_monsters);
+        action.Enabled = _selectingSavedMonsters ? _selectedSavedMonsterIds.Count > 0 : _savedMonsters.Monsters.Count > 0;
+        FindViewById<Button>(Resource.Id.cancel_saved_monster_selection_button)!.Visibility =
+            _selectingSavedMonsters ? ViewStates.Visible : ViewStates.Gone;
     }
 
     private void ShowSavedMonster(SavedMonster monster)
@@ -1444,11 +1498,17 @@ public class MainActivity : Activity
 
     private void AddSavedMonsterToCombat(SavedMonster monster)
     {
+        CombatParticipant participant = AddSavedMonsterParticipant(monster);
+        CommitCombatChange();
+        Toast.MakeText(this, participant.DisplayName + " added to encounter.", ToastLength.Short)?.Show();
+    }
+
+    private CombatParticipant AddSavedMonsterParticipant(SavedMonster monster)
+    {
         CombatParticipant participant = _combatRoster.AddSavedMonster(monster);
         if (_combatRoster.Round > 0)
             _combatRoster.RollInitiative(participant.Sequence, () => Random.Shared.Next(1, 21));
-        CommitCombatChange();
-        Toast.MakeText(this, participant.DisplayName + " added to encounter.", ToastLength.Short)?.Show();
+        return participant;
     }
 
     private static string Signed(int value) => value >= 0 ? "+" + value : value.ToString();

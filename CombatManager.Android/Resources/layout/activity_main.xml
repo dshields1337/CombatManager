@@ -84,6 +84,10 @@
                     <TextView android:id="@+id/saved_monster_count" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:textColor="@color/text_secondary" />
                     <Button android:id="@+id/new_saved_monster_button" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/new_monster" />
                 </LinearLayout>
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:paddingStart="12dp" android:paddingEnd="12dp" android:paddingBottom="8dp">
+                    <Button android:id="@+id/select_saved_monsters_button" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/select_monsters" />
+                    <Button android:id="@+id/cancel_saved_monster_selection_button" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@android:string/cancel" android:visibility="gone" />
+                </LinearLayout>
                 <TextView android:id="@+id/saved_monster_empty" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:gravity="center" android:padding="32dp" android:text="@string/no_saved_monsters" android:textColor="@color/text_secondary" android:textSize="17sp" />
                 <ListView android:id="@+id/saved_monster_list" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:divider="@color/primary_light" android:dividerHeight="1dp" android:visibility="gone" />
             </LinearLayout>

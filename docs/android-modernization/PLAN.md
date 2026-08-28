@@ -88,7 +88,7 @@ Deliverable: a valid manifest accepted by current Android tooling.
 - [x] Saved encounter library. (Versioned private snapshots, Combat save/load controls, prefilled and editable names, Encounters tab opening/renaming/confirmed deletion, and save-before-switch choices are complete.)
 - [ ] Character and initiative adapters. (Persistent reusable custom-character library, Characters tab, saved-character combat selection, and modern combat initiative adapter are complete; broader legacy character/condition behavior remains.)
 - [x] Monster browsing and selection. (Searchable/filterable complete 2,837-entry legacy bestiary, structured rows, persisted browser state, lazy full record details, and checkbox-based multi-selection into encounters are complete.)
-- [ ] Monster editor screens.
+- [ ] Monster editor screens. (A persistent reusable custom-monster library now supports required combat statistics, notes, creation, editing/renaming, deletion, and encounter copies; broader legacy bestiary editing remains out of scope.)
 - [x] Spell and feat screens. (Searchable/filterable Feats and Spells screens with persisted browser state and read-only details are complete; Spells stream full records on demand.)
 - [x] Treasure and rule screens. (Searchable/filterable Rules and 2,241-entry magic-item Treasure screens with persisted state and full details complete.)
 - [ ] Remaining dialogs and utilities.

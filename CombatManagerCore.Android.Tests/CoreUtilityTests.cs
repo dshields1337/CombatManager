@@ -672,6 +672,61 @@ public sealed class CoreUtilityTests
     }
 
     [TestMethod]
+    public void SavedMonsterLibraryCreatesEditsDeletesAndPersistsTemplates()
+    {
+        var library = new SavedMonsterLibrary();
+        SavedMonster brute = library.Add("  Clockwork Brute  ", 88, 21, 11, 19, 28, 16, 4, "  Brass construct  ");
+        SavedMonster scout = library.Add("Scout", 12, 15, 14, 12, 16, 3, 7, string.Empty);
+
+        Assert.AreEqual("Clockwork Brute", brute.Name);
+        Assert.IsTrue(library.Update(scout.Id, "Arcane Scout", 14, 16, 15, 13, 18, 4, 8, "Fast"));
+        using var stream = new MemoryStream();
+        library.Save(stream);
+        stream.Position = 0;
+
+        Assert.IsTrue(SavedMonsterLibrary.TryLoad(stream, out SavedMonsterLibrary restored));
+        Assert.HasCount(2, restored.Monsters);
+        SavedMonster saved = restored.Monsters.Single(item => item.Name == "Clockwork Brute");
+        Assert.AreEqual(88, saved.MaximumHP);
+        Assert.AreEqual(21, saved.ArmorClass);
+        Assert.AreEqual(11, saved.TouchArmorClass);
+        Assert.AreEqual(19, saved.FlatFootedArmorClass);
+        Assert.AreEqual(28, saved.CMD);
+        Assert.AreEqual(16, saved.CMB);
+        Assert.AreEqual(4, saved.InitiativeModifier);
+        Assert.AreEqual("Brass construct", saved.Notes);
+        Assert.IsTrue(restored.Remove(saved.Id));
+    }
+
+    [TestMethod]
+    public void CombatRosterAddsAndPersistsIndependentSavedMonsterCopies()
+    {
+        var monster = new SavedMonster
+        {
+            Id = 9, Name = "Clockwork Brute", MaximumHP = 88, ArmorClass = 21,
+            TouchArmorClass = 11, FlatFootedArmorClass = 19, CMD = 28, CMB = 16,
+            InitiativeModifier = 4, Notes = "Brass construct"
+        };
+        var roster = new CombatRoster();
+        CombatParticipant participant = roster.AddSavedMonster(monster);
+        Assert.IsFalse(participant.IsManual);
+        Assert.IsTrue(participant.IsSavedMonster);
+
+        using var stream = new MemoryStream();
+        roster.Save(stream);
+        stream.Position = 0;
+        Assert.IsTrue(CombatRoster.TryLoad(stream, out CombatRoster restored));
+        CombatParticipant copy = restored.Participants.Single();
+        Assert.AreEqual(9, copy.SavedMonsterId);
+        Assert.AreEqual(21, copy.ArmorClass);
+        Assert.AreEqual(11, copy.TouchArmorClass);
+        Assert.AreEqual(19, copy.FlatFootedArmorClass);
+        Assert.AreEqual(28, copy.CMD);
+        Assert.AreEqual(16, copy.CMB);
+        Assert.AreEqual("Brass construct", copy.Notes);
+    }
+
+    [TestMethod]
     public void CombatRosterAddsAndPersistsIndependentSavedCharacterCopies()
     {
         var template = new SavedCharacter { Id = 12, Name = "Valeros", MaximumHP = 30, InitiativeModifier = 5, Notes = "Human fighter" };

@@ -286,3 +286,9 @@
 - Status: accepted
 - Decision: retain the existing private active-encounter autosave for crash/restart recovery and add a separate versioned named-snapshot library. Track the active saved snapshot by stable ID so Save updates it, while Clear or deleting that snapshot detaches the working encounter. Opening another snapshot requires Save, Don't save, or Cancel when current work exists.
 - Reason: recovery state and deliberate reusable saves have different lifecycles. Separating them prevents every small autosave mutation from silently overwriting the user's named restore points while still allowing an explicitly loaded encounter to be updated naturally.
+## D040: Keep custom monster templates independent from encounter copies
+
+- Date: 2026-08-28
+- Status: accepted
+- Decision: store reusable custom monsters in a separate versioned private XML library. Adding one to an encounter copies its identity, HP, five quick combat defenses/bonuses, initiative modifier, and notes into the roster; later template edits or deletion do not mutate or remove existing encounter copies.
+- Reason: custom monsters need bestiary-like encounter behavior without acquiring fabricated bestiary IDs. Independent copies preserve active and saved encounters, while an explicit saved-monster ID distinguishes them from persistent party members and keeps older version-1 roster documents readable.

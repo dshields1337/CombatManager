@@ -9,6 +9,7 @@ public class MainActivity : Activity
     private const string PreferenceName = "combat_manager_modern";
     private const string EncounterFileName = "active-encounter.xml";
     private const string SavedCharactersFileName = "saved-characters.xml";
+    private const string SavedMonstersFileName = "saved-monsters.xml";
     private const string SavedEncountersFileName = "saved-encounters.xml";
     private const string ActiveSavedEncounterIdKey = "active_saved_encounter_id";
     private const string SelectedPageKey = "selected_page";
@@ -55,8 +56,10 @@ public class MainActivity : Activity
     private List<CombatParticipant> _partyParticipants = [];
     private List<CombatParticipant> _encounterParticipants = [];
     private int _combatSubTab;
+    private int _monsterSubTab;
     private int? _draggedCombatantSequence;
     private SavedCharacterLibrary _savedCharacters = new();
+    private SavedMonsterLibrary _savedMonsters = new();
     private SavedEncounterLibrary _savedEncounters = new();
     private int _activeSavedEncounterId;
     private List<ConditionReference>? _conditionReferences;
@@ -75,6 +78,7 @@ public class MainActivity : Activity
         SetContentView(Resource.Layout.activity_main);
         _combatRoster = LoadPersistedCombatRoster();
         _savedCharacters = LoadSavedCharacters();
+        _savedMonsters = LoadSavedMonsters();
         _savedEncounters = LoadSavedEncounters();
         _activeSavedEncounterId = GetSharedPreferences(PreferenceName, global::Android.Content.FileCreationMode.Private)!.GetInt(ActiveSavedEncounterIdKey, 0);
         if (_savedEncounters.Find(_activeSavedEncounterId) is null) _activeSavedEncounterId = 0;
@@ -117,6 +121,10 @@ public class MainActivity : Activity
         FindViewById<ListView>(Resource.Id.monster_list)!.ItemClick += (_, args) => OnMonsterClicked(_visibleCreatures[args.Position]);
         FindViewById<Button>(Resource.Id.select_monsters_button)!.Click += (_, _) => OnMonsterSelectionAction();
         FindViewById<Button>(Resource.Id.cancel_monster_selection_button)!.Click += (_, _) => ExitMonsterSelection();
+        FindViewById<Button>(Resource.Id.monster_bestiary_tab)!.Click += (_, _) => SelectMonsterSubTab(0);
+        FindViewById<Button>(Resource.Id.monster_custom_tab)!.Click += (_, _) => SelectMonsterSubTab(1);
+        FindViewById<Button>(Resource.Id.new_saved_monster_button)!.Click += (_, _) => ShowSavedMonsterEditor();
+        FindViewById<ListView>(Resource.Id.saved_monster_list)!.ItemClick += (_, args) => ShowSavedMonster(_savedMonsters.Monsters[args.Position]);
         FindViewById<SearchView>(Resource.Id.feat_search)!.QueryTextChange += (_, args) => OnFeatQueryChanged(args.NewText);
         FindViewById<Spinner>(Resource.Id.feat_type_filter)!.ItemSelected += (_, _) => OnFeatFilterChanged();
         FindViewById<ListView>(Resource.Id.feat_list)!.ItemClick += (_, args) => ShowFeat(_visibleFeats[args.Position]);
@@ -164,7 +172,12 @@ public class MainActivity : Activity
         }
 
         if (showCombat) RefreshCombatRoster();
-        if (showMonsters) _ = EnsureCreaturesLoadedAsync();
+        if (showMonsters)
+        {
+            SelectMonsterSubTab(_monsterSubTab);
+            if (_monsterSubTab == 0) _ = EnsureCreaturesLoadedAsync();
+            else RefreshSavedMonsters();
+        }
         if (showCharacters) RefreshSavedCharacters();
         if (showEncounters) RefreshSavedEncounters();
         if (showFeats) _ = EnsureFeatsLoadedAsync();
@@ -616,6 +629,21 @@ public class MainActivity : Activity
         dialog.Show();
     }
 
+    private void SelectMonsterSubTab(int index)
+    {
+        _monsterSubTab = index == 1 ? 1 : 0;
+        FindViewById<LinearLayout>(Resource.Id.monster_bestiary_panel)!.Visibility = _monsterSubTab == 0 ? ViewStates.Visible : ViewStates.Gone;
+        FindViewById<LinearLayout>(Resource.Id.custom_monsters_panel)!.Visibility = _monsterSubTab == 1 ? ViewStates.Visible : ViewStates.Gone;
+        Button bestiary = FindViewById<Button>(Resource.Id.monster_bestiary_tab)!;
+        Button custom = FindViewById<Button>(Resource.Id.monster_custom_tab)!;
+        bestiary.Enabled = _monsterSubTab != 0;
+        custom.Enabled = _monsterSubTab != 1;
+        bestiary.Alpha = _monsterSubTab == 0 ? 1f : 0.65f;
+        custom.Alpha = _monsterSubTab == 1 ? 1f : 0.65f;
+        if (_monsterSubTab == 0) _ = EnsureCreaturesLoadedAsync();
+        else RefreshSavedMonsters();
+    }
+
     private async Task EnsureCreaturesLoadedAsync()
     {
         if (_creatures is not null)
@@ -940,6 +968,10 @@ public class MainActivity : Activity
                 $"\nInitiative: {initiative} ({initiativeModifier} modifier)";
             SetQuickDetails(quickDetails, participantStats, conditionCount);
         }
+        else if (participant.IsSavedMonster)
+        {
+            SetQuickDetails(quickDetails, FormatSavedMonsterQuickStats(participant), conditionCount);
+        }
         else
         {
             SetQuickDetails(quickDetails, "Loading combat statistics…", conditionCount);
@@ -956,7 +988,7 @@ public class MainActivity : Activity
         fullDetails.Click += (_, _) =>
         {
             dialog?.Dismiss();
-            if (participant.IsSavedCharacter) ShowSavedCombatantDetails(participant);
+            if (participant.IsSavedCharacter || participant.IsSavedMonster) ShowSavedCombatantDetails(participant);
             else _ = ShowFullDetailsAsync(new CreatureSummary { Id = participant.CreatureId, Name = participant.DisplayName });
         };
         Button combatDetails = actions.FindViewById<Button>(Resource.Id.combatant_combat_details_button)!;
@@ -964,7 +996,8 @@ public class MainActivity : Activity
         combatDetails.Click += (_, _) =>
         {
             dialog?.Dismiss();
-            _ = ShowCombatDetailsAsync(participant);
+            if (participant.IsSavedMonster) ShowSavedMonsterCombatDetails(participant);
+            else _ = ShowCombatDetailsAsync(participant);
         };
         actions.FindViewById<Button>(Resource.Id.damage_button)!.Click += (_, _) =>
         {
@@ -1302,6 +1335,110 @@ public class MainActivity : Activity
         list.Visibility = count == 0 ? ViewStates.Gone : ViewStates.Visible;
         list.Adapter = new SavedCharacterListAdapter(this, _savedCharacters.Characters);
     }
+
+    private void RefreshSavedMonsters()
+    {
+        int count = _savedMonsters.Monsters.Count;
+        FindViewById<TextView>(Resource.Id.saved_monster_count)!.Text = count == 1 ? "1 custom monster" : $"{count:N0} custom monsters";
+        FindViewById<TextView>(Resource.Id.saved_monster_empty)!.Visibility = count == 0 ? ViewStates.Visible : ViewStates.Gone;
+        ListView list = FindViewById<ListView>(Resource.Id.saved_monster_list)!;
+        list.Visibility = count == 0 ? ViewStates.Gone : ViewStates.Visible;
+        list.Adapter = new SavedMonsterListAdapter(this, _savedMonsters.Monsters);
+    }
+
+    private void ShowSavedMonster(SavedMonster monster)
+    {
+        string modifier = Signed(monster.InitiativeModifier);
+        var builder = new AlertDialog.Builder(this);
+        builder.SetTitle(monster.Name);
+        builder.SetMessage($"HP {monster.MaximumHP}  •  AC {monster.ArmorClass}  •  FF {monster.FlatFootedArmorClass}\n" +
+            $"Touch {monster.TouchArmorClass}  •  CMD {monster.CMD}  •  CMB {Signed(monster.CMB)}\n" +
+            $"Initiative modifier: {modifier}\n\n" + (string.IsNullOrWhiteSpace(monster.Notes) ? "No notes." : monster.Notes));
+        builder.SetNegativeButton(Resource.String.delete_monster, (_, _) => ConfirmDeleteSavedMonster(monster));
+        builder.SetNeutralButton(Resource.String.add_to_combat, (_, _) => AddSavedMonsterToCombat(monster));
+        builder.SetPositiveButton(Resource.String.edit_combatant, (_, _) => ShowSavedMonsterEditor(monster));
+        builder.Show();
+    }
+
+    private void ShowSavedMonsterEditor(SavedMonster? monster = null)
+    {
+        View view = LayoutInflater.Inflate(Resource.Layout.saved_monster_dialog, null)!;
+        EditText name = view.FindViewById<EditText>(Resource.Id.saved_monster_name)!;
+        EditText hp = view.FindViewById<EditText>(Resource.Id.saved_monster_hp)!;
+        EditText ac = view.FindViewById<EditText>(Resource.Id.saved_monster_ac)!;
+        EditText touch = view.FindViewById<EditText>(Resource.Id.saved_monster_touch_ac)!;
+        EditText flatFooted = view.FindViewById<EditText>(Resource.Id.saved_monster_flat_footed_ac)!;
+        EditText cmd = view.FindViewById<EditText>(Resource.Id.saved_monster_cmd)!;
+        EditText cmb = view.FindViewById<EditText>(Resource.Id.saved_monster_cmb)!;
+        EditText initiative = view.FindViewById<EditText>(Resource.Id.saved_monster_initiative_modifier)!;
+        EditText notes = view.FindViewById<EditText>(Resource.Id.saved_monster_notes)!;
+        if (monster is not null)
+        {
+            name.Text = monster.Name;
+            hp.Text = monster.MaximumHP.ToString();
+            ac.Text = monster.ArmorClass.ToString();
+            touch.Text = monster.TouchArmorClass.ToString();
+            flatFooted.Text = monster.FlatFootedArmorClass.ToString();
+            cmd.Text = monster.CMD.ToString();
+            cmb.Text = monster.CMB.ToString();
+            initiative.Text = monster.InitiativeModifier.ToString();
+            notes.Text = monster.Notes;
+        }
+        var builder = new AlertDialog.Builder(this);
+        builder.SetTitle(monster is null ? Resource.String.new_monster_title : Resource.String.edit_monster_title);
+        builder.SetView(view);
+        builder.SetNegativeButton(global::Android.Resource.String.Cancel, (_, _) => { });
+        builder.SetPositiveButton(global::Android.Resource.String.Ok, (_, _) =>
+        {
+            int maximumHp = 0, armorClass = 0, touchArmorClass = 0, flatFootedArmorClass = 0;
+            int combatManeuverDefense = 0, combatManeuverBonus = 0, initiativeModifier = 0;
+            bool valid = !string.IsNullOrWhiteSpace(name.Text) && int.TryParse(hp.Text, out maximumHp) && maximumHp >= 1 &&
+                int.TryParse(ac.Text, out armorClass) && armorClass >= 0 &&
+                int.TryParse(touch.Text, out touchArmorClass) && touchArmorClass >= 0 &&
+                int.TryParse(flatFooted.Text, out flatFootedArmorClass) && flatFootedArmorClass >= 0 &&
+                int.TryParse(cmd.Text, out combatManeuverDefense) && combatManeuverDefense >= 0 &&
+                int.TryParse(cmb.Text, out combatManeuverBonus) && int.TryParse(initiative.Text, out initiativeModifier);
+            if (!valid)
+            {
+                Toast.MakeText(this, Resource.String.invalid_monster, ToastLength.Long)?.Show();
+                return;
+            }
+            if (monster is null)
+                _savedMonsters.Add(name.Text, maximumHp, armorClass, touchArmorClass, flatFootedArmorClass,
+                    combatManeuverDefense, combatManeuverBonus, initiativeModifier, notes.Text ?? string.Empty);
+            else
+                _savedMonsters.Update(monster.Id, name.Text, maximumHp, armorClass, touchArmorClass,
+                    flatFootedArmorClass, combatManeuverDefense, combatManeuverBonus, initiativeModifier,
+                    notes.Text ?? string.Empty);
+            CommitSavedMonsters();
+        });
+        builder.Show();
+        name.RequestFocus();
+        if (monster is not null) name.SetSelectAllOnFocus(true);
+    }
+
+    private void ConfirmDeleteSavedMonster(SavedMonster monster)
+    {
+        var builder = new AlertDialog.Builder(this);
+        builder.SetTitle(Resource.String.delete_monster_title);
+        builder.SetMessage(Resource.String.delete_monster_message);
+        builder.SetNegativeButton(global::Android.Resource.String.Cancel, (_, _) => { });
+        builder.SetPositiveButton(Resource.String.delete_monster, (_, _) =>
+        {
+            _savedMonsters.Remove(monster.Id);
+            CommitSavedMonsters();
+        });
+        builder.Show();
+    }
+
+    private void AddSavedMonsterToCombat(SavedMonster monster)
+    {
+        CombatParticipant participant = _combatRoster.AddSavedMonster(monster);
+        CommitCombatChange();
+        Toast.MakeText(this, participant.DisplayName + " added to encounter.", ToastLength.Short)?.Show();
+    }
+
+    private static string Signed(int value) => value >= 0 ? "+" + value : value.ToString();
 
     private void ShowSavedCharacter(SavedCharacter character)
     {
@@ -1800,6 +1937,36 @@ public class MainActivity : Activity
         RefreshSavedCharacters();
     }
 
+    private SavedMonsterLibrary LoadSavedMonsters()
+    {
+        try
+        {
+            if (!(FileList()?.Contains(SavedMonstersFileName) ?? false)) return new SavedMonsterLibrary();
+            using Stream stream = OpenFileInput(SavedMonstersFileName)!;
+            if (SavedMonsterLibrary.TryLoad(stream, out SavedMonsterLibrary library)) return library;
+            DeleteFile(SavedMonstersFileName);
+        }
+        catch (Exception exception)
+        {
+            global::Android.Util.Log.Error("CombatManager", "Unable to restore saved monsters: " + exception);
+        }
+        return new SavedMonsterLibrary();
+    }
+
+    private void CommitSavedMonsters()
+    {
+        try
+        {
+            using Stream stream = OpenFileOutput(SavedMonstersFileName, global::Android.Content.FileCreationMode.Private)!;
+            _savedMonsters.Save(stream);
+        }
+        catch (Exception exception)
+        {
+            global::Android.Util.Log.Error("CombatManager", "Unable to save monsters: " + exception);
+        }
+        RefreshSavedMonsters();
+    }
+
     private SavedEncounterLibrary LoadSavedEncounters()
     {
         try
@@ -1938,6 +2105,21 @@ public class MainActivity : Activity
             $"CMB {ValueOrDash(creature.CMB)}";
         SetQuickDetails(view, statistics, conditionCount);
     }
+
+    private void ShowSavedMonsterCombatDetails(CombatParticipant participant)
+    {
+        var dialog = new AlertDialog.Builder(this);
+        dialog.SetTitle(participant.DisplayName);
+        dialog.SetMessage(FormatSavedMonsterQuickStats(participant) + "\n\n" +
+            (string.IsNullOrWhiteSpace(participant.Notes) ? "No notes." : participant.Notes));
+        dialog.SetPositiveButton(global::Android.Resource.String.Ok, (_, _) => { });
+        dialog.Show();
+    }
+
+    private static string FormatSavedMonsterQuickStats(CombatParticipant participant) =>
+        $"AC {participant.ArmorClass}  •  FF {participant.FlatFootedArmorClass}\n" +
+        $"Touch {participant.TouchArmorClass}  •  CMD {participant.CMD}\n" +
+        $"CMB {Signed(participant.CMB)}";
 
     private static void SetQuickDetails(TextView view, string statistics, string conditionCount)
     {

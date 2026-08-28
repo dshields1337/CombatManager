@@ -61,6 +61,11 @@
             <TextView android:id="@+id/page_status" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="10dp" android:gravity="center" android:text="@string/migration_status" android:textColor="@color/text_secondary" android:textSize="16sp" />
         </LinearLayout>
         <LinearLayout android:id="@+id/monsters_panel" android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="vertical" android:visibility="gone">
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:paddingStart="8dp" android:paddingEnd="8dp">
+                <Button android:id="@+id/monster_bestiary_tab" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/bestiary" />
+                <Button android:id="@+id/monster_custom_tab" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/custom_monsters" />
+            </LinearLayout>
+            <LinearLayout android:id="@+id/monster_bestiary_panel" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:orientation="vertical">
             <SearchView android:id="@+id/monster_search" android:layout_width="match_parent" android:layout_height="wrap_content" android:queryHint="@string/search_monsters" android:iconifiedByDefault="false" />
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:paddingStart="12dp" android:paddingEnd="12dp" android:paddingBottom="6dp">
                 <Spinner android:id="@+id/monster_type_filter" android:layout_width="0dp" android:layout_height="48dp" android:layout_weight="1" android:contentDescription="@string/filter_by_type" />
@@ -73,6 +78,15 @@
             </LinearLayout>
             <ProgressBar android:id="@+id/monster_progress" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="center" android:layout_margin="24dp" />
             <ListView android:id="@+id/monster_list" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:divider="@color/primary_light" android:dividerHeight="1dp" android:visibility="gone" />
+            </LinearLayout>
+            <LinearLayout android:id="@+id/custom_monsters_panel" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:orientation="vertical" android:visibility="gone">
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:padding="12dp">
+                    <TextView android:id="@+id/saved_monster_count" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:textColor="@color/text_secondary" />
+                    <Button android:id="@+id/new_saved_monster_button" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/new_monster" />
+                </LinearLayout>
+                <TextView android:id="@+id/saved_monster_empty" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:gravity="center" android:padding="32dp" android:text="@string/no_saved_monsters" android:textColor="@color/text_secondary" android:textSize="17sp" />
+                <ListView android:id="@+id/saved_monster_list" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:divider="@color/primary_light" android:dividerHeight="1dp" android:visibility="gone" />
+            </LinearLayout>
         </LinearLayout>
         <LinearLayout android:id="@+id/characters_panel" android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="vertical" android:visibility="gone">
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:padding="12dp">

@@ -138,5 +138,21 @@
     <string name="loading_magic_item_details">Loading magic-item details…</string>
     <string name="magic_item_details_not_found">Details are not available for this magic item.</string>
     <string name="unable_to_load_bestiary">Unable to load the bundled bestiary.</string>
+    <string name="bestiary">Bestiary</string>
+    <string name="custom_monsters">Custom Monsters</string>
+    <string name="new_monster">New monster</string>
+    <string name="new_monster_title">Create custom monster</string>
+    <string name="edit_monster_title">Edit custom monster</string>
+    <string name="no_saved_monsters">Create reusable custom monsters here, then add them to any encounter.</string>
+    <string name="monster_notes_optional">Monster notes (optional)</string>
+    <string name="armor_class">Armor Class (AC)</string>
+    <string name="touch_ac">Touch AC</string>
+    <string name="flat_footed_ac">Flat-Footed AC</string>
+    <string name="cmd">CMD</string>
+    <string name="cmb">CMB</string>
+    <string name="delete_monster">Delete</string>
+    <string name="delete_monster_title">Delete custom monster?</string>
+    <string name="delete_monster_message">Delete this reusable monster? Existing encounter copies will remain.</string>
+    <string name="invalid_monster">Enter a name, HP of at least 1, and valid whole numbers for every combat statistic.</string>
     <string name="migration_status">This section is connected to the new navigation shell. Its data and controls will arrive in the next vertical slices.</string>
 </resources>

@@ -13,6 +13,7 @@ namespace CombatManager
         public int Sequence { get; set; }
         public int CreatureId { get; set; }
         public int SavedCharacterId { get; set; }
+        public int SavedMonsterId { get; set; }
         public int InstanceNumber { get; set; }
         public string Name { get; set; }
         public string ChallengeRating { get; set; }
@@ -22,13 +23,19 @@ namespace CombatManager
         public int? Initiative { get; set; }
         public int? InitiativeRoll { get; set; }
         public int InitiativeModifier { get; set; }
+        public int ArmorClass { get; set; }
+        public int TouchArmorClass { get; set; }
+        public int FlatFootedArmorClass { get; set; }
+        public int CMD { get; set; }
+        public int CMB { get; set; }
         public bool IsPartyActive { get; set; } = true;
         public string Notes { get; set; }
         public string MiniDescription { get; set; }
         public List<CombatCondition> Conditions { get; set; } = new List<CombatCondition>();
         public bool IsDefeated => CurrentHP <= 0;
-        public bool IsManual => CreatureId <= 0;
+        public bool IsManual => CreatureId <= 0 && SavedMonsterId <= 0;
         public bool IsSavedCharacter => SavedCharacterId > 0;
+        public bool IsSavedMonster => SavedMonsterId > 0;
         public bool IsInCombat => !IsManual || IsPartyActive;
         public string BaseDisplayName => InstanceNumber <= 1 ? Name : Name + " " + InstanceNumber;
         public string DisplayName => BaseDisplayName + (string.IsNullOrWhiteSpace(MiniDescription) ? string.Empty : " (" + MiniDescription + ")");
@@ -102,6 +109,23 @@ namespace CombatManager
             return participant;
         }
 
+        public CombatParticipant AddSavedMonster(SavedMonster monster)
+        {
+            if (monster == null) throw new System.ArgumentNullException("monster");
+            int instanceNumber = _participants.Where(item => item.SavedMonsterId == monster.Id)
+                .Select(item => item.InstanceNumber).DefaultIfEmpty(0).Max() + 1;
+            var participant = new CombatParticipant
+            {
+                Sequence = _nextSequence++, CreatureId = 0, SavedMonsterId = monster.Id, InstanceNumber = instanceNumber,
+                Name = monster.Name, ChallengeRating = "—", MaximumHP = monster.MaximumHP, CurrentHP = monster.MaximumHP,
+                InitiativeModifier = monster.InitiativeModifier, ArmorClass = monster.ArmorClass,
+                TouchArmorClass = monster.TouchArmorClass, FlatFootedArmorClass = monster.FlatFootedArmorClass,
+                CMD = monster.CMD, CMB = monster.CMB, Notes = monster.Notes ?? string.Empty
+            };
+            _participants.Add(participant);
+            return participant;
+        }
+
         public CombatParticipant Duplicate(int sequence)
         {
             CombatParticipant source = _participants.FirstOrDefault(item => item.Sequence == sequence);
@@ -110,6 +134,9 @@ namespace CombatManager
             if (source.IsManual)
                 instanceNumber = _participants.Where(item => item.IsManual && string.Equals(item.Name, source.Name, System.StringComparison.OrdinalIgnoreCase))
                     .Select(item => item.InstanceNumber).DefaultIfEmpty(0).Max() + 1;
+            else if (source.IsSavedMonster)
+                instanceNumber = _participants.Where(item => item.SavedMonsterId == source.SavedMonsterId)
+                    .Select(item => item.InstanceNumber).DefaultIfEmpty(0).Max() + 1;
             else
             {
                 if (!_nextInstanceByCreature.TryGetValue(source.CreatureId, out instanceNumber)) instanceNumber = source.InstanceNumber + 1;
@@ -117,10 +144,13 @@ namespace CombatManager
             }
             var duplicate = new CombatParticipant
             {
-                Sequence = _nextSequence++, CreatureId = source.CreatureId, SavedCharacterId = source.SavedCharacterId, InstanceNumber = instanceNumber,
+                Sequence = _nextSequence++, CreatureId = source.CreatureId, SavedCharacterId = source.SavedCharacterId,
+                SavedMonsterId = source.SavedMonsterId, InstanceNumber = instanceNumber,
                 Name = source.Name, ChallengeRating = source.ChallengeRating, MaximumHP = source.MaximumHP,
                 CurrentHP = source.MaximumHP, Notes = source.Notes ?? string.Empty, MiniDescription = source.MiniDescription ?? string.Empty,
-                InitiativeModifier = source.InitiativeModifier,
+                InitiativeModifier = source.InitiativeModifier, ArmorClass = source.ArmorClass,
+                TouchArmorClass = source.TouchArmorClass, FlatFootedArmorClass = source.FlatFootedArmorClass,
+                CMD = source.CMD, CMB = source.CMB,
                 Conditions = source.Conditions.Select(condition => new CombatCondition { Name = condition.Name, RemainingTurns = condition.RemainingTurns }).ToList()
             };
             _participants.Add(duplicate);
@@ -258,9 +288,12 @@ namespace CombatManager
             var copy = new CombatParticipant
             {
                 Sequence = _nextSequence++, CreatureId = source.CreatureId, SavedCharacterId = source.SavedCharacterId,
-                InstanceNumber = source.InstanceNumber, Name = source.Name, ChallengeRating = source.ChallengeRating,
+                SavedMonsterId = source.SavedMonsterId, InstanceNumber = source.InstanceNumber,
+                Name = source.Name, ChallengeRating = source.ChallengeRating,
                 MaximumHP = source.MaximumHP, CurrentHP = source.CurrentHP, TemporaryHP = source.TemporaryHP,
                 InitiativeModifier = source.InitiativeModifier, InitiativeRoll = source.InitiativeRoll,
+                ArmorClass = source.ArmorClass, TouchArmorClass = source.TouchArmorClass,
+                FlatFootedArmorClass = source.FlatFootedArmorClass, CMD = source.CMD, CMB = source.CMB,
                 IsPartyActive = source.IsPartyActive, Notes = source.Notes ?? string.Empty,
                 MiniDescription = source.MiniDescription ?? string.Empty,
                 Conditions = source.Conditions.Select(condition => new CombatCondition
@@ -481,6 +514,7 @@ namespace CombatManager
                     writer.WriteAttributeString("sequence", participant.Sequence.ToString(CultureInfo.InvariantCulture));
                     writer.WriteAttributeString("creatureId", participant.CreatureId.ToString(CultureInfo.InvariantCulture));
                     if (participant.SavedCharacterId > 0) writer.WriteAttributeString("savedCharacterId", participant.SavedCharacterId.ToString(CultureInfo.InvariantCulture));
+                    if (participant.SavedMonsterId > 0) writer.WriteAttributeString("savedMonsterId", participant.SavedMonsterId.ToString(CultureInfo.InvariantCulture));
                     writer.WriteAttributeString("instance", participant.InstanceNumber.ToString(CultureInfo.InvariantCulture));
                     writer.WriteAttributeString("name", participant.Name ?? string.Empty);
                     writer.WriteAttributeString("cr", participant.ChallengeRating ?? string.Empty);
@@ -490,6 +524,14 @@ namespace CombatManager
                     if (participant.Initiative.HasValue) writer.WriteAttributeString("initiative", participant.Initiative.Value.ToString(CultureInfo.InvariantCulture));
                     if (participant.InitiativeRoll.HasValue) writer.WriteAttributeString("initiativeRoll", participant.InitiativeRoll.Value.ToString(CultureInfo.InvariantCulture));
                     if (participant.InitiativeModifier != 0) writer.WriteAttributeString("initiativeModifier", participant.InitiativeModifier.ToString(CultureInfo.InvariantCulture));
+                    if (participant.IsSavedMonster)
+                    {
+                        writer.WriteAttributeString("ac", participant.ArmorClass.ToString(CultureInfo.InvariantCulture));
+                        writer.WriteAttributeString("touchAc", participant.TouchArmorClass.ToString(CultureInfo.InvariantCulture));
+                        writer.WriteAttributeString("flatFootedAc", participant.FlatFootedArmorClass.ToString(CultureInfo.InvariantCulture));
+                        writer.WriteAttributeString("cmd", participant.CMD.ToString(CultureInfo.InvariantCulture));
+                        writer.WriteAttributeString("cmb", participant.CMB.ToString(CultureInfo.InvariantCulture));
+                    }
                     if (!participant.IsPartyActive) writer.WriteAttributeString("partyActive", "false");
                     if (!string.IsNullOrEmpty(participant.Notes)) writer.WriteAttributeString("notes", participant.Notes);
                     if (!string.IsNullOrEmpty(participant.MiniDescription)) writer.WriteAttributeString("mini", participant.MiniDescription);
@@ -524,6 +566,7 @@ namespace CombatManager
                         Sequence = AttributeInt(element, "sequence"),
                         CreatureId = AttributeInt(element, "creatureId"),
                         SavedCharacterId = AttributeIntOrDefault(element, "savedCharacterId"),
+                        SavedMonsterId = AttributeIntOrDefault(element, "savedMonsterId"),
                         InstanceNumber = AttributeInt(element, "instance"),
                         Name = (string)element.Attribute("name") ?? string.Empty,
                         ChallengeRating = (string)element.Attribute("cr") ?? string.Empty,
@@ -533,6 +576,11 @@ namespace CombatManager
                         Initiative = string.IsNullOrEmpty(initiativeText) ? (int?)null : int.Parse(initiativeText, CultureInfo.InvariantCulture),
                         InitiativeRoll = string.IsNullOrEmpty(initiativeRollText) ? (int?)null : int.Parse(initiativeRollText, CultureInfo.InvariantCulture),
                         InitiativeModifier = AttributeIntOrDefault(element, "initiativeModifier"),
+                        ArmorClass = AttributeIntOrDefault(element, "ac"),
+                        TouchArmorClass = AttributeIntOrDefault(element, "touchAc"),
+                        FlatFootedArmorClass = AttributeIntOrDefault(element, "flatFootedAc"),
+                        CMD = AttributeIntOrDefault(element, "cmd"),
+                        CMB = AttributeIntOrDefault(element, "cmb"),
                         IsPartyActive = !string.Equals(partyActiveText, "false", System.StringComparison.OrdinalIgnoreCase),
                         Notes = (string)element.Attribute("notes") ?? string.Empty,
                         MiniDescription = (string)element.Attribute("mini") ?? string.Empty

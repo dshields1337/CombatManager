@@ -932,10 +932,19 @@ public class MainActivity : Activity
         string initiative = participant.Initiative.HasValue ? participant.Initiative.Value.ToString() : "Not set";
         string initiativeModifier = participant.InitiativeModifier >= 0 ? "+" + participant.InitiativeModifier : participant.InitiativeModifier.ToString();
         string conditionCount = participant.Conditions.Count == 0 ? "None" : participant.Conditions.Count.ToString();
-        actions.FindViewById<TextView>(Resource.Id.combatant_details)!.Text =
-            $"CR {participant.ChallengeRating}  •  HP {participant.CurrentHP} / {participant.MaximumHP}" +
-            (participant.TemporaryHP > 0 ? $"  +  {participant.TemporaryHP} temporary" : string.Empty) +
-            $"\nInitiative: {initiative} ({initiativeModifier} modifier)  •  Conditions: {conditionCount}";
+        TextView quickDetails = actions.FindViewById<TextView>(Resource.Id.combatant_details)!;
+        if (participant.IsManual)
+        {
+            string participantStats = $"HP {participant.CurrentHP} / {participant.MaximumHP}" +
+                (participant.TemporaryHP > 0 ? $"  +  {participant.TemporaryHP} temporary" : string.Empty) +
+                $"\nInitiative: {initiative} ({initiativeModifier} modifier)";
+            SetQuickDetails(quickDetails, participantStats, conditionCount);
+        }
+        else
+        {
+            SetQuickDetails(quickDetails, "Loading combat statistics…", conditionCount);
+            _ = PopulateMonsterQuickDetailsAsync(quickDetails, participant, conditionCount);
+        }
         var builder = new AlertDialog.Builder(this);
         builder.SetTitle(participant.DisplayName);
         builder.SetView(actions);
@@ -1913,6 +1922,46 @@ public class MainActivity : Activity
         dialog.SetMessage(FormatCombatDetails(creature));
         dialog.SetPositiveButton(global::Android.Resource.String.Ok, (_, _) => { });
         dialog.Show();
+    }
+
+    private async Task PopulateMonsterQuickDetailsAsync(TextView view, CombatParticipant participant, string conditionCount)
+    {
+        await EnsureCreaturesLoadedAsync();
+        CreatureSummary? creature = _creatures?.FirstOrDefault(item => item.Id == participant.CreatureId);
+        if (creature is null || IsDestroyed) return;
+
+        string ac = FirstNumber(creature.AC);
+        string touch = NumberAfter(creature.AC, "touch");
+        string flatFooted = NumberAfter(creature.AC, "flat-footed");
+        string statistics = $"AC {ac}  •  FF {flatFooted}\n" +
+            $"Touch {touch}  •  CMD {ValueOrDash(creature.CMD)}\n" +
+            $"CMB {ValueOrDash(creature.CMB)}";
+        SetQuickDetails(view, statistics, conditionCount);
+    }
+
+    private static void SetQuickDetails(TextView view, string statistics, string conditionCount)
+    {
+        string conditionLine = "Conditions: " + conditionCount;
+        var text = new global::Android.Text.SpannableString(statistics + "\n" + conditionLine);
+        int conditionStart = statistics.Length + 1;
+        text.SetSpan(new global::Android.Text.Style.StyleSpan(global::Android.Graphics.TypefaceStyle.Bold),
+            conditionStart, text.Length(), global::Android.Text.SpanTypes.ExclusiveExclusive);
+        view.SetText(text, TextView.BufferType.Spannable);
+    }
+
+    private static string FirstNumber(string value)
+    {
+        global::System.Text.RegularExpressions.Match match =
+            global::System.Text.RegularExpressions.Regex.Match(value ?? string.Empty, @"-?\d+");
+        return match.Success ? match.Value : "—";
+    }
+
+    private static string NumberAfter(string value, string label)
+    {
+        global::System.Text.RegularExpressions.Match match = global::System.Text.RegularExpressions.Regex.Match(
+            value ?? string.Empty, global::System.Text.RegularExpressions.Regex.Escape(label) + @"\s+(-?\d+)",
+            global::System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+        return match.Success ? match.Groups[1].Value : "—";
     }
 
     private static string FormatCombatDetails(CreatureSummary creature)

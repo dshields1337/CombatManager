@@ -28,6 +28,8 @@ namespace CombatManager
         public string Speed { get; set; }
         public string Melee { get; set; }
         public string Ranged { get; set; }
+        public string CMB { get; set; }
+        public string CMD { get; set; }
         public string Source { get; set; }
 
         public string ListText => Name + "  •  CR " + CR;
@@ -99,6 +101,8 @@ namespace CombatManager
                 Speed = Text(element, "Speed"),
                 Melee = Text(element, "Melee"),
                 Ranged = Text(element, "Ranged"),
+                CMB = Text(element, "CMB"),
+                CMD = Text(element, "CMD"),
                 Source = Text(element, "Source")
             };
         }

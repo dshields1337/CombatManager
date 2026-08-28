@@ -256,7 +256,7 @@ public sealed class CoreUtilityTests
         const string xml = """
             <ArrayOfMonster>
               <Monster><Name>Zombie</Name><CR>1/2</CR><HP>12</HP><Type>undead</Type><Init>-1</Init><id>2</id></Monster>
-              <Monster><Name>Aboleth</Name><CR>7</CR><HP>84</HP><Type>aberration</Type><Init>5</Init><id>1</id></Monster>
+              <Monster><Name>Aboleth</Name><CR>7</CR><HP>84</HP><Type>aberration</Type><Init>5</Init><CMB>+14</CMB><CMD>28</CMD><id>1</id></Monster>
             </ArrayOfMonster>
             """;
         using var stream = new MemoryStream(Encoding.UTF8.GetBytes(xml));
@@ -268,6 +268,8 @@ public sealed class CoreUtilityTests
         Assert.AreEqual("Aboleth  •  CR 7", creatures[0].ListText);
         Assert.AreEqual(84, creatures[0].HP);
         Assert.AreEqual(5, creatures[0].InitiativeModifier);
+        Assert.AreEqual("+14", creatures[0].CMB);
+        Assert.AreEqual("28", creatures[0].CMD);
         Assert.AreEqual("undead", creatures[1].Type);
     }
 

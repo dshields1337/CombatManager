@@ -310,3 +310,4 @@ Last updated: 2026-08-28
 - Moved assigned mini descriptions onto a smaller secondary line beneath monster names throughout the combat tabs.
 - Added a Combat button beneath Full details for encounter monsters, exposing the same CR, XP, AC, saves, speed, melee, ranged, senses, and source summary available from the Monsters tab.
 - Verified the monster Combat summary on API 36 with `Goblin (swords)`, including `AC 16, touch 13, flat-footed 14` and its melee/ranged attacks; all 53 core regression tests and the Release Android build pass.
+- Replaced the monster action popup's CR/HP/initiative summary with quick-reference AC, FF AC, Touch AC, CMD, and CMB values from the bundled bestiary; retained Conditions as a separate bold line.

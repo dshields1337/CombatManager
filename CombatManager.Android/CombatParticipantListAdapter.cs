@@ -18,7 +18,7 @@ internal sealed class CombatParticipantListAdapter(Activity context, IReadOnlyLi
         CombatParticipant participant = participants[position];
         bool active = participant.Sequence == activeSequence;
         string inactivePrefix = participant.IsManual && !participant.IsPartyActive ? "Zzz…  " : string.Empty;
-        view.FindViewById<TextView>(Resource.Id.combat_row_name)!.Text = (active ? "▶ " : "") + participant.DisplayName;
+        view.FindViewById<TextView>(Resource.Id.combat_row_name)!.Text = participant.DisplayName;
         view.FindViewById<TextView>(Resource.Id.combat_row_cr)!.Text = "CR " + participant.ChallengeRating +
             (string.IsNullOrWhiteSpace(participant.Notes) ? string.Empty : "\n" + participant.Notes) +
             (participant.Conditions.Count == 0 ? string.Empty : "\n" + string.Join(" • ", participant.Conditions.Select(condition => condition.DisplayText)));
@@ -39,6 +39,9 @@ internal sealed class CombatParticipantListAdapter(Activity context, IReadOnlyLi
             initiative.Text = participant.Initiative.HasValue
                 ? (participant.InitiativeRoll.HasValue ? $"({participant.InitiativeRoll})  {participant.Initiative}" : participant.Initiative.ToString())
                 : "—";
+            TextView condition = view.FindViewById<TextView>(Resource.Id.combat_row_condition)!;
+            condition.Text = SequenceStatusText(participant);
+            condition.Visibility = string.IsNullOrEmpty(condition.Text) ? ViewStates.Gone : ViewStates.Visible;
             LinearLayout controls = view.FindViewById<LinearLayout>(Resource.Id.combat_row_hp_controls)!;
             controls.Visibility = ViewStates.Visible;
             EditText currentHp = view.FindViewById<EditText>(Resource.Id.combat_row_hp_value)!;
@@ -70,9 +73,10 @@ internal sealed class CombatParticipantListAdapter(Activity context, IReadOnlyLi
             view.FindViewById<TextView>(Resource.Id.combat_row_cr)!.Visibility = ViewStates.Visible;
             view.FindViewById<TextView>(Resource.Id.combat_row_hp)!.Visibility = ViewStates.Visible;
             view.FindViewById<LinearLayout>(Resource.Id.combat_row_hp_controls)!.Visibility = ViewStates.Gone;
+            view.FindViewById<TextView>(Resource.Id.combat_row_condition)!.Visibility = ViewStates.Gone;
         }
         SetParticipantName(view.FindViewById<TextView>(Resource.Id.combat_row_name)!, participant,
-            (active ? "▶ " : string.Empty) + inactivePrefix);
+            inactivePrefix);
         if (compact)
         {
             LinearLayout identity = view.FindViewById<LinearLayout>(Resource.Id.combat_row_identity)!;
@@ -83,10 +87,18 @@ internal sealed class CombatParticipantListAdapter(Activity context, IReadOnlyLi
                 args.Handled = true;
             };
         }
-        int background = active ? Resource.Color.primary_light : participant.IsManual && !participant.IsPartyActive
+        int background = participant.IsManual && !participant.IsPartyActive
             ? Resource.Color.inactive_background : compact && !participant.IsManual ? MonsterHealthColor(participant)
             : participant.IsDefeated ? Resource.Color.defeated_background : Resource.Color.page_background;
-        view.SetBackgroundColor(new global::Android.Graphics.Color(context.GetColor(background)));
+        var rowBackground = new global::Android.Graphics.Drawables.GradientDrawable();
+        rowBackground.SetColor(new global::Android.Graphics.Color(context.GetColor(background)));
+        if (active)
+        {
+            int strokeWidth = (int)global::Android.Util.TypedValue.ApplyDimension(
+                global::Android.Util.ComplexUnitType.Dip, 3, context.Resources!.DisplayMetrics);
+            rowBackground.SetStroke(strokeWidth, new global::Android.Graphics.Color(context.GetColor(Resource.Color.text_primary)));
+        }
+        view.Background = rowBackground;
         view.Alpha = participant.IsManual && !participant.IsPartyActive ? 0.55f : 1f;
         view.ContentDescription = string.Join(", ", new[]
         {
@@ -100,6 +112,13 @@ internal sealed class CombatParticipantListAdapter(Activity context, IReadOnlyLi
             string.Join(", ", participant.Conditions.Select(condition => condition.DisplayText))
         }.Where(value => !string.IsNullOrWhiteSpace(value)));
         return view;
+    }
+
+    private static string SequenceStatusText(CombatParticipant participant)
+    {
+        if (participant.CurrentHP <= 0) return "DOWN / DEAD";
+        return string.Join(" • ", participant.Conditions.Select(condition => condition.IsTimed
+            ? $"({condition.Name}: {condition.RemainingTurns} Round{(condition.RemainingTurns == 1 ? string.Empty : "s")})" : condition.Name));
     }
 
     private static int MonsterHealthColor(CombatParticipant participant)
